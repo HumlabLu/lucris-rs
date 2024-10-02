@@ -72,7 +72,16 @@ fn main() -> Result<(), String> {
             },
         }
     }
-    
+
+    if let Some(data) = persons_data {
+        for entry in &data {
+            // Do something with each entry
+            println!("{:?}\n", entry);
+        }
+    } else {
+        println!("No persons data available.");
+    }
+
     debug!("Ending lucris-rs.");
     Ok(())
 }

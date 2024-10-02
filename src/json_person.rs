@@ -26,6 +26,8 @@ pub struct Info {
     created_date: String,
     modified_date: String,
     portal_url: String,
+    // Alias because the snake_case version is not recognised...
+    #[serde(alias = "prettyURLIdentifiers")]
     pretty_url_identifiers: Option<Vec<String>>,
     #[serde(flatten)]
     other: Other,
@@ -191,9 +193,9 @@ pub struct PersonJson {
     pure_id: u64,
     externally_managed: Option<bool>,
     uuid: String,
-    name: Name,
+    pub name: Name,
     fte: f32,
-    info: Info,
+    pub info: Info,
     visibility: Visibility,
     titles: Option<Vec<Title>>,
     profile_informations: Option<Vec<ProfileInformation>>,
