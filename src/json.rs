@@ -87,7 +87,7 @@ pub struct PublicationStatus {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct OneJson {
+pub struct ResearchJson {
     pure_id: u64,
     uuid: String,
     title: Title,
@@ -106,42 +106,33 @@ pub struct OneJson {
 }
 
 // Test function.
-pub fn _read_json(file_path: &str) -> Result<OneJson, Box<dyn std::error::Error>> {
+pub fn _read_json(file_path: &str) -> Result<ResearchJson, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
-    let data: OneJson = serde_json::from_reader(reader)?;
+    let data: ResearchJson = serde_json::from_reader(reader)?;
     Ok(data)
 }
 
-pub fn read_jsonl(file_path: &str) -> Result<Vec<OneJson>, Box<dyn std::error::Error>> {
+pub fn read_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
     let data = Arc::new(Mutex::new(vec![]));
     let failed_count = Arc::new(Mutex::new(0));
     
     reader
-        .lines()        // split to lines serially
+        .lines()
         .filter_map(|line: Result<String, _>| line.ok())
         .par_bridge()   // parallelise
         // expect to check if it works, for prod use ok().
         //.filter_map(|line: String| serde_json::from_str(&line).expect("Err")) // filter out bad lines
         //.filter_map(|line: String| serde_json::from_str(&line).ok()) // filter out bad lines
-        /*
-        .for_each(|v: OneJson| {
-            trace!("title={:?}", v.title.value);
-            
-            // Add to the vector.
-            let mut data = data.lock().unwrap();
-            data.push(v);
-        });*/
         .for_each(|line: String| {
-            match serde_json::from_str::<OneJson>(&line) {
-                Ok(v) => {
-                    trace!("title={:?}", v.title.value);
-                    
-                    // Add the value to the data vector
+            match serde_json::from_str::<ResearchJson>(&line) {
+                Ok(json) => {
+                    trace!("title={:?}", json.title.value);
+                    // Add it to the data vector.
                     let mut data = data.lock().unwrap();
-                    data.push(v);
+                    data.push(json);
                 },
                 Err(_) => {
                     // Increment the failure counter
@@ -150,8 +141,13 @@ pub fn read_jsonl(file_path: &str) -> Result<Vec<OneJson>, Box<dyn std::error::E
                 }
             }
         });
+
+    if *failed_count.lock().unwrap() > 0 {
+        warn!("Failed to parse {} lines.", *failed_count.lock().unwrap());
+    }
     
     // Extract the data from Arc<Mutex<...>> and return it.
     let extracted_data = Arc::try_unwrap(data).unwrap().into_inner().unwrap();
+    info!("Parsed {} lines.", extracted_data.len());
     Ok(extracted_data)
 }

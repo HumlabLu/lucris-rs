@@ -37,8 +37,7 @@ fn main() -> Result<(), String> {
         match read_jsonl(&research_filename) {
             Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
-                println!("{:?}", data.len());
-                println!("We got data");
+                info!("We got {:?}", data.len());
             },
         }
     }
