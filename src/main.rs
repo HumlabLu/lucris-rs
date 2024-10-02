@@ -1,6 +1,6 @@
 use clap::{Parser};
 mod json;
-use json::read_jsonl;
+use json::{read_jsonl, ResearchJson};
 
 #[macro_use]
 extern crate simple_log;
@@ -32,14 +32,27 @@ fn main() -> Result<(), String> {
     simple_log::new(config)?;
     debug!("Starting lucris-rs.");
 
+    let mut research_data: Option<Vec<ResearchJson>> = None;
     if let Some(research_filename) = cli.research {
         info!("Research file {:?}.", research_filename);
         match read_jsonl(&research_filename) {
             Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
                 info!("We got {:?}", data.len());
+                research_data = Some(data);
             },
         }
+    }
+
+    // All the uuids are uniq (should be...). We could make a map
+    // with uuids->data to connect it to the other data.
+    if let Some(data) = research_data {
+        for entry in &data {
+            // Do something with each entry
+            println!("{:?}", entry.uuid);
+        }
+    } else {
+        println!("No research data available.");
     }
     
     debug!("Ending lucris-rs.");

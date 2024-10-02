@@ -89,7 +89,7 @@ pub struct PublicationStatus {
 #[serde(rename_all = "camelCase")]
 pub struct ResearchJson {
     pure_id: u64,
-    uuid: String,
+    pub uuid: String,
     title: Title,
     peer_review: Option<bool>,
     managing_organisational_unit: Option<OrganisationalUnit>,
@@ -99,7 +99,7 @@ pub struct ResearchJson {
     pages: Option<String>,
     volume: Option<String>,
     journal_association: Option<JournalAssociation>,
-    journal_number: String, //Option<String>,
+    journal_number: Option<String>,
     publication_statuses: Vec<PublicationStatus>,
     #[serde(flatten)]
     other: Other,
