@@ -67,7 +67,7 @@ fn main() -> Result<(), String> {
         match read_persons_jsonl(&persons_filename) {
             Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
-                //info!("We got {:?}", data.len());
+                info!("We got {:?}", data.len());
                 persons_data = Some(data);
             },
         }

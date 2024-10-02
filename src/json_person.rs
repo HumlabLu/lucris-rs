@@ -26,7 +26,7 @@ pub struct Info {
     created_date: String,
     modified_date: String,
     portal_url: String,
-    pretty_url_identifiers: Vec<String>,
+    pretty_url_identifiers: Option<Vec<String>>,
     #[serde(flatten)]
     other: Other,
 }
@@ -71,7 +71,7 @@ pub struct TitleValue {
 #[serde(rename_all = "camelCase")]
 pub struct Title {
     pure_id: u64,
-    externally_managed: bool,
+    externally_managed: Option<bool>,
     value: TitleValue,
     title_type: Option<LocaleTexts>,
     #[serde(flatten)]
@@ -92,14 +92,14 @@ pub struct ProfileInformation {
 #[serde(rename_all = "camelCase")]
 pub struct StaffAssociation {
     pure_id: u64,
-    externally_managed: bool,
+    externally_managed: Option<bool>,
     person: Person,
     period: Period,
     is_primary_association: bool,
     organisational_unit: OrganisationalUnit,
     staff_type: StaffType,
-    job_description: LocaleTexts,
-    keyword_groups: Vec<KeywordGroup>,
+    job_description: Option<LocaleTexts>,
+    keyword_groups: Option<Vec<KeywordGroup>>,
     #[serde(flatten)]
     other: Other,
 }
@@ -109,7 +109,7 @@ pub struct StaffAssociation {
 pub struct Person {
     uuid: String,
     link: Link,
-    externally_managed: bool,
+    externally_managed: Option<bool>,
     name: Name,
     #[serde(flatten)]
     other: Other,
@@ -128,7 +128,7 @@ pub struct Period {
 pub struct OrganisationalUnit {
     uuid: String,
     link: Link,
-    externally_managed: bool,
+    externally_managed: Option<bool>,
     name: LocaleTexts,
     unit_type: Option<LocaleTexts>,
     #[serde(flatten)]
@@ -158,7 +158,7 @@ pub struct StaffType {
 #[serde(rename_all = "camelCase")]
 pub struct KeywordGroup {
     pure_id: u64,
-    externally_managed: bool,
+    externally_managed: Option<bool>,
     logical_name: String,
     keyword_type: Option<LocaleTexts>,
     keyword_containers: Vec<KeywordContainer>,
@@ -189,15 +189,15 @@ pub struct StructuredKeyword {
 #[serde(rename_all = "camelCase")]
 pub struct PersonJson {
     pure_id: u64,
-    externally_managed: bool,
+    externally_managed: Option<bool>,
     uuid: String,
     name: Name,
     fte: f32,
     info: Info,
     visibility: Visibility,
-    titles: Vec<Title>,
-    profile_informations: Vec<ProfileInformation>,
-    staff_organisation_associations: Vec<StaffAssociation>,
+    titles: Option<Vec<Title>>,
+    profile_informations: Option<Vec<ProfileInformation>>,
+    staff_organisation_associations: Option<Vec<StaffAssociation>>,
     #[serde(flatten)]
     other: Other,
 }
@@ -223,8 +223,9 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
                     let mut data = data.lock().unwrap();
                     data.push(json);
                 },
-                Err(_) => {
+                Err(e) => {
                     // Increment the failure counter
+                    println!("{}", e);
                     let mut failed = failed_count.lock().unwrap();
                     *failed += 1;
                 }
