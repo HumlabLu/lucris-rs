@@ -122,7 +122,7 @@ pub fn read_json_all(file_path: &str) -> Result<Vec<OneJson>, Box<dyn std::error
         .filter_map(|line: String| serde_json::from_str(&line).ok()) // filter out bad lines
         .for_each(|v: OneJson| {
            // do some processing (in parallel)
-            println!("title={:?}", v.title);
+            println!("title={:?}", v.title.value);
         });
     Ok(data)
 }
