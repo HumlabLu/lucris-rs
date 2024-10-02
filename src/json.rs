@@ -21,6 +21,14 @@ pub struct Title {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct Issn {
+    value: String,
+    #[serde(flatten)]
+    other: Other,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct NameText {
     locale: Option<String>,
     value: String,
@@ -39,10 +47,61 @@ pub struct Name {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
+pub struct Link {
+    #[serde(rename = "ref")]
+    aref: String,
+    href: String,
+    #[serde(flatten)]
+    other: Other,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LocaleTexts {
+    formatted: bool,
+    text: Vec<LocaleText>,
+    #[serde(flatten)]
+    other: Other,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct LocaleText {
+    locale: String,
+    value: String,
+    #[serde(flatten)]
+    other: Other,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct OrgType {
+    pure_id: u64,
+    uri: String,
+    term: LocaleTexts,
+    #[serde(flatten)]
+    other: Other,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct OrganisationalUnit {
     uuid: String,
     externally_managed: Option<bool>,
     name: Name,
+    link: Link,
+    #[serde(rename = "type")] 
+    org_type: OrgType,
+    #[serde(flatten)]
+    other: Other,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct Category {
+    pure_id: u64,
+    uri: String,
+    term: LocaleTexts,
     #[serde(flatten)]
     other: Other,
 }
@@ -52,6 +111,7 @@ pub struct OrganisationalUnit {
 pub struct Journal {
     uuid: String,
     name: Name,
+    link: Link,
     #[serde(flatten)]
     other: Other,
 }
@@ -62,6 +122,16 @@ pub struct JournalAssociation {
     pure_id: u64,
     title: Title,
     journal: Journal,
+    issn: Option<Issn>,
+    #[serde(flatten)]
+    other: Other,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AdditionalExtraIds {
+    value: String,
+    id_source: String,
     #[serde(flatten)]
     other: Other,
 }
@@ -72,6 +142,11 @@ pub struct Info {
     created_date: String,
     modified_date: String,
     portal_url: String,
+    #[serde(rename = "additionalExternalIds")] 
+    addition_extra_ids: Option<Vec<AdditionalExtraIds>>,
+    // Alias because the snake_case version is not recognised...
+    #[serde(alias = "prettyURLIdentifiers")]
+    pretty_url_identifiers: Option<Vec<String>>,
     #[serde(flatten)]
     other: Other,
 }
@@ -80,7 +155,17 @@ pub struct Info {
 #[serde(rename_all = "camelCase")]
 pub struct PublicationStatus {
     pure_id: u64,
-    current: bool,
+    current: Option<bool>,
+    #[serde(flatten)]
+    other: Other,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct PublicationStatuses {
+    pure_id: u64,
+    current: Option<bool>,
+    publication_status: PublicationStatus,
     #[serde(flatten)]
     other: Other,
 }
@@ -93,6 +178,7 @@ pub struct ResearchJson {
     title: Title,
     peer_review: Option<bool>,
     managing_organisational_unit: Option<OrganisationalUnit>,
+    //external_organisations: Option<OrganisationalUnit>,
     confidential: bool,
     info: Info,
     total_scopus_citations: Option<u32>,
@@ -100,7 +186,8 @@ pub struct ResearchJson {
     volume: Option<String>,
     journal_association: Option<JournalAssociation>,
     journal_number: Option<String>,
-    publication_statuses: Vec<PublicationStatus>,
+    category: Category,
+    publication_statuses: Vec<PublicationStatuses>,
     #[serde(flatten)]
     other: Other,
 }

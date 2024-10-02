@@ -55,7 +55,8 @@ fn main() -> Result<(), String> {
     if let Some(data) = research_data {
         for entry in &data {
             // Do something with each entry
-            println!("{:?}", entry.uuid);
+            //println!("{:?}", entry.uuid);
+            println!("{:?}\n", entry);
         }
     } else {
         println!("No research data available.");
