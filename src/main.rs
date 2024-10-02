@@ -35,8 +35,11 @@ fn main() -> Result<(), String> {
     if let Some(research_filename) = cli.research {
         info!("Research file {:?}.", research_filename);
         match read_jsonl(&research_filename) {
-            Ok(data) => println!("{:?}", data),
             Err(e) => eprintln!("Error reading JSON: {}", e),
+            Ok(data) => {
+                println!("{:?}", data.len());
+                println!("We got data");
+            },
         }
     }
     

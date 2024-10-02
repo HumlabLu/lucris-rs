@@ -4,6 +4,7 @@ use std::io::BufReader;
 use std::io::BufRead;
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
+use std::sync::{Arc, Mutex};
 
 // Catch-all type for undefined fields in the structures.
 // These are caught by "#[serde(flatten)]".
@@ -98,33 +99,59 @@ pub struct OneJson {
     pages: Option<String>,
     volume: Option<String>,
     journal_association: Option<JournalAssociation>,
-    journal_number: Option<String>,
+    journal_number: String, //Option<String>,
     publication_statuses: Vec<PublicationStatus>,
     #[serde(flatten)]
     other: Other,
 }
 
-// Function to read the JSON file
-pub fn read_json(file_path: &str) -> Result<OneJson, Box<dyn std::error::Error>> {
+// Test function.
+pub fn _read_json(file_path: &str) -> Result<OneJson, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
     let data: OneJson = serde_json::from_reader(reader)?;
     Ok(data)
 }
+
 pub fn read_jsonl(file_path: &str) -> Result<Vec<OneJson>, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
-    let data = vec![];
+    let data = Arc::new(Mutex::new(vec![]));
+    let failed_count = Arc::new(Mutex::new(0));
+    
     reader
         .lines()        // split to lines serially
         .filter_map(|line: Result<String, _>| line.ok())
-        .par_bridge()   // parallelize
+        .par_bridge()   // parallelise
         // expect to check if it works, for prod use ok().
-        .filter_map(|line: String| serde_json::from_str(&line).expect("err")) // filter out bad lines
+        //.filter_map(|line: String| serde_json::from_str(&line).expect("Err")) // filter out bad lines
         //.filter_map(|line: String| serde_json::from_str(&line).ok()) // filter out bad lines
+        /*
         .for_each(|v: OneJson| {
-           // do some processing (in parallel)
-            println!("title={:?}", v.title.value);
+            trace!("title={:?}", v.title.value);
+            
+            // Add to the vector.
+            let mut data = data.lock().unwrap();
+            data.push(v);
+        });*/
+        .for_each(|line: String| {
+            match serde_json::from_str::<OneJson>(&line) {
+                Ok(v) => {
+                    trace!("title={:?}", v.title.value);
+                    
+                    // Add the value to the data vector
+                    let mut data = data.lock().unwrap();
+                    data.push(v);
+                },
+                Err(_) => {
+                    // Increment the failure counter
+                    let mut failed = failed_count.lock().unwrap();
+                    *failed += 1;
+                }
+            }
         });
-    Ok(data)
+    
+    // Extract the data from Arc<Mutex<...>> and return it.
+    let extracted_data = Arc::try_unwrap(data).unwrap().into_inner().unwrap();
+    Ok(extracted_data)
 }
