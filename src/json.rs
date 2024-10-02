@@ -40,7 +40,7 @@ pub struct Name {
 #[serde(rename_all = "camelCase")]
 pub struct OrganisationalUnit {
     uuid: String,
-    externally_managed: bool,
+    externally_managed: Option<bool>,
     name: Name,
     #[serde(flatten)]
     other: Other,
@@ -90,15 +90,15 @@ pub struct OneJson {
     pure_id: u64,
     uuid: String,
     title: Title,
-    peer_review: bool,
-    managing_organisational_unit: OrganisationalUnit,
+    peer_review: Option<bool>,
+    managing_organisational_unit: Option<OrganisationalUnit>,
     confidential: bool,
     info: Info,
-    total_scopus_citations: u32,
-    pages: String,
-    volume: String,
-    journal_association: JournalAssociation,
-    journal_number: String,
+    total_scopus_citations: Option<u32>,
+    pages: Option<String>,
+    volume: Option<String>,
+    journal_association: Option<JournalAssociation>,
+    journal_number: Option<String>,
     publication_statuses: Vec<PublicationStatus>,
     #[serde(flatten)]
     other: Other,
@@ -111,7 +111,7 @@ pub fn read_json(file_path: &str) -> Result<OneJson, Box<dyn std::error::Error>>
     let data: OneJson = serde_json::from_reader(reader)?;
     Ok(data)
 }
-pub fn read_json_all(file_path: &str) -> Result<Vec<OneJson>, Box<dyn std::error::Error>> {
+pub fn read_jsonl(file_path: &str) -> Result<Vec<OneJson>, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
     let data = vec![];
@@ -119,7 +119,9 @@ pub fn read_json_all(file_path: &str) -> Result<Vec<OneJson>, Box<dyn std::error
         .lines()        // split to lines serially
         .filter_map(|line: Result<String, _>| line.ok())
         .par_bridge()   // parallelize
-        .filter_map(|line: String| serde_json::from_str(&line).ok()) // filter out bad lines
+        // expect to check if it works, for prod use ok().
+        .filter_map(|line: String| serde_json::from_str(&line).expect("err")) // filter out bad lines
+        //.filter_map(|line: String| serde_json::from_str(&line).ok()) // filter out bad lines
         .for_each(|v: OneJson| {
            // do some processing (in parallel)
             println!("title={:?}", v.title.value);

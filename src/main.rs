@@ -1,6 +1,6 @@
 use clap::{Parser};
 mod json;
-use json::read_json_all;
+use json::read_jsonl;
 
 #[macro_use]
 extern crate simple_log;
@@ -34,7 +34,7 @@ fn main() -> Result<(), String> {
 
     if let Some(research_filename) = cli.research {
         info!("Research file {:?}.", research_filename);
-        match read_json_all(&research_filename) {
+        match read_jsonl(&research_filename) {
             Ok(data) => println!("{:?}", data),
             Err(e) => eprintln!("Error reading JSON: {}", e),
         }
