@@ -1,16 +1,18 @@
 use clap::{Parser};
 mod json;
 use json::{read_jsonl, ResearchJson};
+mod json_person;
+use json_person::read_json;
 
 #[macro_use]
 extern crate simple_log;
 use simple_log::LogConfigBuilder;
 
 #[derive(Parser)]
-#[command(version, about, long_about = None)]
+#[command(version, about, long_about = "Reading data.")]
 struct Cli {
     /// Research info jasonl file
-    #[arg(short, long, help="The file containing the cleaned research-outputs.")]
+    #[arg(short, long, help = "The file containing the cleaned research-outputs.")]
     research: Option<String>,
     
     /// Sets the level of logging;
@@ -54,6 +56,12 @@ fn main() -> Result<(), String> {
     } else {
         println!("No research data available.");
     }
+
+    match read_json("one_person.json") {
+        Ok(data) => println!("{:#?}", data),
+        Err(e) => eprintln!("Error reading JSON: {}", e),
+    }
+
     
     debug!("Ending lucris-rs.");
     Ok(())
