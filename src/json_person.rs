@@ -1,6 +1,10 @@
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::BufReader;
+use std::io::BufRead;
+use rayon::iter::ParallelBridge;
+use rayon::iter::ParallelIterator;
+use std::sync::{Arc, Mutex};
 
 // Catch-all type for undefined fields in the structures.
 // These are caught by "#[serde(flatten)]".
@@ -10,8 +14,8 @@ type Other = serde_json::Map<String, serde_json::Value>;
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Name {
-    firstName: Option<String>,
-    lastName: Option<String>,
+    first_name: Option<String>,
+    last_name: Option<String>,
     #[serde(flatten)]
     other: Other,
 }
@@ -19,10 +23,10 @@ pub struct Name {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Info {
-    createdDate: String,
-    modifiedDate: String,
-    portalUrl: String,
-    prettyURLIdentifiers: Vec<String>,
+    created_date: String,
+    modified_date: String,
+    portal_url: String,
+    pretty_url_identifiers: Vec<String>,
     #[serde(flatten)]
     other: Other,
 }
@@ -66,8 +70,8 @@ pub struct TitleValue {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Title {
-    pureId: u64,
-    externallyManaged: bool,
+    pure_id: u64,
+    externally_managed: bool,
     value: TitleValue,
     title_type: Option<LocaleTexts>,
     #[serde(flatten)]
@@ -77,7 +81,7 @@ pub struct Title {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileInformation {
-    pureId: u64,
+    pure_id: u64,
     value: LocaleTexts,
     title_type: Option<LocaleTexts>,
     #[serde(flatten)]
@@ -87,15 +91,15 @@ pub struct ProfileInformation {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct StaffAssociation {
-    pureId: u64,
-    externallyManaged: bool,
+    pure_id: u64,
+    externally_managed: bool,
     person: Person,
     period: Period,
-    isPrimaryAssociation: bool,
-    organisationalUnit: OrganisationalUnit,
-    staffType: StaffType,
-    jobDescription: LocaleTexts,
-    keywordGroups: Vec<KeywordGroup>,
+    is_primary_association: bool,
+    organisational_unit: OrganisationalUnit,
+    staff_type: StaffType,
+    job_description: LocaleTexts,
+    keyword_groups: Vec<KeywordGroup>,
     #[serde(flatten)]
     other: Other,
 }
@@ -105,7 +109,7 @@ pub struct StaffAssociation {
 pub struct Person {
     uuid: String,
     link: Link,
-    externallyManaged: bool,
+    externally_managed: bool,
     name: Name,
     #[serde(flatten)]
     other: Other,
@@ -114,7 +118,7 @@ pub struct Person {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Period {
-    startDate: String,
+    start_date: String,
     #[serde(flatten)]
     other: Other,
 }
@@ -124,7 +128,7 @@ pub struct Period {
 pub struct OrganisationalUnit {
     uuid: String,
     link: Link,
-    externallyManaged: bool,
+    externally_managed: bool,
     name: LocaleTexts,
     unit_type: Option<LocaleTexts>,
     #[serde(flatten)]
@@ -143,7 +147,7 @@ pub struct Link {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct StaffType {
-    pureId: u64,
+    pure_id: u64,
     uri: String,
     term: LocaleTexts,
     #[serde(flatten)]
@@ -153,11 +157,11 @@ pub struct StaffType {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct KeywordGroup {
-    pureId: u64,
-    externallyManaged: bool,
-    logicalName: String,
+    pure_id: u64,
+    externally_managed: bool,
+    logical_name: String,
     keyword_type: Option<LocaleTexts>,
-    keywordContainers: Vec<KeywordContainer>,
+    keyword_containers: Vec<KeywordContainer>,
     #[serde(flatten)]
     other: Other,
 }
@@ -165,8 +169,8 @@ pub struct KeywordGroup {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct KeywordContainer {
-    pureId: u64,
-    structuredKeyword: StructuredKeyword,
+    pure_id: u64,
+    structured_keyword: StructuredKeyword,
     #[serde(flatten)]
     other: Other,
 }
@@ -174,7 +178,7 @@ pub struct KeywordContainer {
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct StructuredKeyword {
-    pureId: u64,
+    pure_id: u64,
     uri: String,
     term: LocaleTexts,
     #[serde(flatten)]
@@ -183,26 +187,56 @@ pub struct StructuredKeyword {
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct OnePerson {
-    pureId: u64,
-    externallyManaged: bool,
+pub struct PersonJson {
+    pure_id: u64,
+    externally_managed: bool,
     uuid: String,
     name: Name,
     fte: f32,
     info: Info,
     visibility: Visibility,
     titles: Vec<Title>,
-    profileInformations: Vec<ProfileInformation>,
-    staffOrganisationAssociations: Vec<StaffAssociation>,
+    profile_informations: Vec<ProfileInformation>,
+    staff_organisation_associations: Vec<StaffAssociation>,
     #[serde(flatten)]
     other: Other,
 }
 
-// Function to read the JSON file into OnePerson structure
-pub fn read_json(file_path: &str) -> Result<OnePerson, Box<dyn std::error::Error>> {
+pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
-    let person_data: OnePerson = serde_json::from_reader(reader)?;
-    Ok(person_data)
-}
+    let data = Arc::new(Mutex::new(vec![]));
+    let failed_count = Arc::new(Mutex::new(0));
+    
+    reader
+        .lines()
+        .filter_map(|line: Result<String, _>| line.ok())
+        .par_bridge()   // parallelise
+        // expect to check if it works, for prod use ok().
+        //.filter_map(|line: String| serde_json::from_str(&line).expect("Err")) // filter out bad lines
+        //.filter_map(|line: String| serde_json::from_str(&line).ok()) // filter out bad lines
+        .for_each(|line: String| {
+            match serde_json::from_str::<PersonJson>(&line) {
+                Ok(json) => {
+                    //trace!("title={:?}", json.title.value);
+                    // Add it to the data vector.
+                    let mut data = data.lock().unwrap();
+                    data.push(json);
+                },
+                Err(_) => {
+                    // Increment the failure counter
+                    let mut failed = failed_count.lock().unwrap();
+                    *failed += 1;
+                }
+            }
+        });
 
+    if *failed_count.lock().unwrap() > 0 {
+        warn!("Failed to parse {} lines.", *failed_count.lock().unwrap());
+    }
+    
+    // Extract the data from Arc<Mutex<...>> and return it.
+    let extracted_data = Arc::try_unwrap(data).unwrap().into_inner().unwrap();
+    info!("Parsed {} lines.", extracted_data.len());
+    Ok(extracted_data)
+}

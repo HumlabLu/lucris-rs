@@ -2,7 +2,7 @@ use clap::{Parser};
 mod json;
 use json::{read_jsonl, ResearchJson};
 mod json_person;
-use json_person::read_json;
+use json_person::{read_persons_jsonl, PersonJson};
 
 #[macro_use]
 extern crate simple_log;
@@ -14,7 +14,11 @@ struct Cli {
     /// Research info jasonl file
     #[arg(short, long, help = "The file containing the cleaned research-outputs.")]
     research: Option<String>,
-    
+
+    /// Persons info jasonl file
+    #[arg(short, long, help = "The file containing the cleaned persons.")]
+    persons: Option<String>,
+
     /// Sets the level of logging;
     /// error (highest priority), warn, info, debug, or trace
     #[arg(short, long, default_value = "warn")]
@@ -57,11 +61,17 @@ fn main() -> Result<(), String> {
         println!("No research data available.");
     }
 
-    match read_json("one_person.json") {
-        Ok(data) => println!("{:#?}", data),
-        Err(e) => eprintln!("Error reading JSON: {}", e),
+    let mut persons_data: Option<Vec<PersonJson>> = None;
+    if let Some(persons_filename) = cli.persons {
+        info!("Research file {:?}.", persons_filename);
+        match read_persons_jsonl(&persons_filename) {
+            Err(e) => eprintln!("Error reading JSON: {}", e),
+            Ok(data) => {
+                //info!("We got {:?}", data.len());
+                persons_data = Some(data);
+            },
+        }
     }
-
     
     debug!("Ending lucris-rs.");
     Ok(())
