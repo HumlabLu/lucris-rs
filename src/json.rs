@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::BufReader;
+use std::io::BufRead;
+use rayon::iter::ParallelBridge;
+use rayon::iter::ParallelIterator;
 
 // Catch-all type for undefined fields in the structures.
 // These are caught by "#[serde(flatten)]".
@@ -105,20 +108,21 @@ pub struct OneJson {
 pub fn read_json(file_path: &str) -> Result<OneJson, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
-    /*
-    let fd = std::fs::File::open("logs").unwrap();
-    let x = std::io::BufReader::new(fd);
-
-    x
+    let data: OneJson = serde_json::from_reader(reader)?;
+    Ok(data)
+}
+pub fn read_json_all(file_path: &str) -> Result<Vec<OneJson>, Box<dyn std::error::Error>> {
+    let file = File::open(file_path)?;
+    let reader = BufReader::new(file);
+    let data = vec![];
+    reader
         .lines()        // split to lines serially
         .filter_map(|line: Result<String, _>| line.ok())
         .par_bridge()   // parallelize
         .filter_map(|line: String| serde_json::from_str(&line).ok()) // filter out bad lines
-        .for_each(|v: LogLine| {
+        .for_each(|v: OneJson| {
            // do some processing (in parallel)
-           println!("X={}", v.f1);
+            println!("title={:?}", v.title);
         });
-    */
-    let data: OneJson = serde_json::from_reader(reader)?;
     Ok(data)
 }
