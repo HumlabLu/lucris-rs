@@ -218,14 +218,16 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
         .for_each(|line: String| {
             match serde_json::from_str::<PersonJson>(&line) {
                 Ok(json) => {
-                    //trace!("title={:?}", json.title.value);
+                    trace!("uuid={:?}", json.uuid);
+
                     // Add it to the data vector.
                     let mut data = data.lock().unwrap();
                     data.push(json);
                 },
                 Err(e) => {
-                    // Increment the failure counter
-                    println!("{}", e);
+                    error!("{}", e);
+
+                    // Increment the failure counter.
                     let mut failed = failed_count.lock().unwrap();
                     *failed += 1;
                 }

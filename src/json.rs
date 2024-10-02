@@ -134,8 +134,10 @@ pub fn read_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn std::err
                     let mut data = data.lock().unwrap();
                     data.push(json);
                 },
-                Err(_) => {
-                    // Increment the failure counter
+                Err(e) => {
+                    error!("{}", e);
+
+                    // Increment the failure counter.
                     let mut failed = failed_count.lock().unwrap();
                     *failed += 1;
                 }
