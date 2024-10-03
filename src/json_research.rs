@@ -603,7 +603,7 @@ pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn
     
     // Extract the data from Arc<Mutex<...>> and return it.
     let extracted_data = Arc::try_unwrap(data).unwrap().into_inner().unwrap();
-    info!("Parsed {} lines.", extracted_data.len());
+    info!("Extracted {} entries.", extracted_data.len());
     Ok(extracted_data)
 }
 

@@ -533,14 +533,43 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
     
     // Extract the data from Arc<Mutex<...>> and return it.
     let extracted_data = Arc::try_unwrap(data).unwrap().into_inner().unwrap();
-    info!("Parsed {} lines.", extracted_data.len());
+    info!("Extracted {} entries.", extracted_data.len());
     Ok(extracted_data)
 }
 
-pub fn test_person() {
-    let data = r#"{"pureId":141649,"externallyManaged":true,"uuid":"34347c3f-5f08-4412-a9f8-573a58acc46e","name":{"firstName":"Torbjörn","lastName":"Hjort"},"fte":0.0,"info":{"createdDate":"2016-03-31T14:02:53.048+0200","modifiedDate":"2023-06-30T01:40:44.964+0200","portalUrl":"https://portal.research.lu.se/en/persons/34347c3f-5f08-4412-a9f8-573a58acc46e","prettyURLIdentifiers":["torbjörn-hjort"]},"visibility":{"key":"FREE","value":{"formatted":false,"text":[{"locale":"en_GB","value":"Public - No restriction"},{"locale":"sv_SE","value":"Allmänt tillgänglig - Inga restriktioner"}]}},"titles":[{"pureId":141693,"externallyManaged":true,"value":{"formatted":false,"text":[{"locale":"en_GB","value":"senior lecturer"},{"locale":"sv_SE","value":"Universitetslektor"}]},"type":{"pureId":4872,"uri":"/dk/atira/pure/person/titles/generic","term":{"formatted":false,"text":[{"locale":"en_GB","value":"Title"},{"locale":"sv_SE","value":"Titel"}]}}}],"profileInformations":[{"pureId":7253612,"value":{"formatted":true,"text":[{"locale":"en_GB","value":"<p>My research interests concerns sustenance problems and economic vulnerability. One area involves the questions of what implications economic vulnerability may have in a society characterized by consumption. Another area is focused on how the welfare state relates to economic vulnerability and how notions of what is a reasonable standard of living are created and manifested. In a third area, I study how society’s financialization affects the individual, in particular groups with limited financial resources. I am also involved in research concerning how the role of the citizen changes in relation to an increased freedom of choice regarding welfare services.</p>"},{"locale":"sv_SE","value":"<p>Mina forskningsområden berör på olika sätt försörjningsproblem och ekonomisk utsatthet. Ett område fokuserar på vad ekonomisk utsatthet kan ha för innebörder i ett samhälle präglat av konsumtion. Ett annat område handlar om hur välfärdsstaten förhåller sig till ekonomisk utsatthet och om hur föreställningar kring skälig levnadsnivå skapas och tar sig uttryck. I ett tredje område studerar jag hur samhällets finansialisering påverkar den enskilde, företrädesvis grupper med knapp ekonomi. Vidare är jag involverad i forskning som rör hur medborgarrollen förändras i takt med en ökad valfrihet gällande välfärdstjänster.</p>"}]},"type":{"pureId":106829375,"uri":"/dk/atira/pure/person/customfields/researchinterests","term":{"formatted":false,"text":[{"locale":"en_GB","value":"Research"},{"locale":"sv_SE","value":"Forskning"}]}}},{"pureId":7253613,"value":{"formatted":true,"text":[{"locale":"en_GB","value":"<p>I am mainly involved in the fifth, sixth and seventh semesters of the BSc in Social work programme, including supervising and examining bachelor’s theses. I am also involved in the master's programme and have been course director for the course Social Work with Poverty and Maintenance Problems.</p>"},{"locale":"sv_SE","value":"<p>Jag arbetar huvudsakligen på terminerna 5, 6 och 7 på socionomprogrammet där jag bland annat handleder och examinerar c-uppsatser. Jag är också involverad i masterprogrammet och har varit kursföreståndare för kursen Socialt arbete med fattigdom och försörjningsproblem.</p>"}]},"type":{"pureId":4830,"uri":"/dk/atira/pure/person/customfields/teaching","term":{"formatted":false,"text":[{"locale":"en_GB","value":"Teaching"},{"locale":"sv_SE","value":"Undervisning"}]}}}],"staffOrganisationAssociations":[{"pureId":141668,"externallyManaged":true,"person":{"uuid":"34347c3f-5f08-4412-a9f8-573a58acc46e","link":{"ref":"content","href":"https://lucris.lub.lu.se/ws/api/524/persons/34347c3f-5f08-4412-a9f8-573a58acc46e"},"externallyManaged":true,"name":{"formatted":false,"text":[{"value":"Torbjörn Hjort"}]}},"period":{"startDate":"2015-09-21T12:00:00.000+0200"},"isPrimaryAssociation":false,"organisationalUnit":{"uuid":"069c947f-fe86-4b45-b1de-f7eb56cbef44","link":{"ref":"content","href":"https://lucris.lub.lu.se/ws/api/524/organisational-units/069c947f-fe86-4b45-b1de-f7eb56cbef44"},"externallyManaged":true,"name":{"formatted":false,"text":[{"locale":"en_GB","value":"School of Social Work"},{"locale":"sv_SE","value":"Socialhögskolan"}]},"type":{"pureId":6028,"uri":"/dk/atira/pure/organisation/organisationtypes/organisation/department","term":{"formatted":false,"text":[{"locale":"en_GB","value":"Department"},{"locale":"sv_SE","value":"Institution"}]}}},"staffType":{"pureId":8523,"uri":"/dk/atira/pure/person/personstafftype/academic","term":{"formatted":false,"text":[{"locale":"en_GB","value":"Academic"},{"locale":"sv_SE","value":"!!Academic"}]}},"jobDescription":{"formatted":false,"text":[{"locale":"en_GB","value":"Associate professor, Senior lecturer"},{"locale":"sv_SE","value":"Docent, Universitetslektor"}]},"keywordGroups":[{"pureId":141682,"externallyManaged":true,"logicalName":"exofficio","type":{"uri":"/dk/atira/pure/person/staff/exofficio","term":{"formatted":false,"text":[{"locale":"en_GB","value":"Ex Officio"},{"locale":"sv_SE","value":"Verksamhetsroller"}]}},"keywordContainers":[{"pureId":141683,"structuredKeyword":{"pureId":5324,"uri":"/dk/atira/pure/person/staff/exofficio/sen_lecturer","term":{"formatted":false,"text":[{"locale":"en_GB","value":"senior lecturer"},{"locale":"sv_SE","value":"universitetslektor"}]}}},{"pureId":91199305,"structuredKeyword":{"pureId":4976,"uri":"/dk/atira/pure/person/staff/exofficio/reader","term":{"formatted":false,"text":[{"locale":"en_GB","value":"Associate Professor"},{"locale":"sv_SE","value":"docent"}]}}}]}]},{"pureId":129698080,"externallyManaged":true,"person":{"uuid":"34347c3f-5f08-4412-a9f8-573a58acc46e","link":{"ref":"content","href":"https://lucris.lub.lu.se/ws/api/524/persons/34347c3f-5f08-4412-a9f8-573a58acc46e"},"externallyManaged":true,"name":{"formatted":false,"text":[{"value":"Torbjörn Hjort"}]}},"period":{"startDate":"2022-11-29T12:00:00.000+0100"},"isPrimaryAssociation":false,"organisationalUnit":{"uuid":"0c396fd2-1eb2-4356-a95e-fe18c666c946","link":{"ref":"content","href":"https://lucris.lub.lu.se/ws/api/524/organisational-units/0c396fd2-1eb2-4356-a95e-fe18c666c946"},"externallyManaged":true,"name":{"formatted":false,"text":[{"locale":"en_GB","value":"Social Vulnerability and Inequality"},{"locale":"sv_SE","value":"Social utsatthet och ojämlikhet"}]},"type":{"pureId":6055,"uri":"/dk/atira/pure/organisation/organisationtypes/organisation/groupingnode","term":{"formatted":false,"text":[{"locale":"en_GB","value":"Grouping node"},{"locale":"sv_SE","value":"grupperingsnod"}]}}},"staffType":{"pureId":8523,"uri":"/dk/atira/pure/person/personstafftype/academic","term":{"formatted":false,"text":[{"locale":"en_GB","value":"Academic"},{"locale":"sv_SE","value":"!!Academic"}]}},"jobDescription":{"formatted":false,"text":[{"locale":"en_GB","value":"Senior lecturer"},{"locale":"sv_SE","value":"Universitetslektor"}]},"keywordGroups":[{"pureId":129698083,"externallyManaged":true,"logicalName":"exofficio","type":{"uri":"/dk/atira/pure/person/staff/exofficio","term":{"formatted":false,"text":[{"locale":"en_GB","value":"Ex Officio"},{"locale":"sv_SE","value":"Verksamhetsroller"}]}},"keywordContainers":[{"pureId":129698084,"structuredKeyword":{"pureId":5324,"uri":"/dk/atira/pure/person/staff/exofficio/sen_lecturer","term":{"formatted":false,"text":[{"locale":"en_GB","value":"senior lecturer"},{"locale":"sv_SE","value":"universitetslektor"}]}}}]}]}]}
-    "#;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn person_extract_pureid() {
+        let data = r#"{"pureId":282828}"#;
+        let person: PersonJson = serde_json::from_str(data).expect("Err");
+        assert!(person.pureId == Some(282828));
+    }
 
-    let root: PersonJson = serde_json::from_str(data).expect("Err");
-    println!("{:#?}", root);
+    #[test]
+    fn test_person_parsing() {
+        let data = r#"
+        {
+          "pureId": 282828,
+          "externallyManaged": true,
+          "uuid": "01234567-0123-0123-0123-0123456789ABC",
+          "name": {
+            "firstName": "Petrus",
+            "lastName": "Berck"
+          }
+        }
+        "#;        
+        let person: PersonJson = serde_json::from_str(data).expect("Err");
+        assert_eq!(person.pureId, Some(282828));
+        assert_eq!(person.externallyManaged, Some(true));
+        assert_eq!(person.uuid.as_deref(), Some("01234567-0123-0123-0123-0123456789ABC"));
+        if let Some(name) = person.name {
+            assert_eq!(name.firstName.as_deref(), Some("Petrus"));
+            assert_eq!(name.lastName.as_deref(), Some("Berck"));
+        } else {
+            panic!("Could not parse name struct.");
+        }
+    }
 }

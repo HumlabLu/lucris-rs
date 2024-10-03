@@ -41,6 +41,20 @@ fn main() -> Result<(), String> {
     simple_log::new(config)?;
     debug!("Starting lucris-rs.");
 
+            let data = r#"
+        {
+          "pureId": 282828,
+          "externallyManaged": true,
+          "uuid": "01234567-0123-0123-0123-0123456789ABC",
+          "name": {
+            "firstName": "Petrus",
+            "lastName": "Berck"
+          }
+        }
+        "#;        
+    let person: PersonJson = serde_json::from_str(data).expect("Err");
+    println!("{:?}", person);
+    
     // Parse the research data, structures are pushed
     // into a vector.
     let mut research_data: Option<Vec<ResearchJson>> = None;
@@ -70,7 +84,7 @@ fn main() -> Result<(), String> {
             }
         }
     } else {
-        println!("No research data available.");
+        warn!("No research data available.");
     }
 
     // Parse the persons JSON. Each struct is pushed into
@@ -105,11 +119,11 @@ fn main() -> Result<(), String> {
             if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
                 //println!("Name: {} {}", first_name, last_name);
             } else {
-                println!("First or last name not found.");
+                error!("First or last name not found.");
             }
         }
     } else {
-        println!("No persons data available.");
+        warn!("No persons data available.");
     }
 
     //test();
