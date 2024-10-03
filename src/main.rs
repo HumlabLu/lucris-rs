@@ -2,7 +2,9 @@ use clap::{Parser};
 mod json;
 use json::{read_jsonl, ResearchJson};
 mod json_person;
-use json_person::{read_persons_jsonl, PersonJson};
+use json_person::{read_persons_jsonl, PersonJson, test_person};
+mod json_research;
+use json_research::{test};
 
 #[macro_use]
 extern crate simple_log;
@@ -83,6 +85,9 @@ fn main() -> Result<(), String> {
         println!("No persons data available.");
     }
 
+    test();
+    test_person();
+    
     debug!("Ending lucris-rs.");
     Ok(())
 }
