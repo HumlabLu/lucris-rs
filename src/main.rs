@@ -1,10 +1,8 @@
 use clap::{Parser};
-mod json;
-use json::{read_jsonl, ResearchJson};
 mod json_person;
 use json_person::{read_persons_jsonl, PersonJson, test_person};
 mod json_research;
-use json_research::{test};
+use json_research::{ResearchJson, read_research_jsonl, test};
 
 #[macro_use]
 extern crate simple_log;
@@ -43,7 +41,7 @@ fn main() -> Result<(), String> {
     let mut research_data: Option<Vec<ResearchJson>> = None;
     if let Some(research_filename) = cli.research {
         info!("Research file {:?}.", research_filename);
-        match read_jsonl(&research_filename) {
+        match read_research_jsonl(&research_filename) {
             Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
                 info!("We got {:?}", data.len());
@@ -58,7 +56,7 @@ fn main() -> Result<(), String> {
         for entry in &data {
             // Do something with each entry
             //println!("{:?}", entry.uuid);
-            println!("{:?}\n", entry);
+            println!("{:?}\n", entry.uuid);
         }
     } else {
         println!("No research data available.");
@@ -85,8 +83,8 @@ fn main() -> Result<(), String> {
         println!("No persons data available.");
     }
 
-    test();
-    test_person();
+    //test();
+    //test_person();
     
     debug!("Ending lucris-rs.");
     Ok(())
