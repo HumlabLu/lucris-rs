@@ -56,7 +56,11 @@ fn main() -> Result<(), String> {
         for entry in &data {
             // Do something with each entry
             //println!("{:?}", entry.uuid);
-            println!("{:?}\n", entry.get_uuid());
+            if let Some(uuid) = entry.get_uuid() {
+                println!("{}", uuid);
+            } else {
+                error!("Research JSON does not contain uuid.");
+            }
         }
     } else {
         println!("No research data available.");

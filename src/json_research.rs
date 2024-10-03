@@ -360,7 +360,13 @@ pub struct OpenAccessPermission {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct OutputMedia {
+#[serde(untagged)]
+pub enum OutputMedia {
+    String(String),
+    Struct(OutputMediaStruct),
+}
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OutputMediaStruct {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
@@ -580,6 +586,7 @@ pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn
                 },
                 Err(e) => {
                     error!("{}", e);
+                    //error!("{}", line);
 
                     // Increment the failure counter.
                     let mut failed = failed_count.lock().unwrap();
