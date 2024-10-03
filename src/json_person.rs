@@ -444,6 +444,37 @@ pub struct Visibility {
     pub value: Option<Term>,
 }
 
+// ----
+
+impl PersonJson {
+    pub fn get_all_education_pure_ids(&self) -> Vec<u64> {
+        let mut ids = Vec::new();
+        if let Some(educations) = &self.educations {
+            for education in educations {
+                if let Some(pure_id) = education.pureId {
+                    ids.push(pure_id);
+                }
+            }
+        }
+        ids
+    }
+
+    // Getter function for the Person struct
+    pub fn get_first_and_last_name(&self) -> Option<(String, String)> {
+        if let Some(name) = &self.name {
+            if let (Some(first_name), Some(last_name)) = (&name.firstName, &name.lastName) {
+                Some((first_name.clone(), last_name.clone()))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+}
+
+// ----
+
 pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);

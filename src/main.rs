@@ -1,8 +1,8 @@
 use clap::{Parser};
 mod json_person;
-use json_person::{read_persons_jsonl, PersonJson, test_person};
+use json_person::{read_persons_jsonl, PersonJson};
 mod json_research;
-use json_research::{ResearchJson, read_research_jsonl, test};
+use json_research::{ResearchJson, read_research_jsonl};
 
 #[macro_use]
 extern crate simple_log;
@@ -56,7 +56,7 @@ fn main() -> Result<(), String> {
         for entry in &data {
             // Do something with each entry
             //println!("{:?}", entry.uuid);
-            println!("{:?}\n", entry.uuid);
+            println!("{:?}\n", entry.get_uuid());
         }
     } else {
         println!("No research data available.");
@@ -77,7 +77,13 @@ fn main() -> Result<(), String> {
     if let Some(data) = persons_data {
         for entry in &data {
             // Do something with each entry
-            println!("{:?}\n", entry);
+            //println!("{:?}\n", entry);
+            if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
+                println!("Name: {} {}", first_name, last_name);
+            } else {
+                println!("First or last name not found.");
+            }
+            
         }
     } else {
         println!("No persons data available.");

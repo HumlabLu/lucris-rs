@@ -83,7 +83,7 @@ pub struct ResearchJson {
     pub typeDescription: Option<FormattedText>,
     #[serde(rename = "type")]
     pub type_field: Option<TypeField>,
-    pub uuid: Option<String>,
+    pub uuid: Option<String>, // Prolly doesnae have to be an Option.
     pub visibility: Option<Visibility>,
     pub volume: Option<String>,
     pub workflow: Option<Workflow>,
@@ -546,6 +546,16 @@ pub struct Workflow {
     pub value: Option<Term>,
     pub workflowStep: Option<String>,
 }
+
+// ----
+
+impl ResearchJson {
+    pub fn get_uuid(&self) -> Option<String> {
+        self.uuid.clone()
+    }
+}
+
+// ----
 
 pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn std::error::Error>> {
     let file = FSFile::open(file_path)?;
