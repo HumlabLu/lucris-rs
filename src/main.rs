@@ -70,7 +70,7 @@ fn main() -> Result<(), String> {
             }
         }
     } else {
-        warn!("No research data available.");
+        debug!("No research data available.");
     }
 
     // Parse the persons JSON. Each struct is pushed into
@@ -109,12 +109,9 @@ fn main() -> Result<(), String> {
             }
         }
     } else {
-        warn!("No persons data available.");
+        debug!("No persons data available.");
     }
 
-    //test();
-    //test_person();
-    
     debug!("Ending lucris-rs.");
     Ok(())
 }
