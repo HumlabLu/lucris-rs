@@ -473,7 +473,7 @@ impl PersonJson {
         ids
     }
 
-    // Getter function for the Person struct
+    // Getter function for first and last name.
     pub fn get_first_and_last_name(&self) -> Option<(String, String)> {
         if let Some(name) = &self.name {
             if let (Some(first_name), Some(last_name)) = (&name.firstName, &name.lastName) {
@@ -485,6 +485,11 @@ impl PersonJson {
             None
         }
     }
+    
+    pub fn get_uuid(&self) -> Option<&str> {
+        self.uuid.as_deref()
+    }
+
 }
 
 // ----
@@ -513,7 +518,7 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
                 },
                 Err(e) => {
                     error!("{}", e);
-                    panic!("{}", line);
+                    //panic!("{}", line);
                     
                     // Increment the failure counter.
                     let mut failed = failed_count.lock().unwrap();

@@ -579,7 +579,9 @@ pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn
         .for_each(|line: String| {
             match serde_json::from_str::<ResearchJson>(&line) {
                 Ok(json) => {
-                    trace!("title={:?}", json.title.clone().unwrap().value);
+                    //trace!("title={:?}", json.title.clone().unwrap().value);
+                    trace!("uuid={:?}", json.uuid);
+                    
                     // Add it to the data vector.
                     let mut data = data.lock().unwrap();
                     data.push(json);

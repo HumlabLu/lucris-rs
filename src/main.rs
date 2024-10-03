@@ -3,6 +3,7 @@ mod json_person;
 use json_person::{read_persons_jsonl, PersonJson};
 mod json_research;
 use json_research::{ResearchJson, read_research_jsonl};
+use std::collections::HashMap;
 
 #[macro_use]
 extern crate simple_log;
@@ -40,13 +41,14 @@ fn main() -> Result<(), String> {
     simple_log::new(config)?;
     debug!("Starting lucris-rs.");
 
+    // Parse the research data, structures are pushed
+    // into a vector.
     let mut research_data: Option<Vec<ResearchJson>> = None;
     if let Some(research_filename) = cli.research {
         info!("Research file {:?}.", research_filename);
         match read_research_jsonl(&research_filename) {
             Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
-                info!("We got {:?}", data.len());
                 research_data = Some(data);
             },
         }
@@ -54,12 +56,15 @@ fn main() -> Result<(), String> {
 
     // All the uuids are uniq (should be...). We could make a map
     // with uuids->data to connect it to the other data.
+    let mut uuids: HashMap<String, u64> = HashMap::new();
     if let Some(data) = research_data {
         for entry in &data {
-            // Do something with each entry
-            //println!("{:?}", entry.uuid);
             if let Some(uuid) = entry.get_uuid() {
-                println!("{}", uuid);
+                //println!("{}", uuid);
+                if uuids.contains_key(uuid) == true {
+                    warn!("Repeating uuid: {}", uuid);
+                }
+                uuids.insert(uuid.to_string(), 0);
             } else {
                 error!("Research JSON does not contain uuid.");
             }
@@ -68,28 +73,40 @@ fn main() -> Result<(), String> {
         println!("No research data available.");
     }
 
+    // Parse the persons JSON. Each struct is pushed into
+    // a vector. 
     let mut persons_data: Option<Vec<PersonJson>> = None;
     if let Some(persons_filename) = cli.persons {
-        info!("Research file {:?}.", persons_filename);
+        info!("Persons file {:?}.", persons_filename);
         match read_persons_jsonl(&persons_filename) {
             Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
-                info!("We got {:?}", data.len());
                 persons_data = Some(data);
             },
         }
     }
 
+    // If we successfully parsed person data, we extracts
+    // the uuids.
+    let mut persons_uuids: HashMap<String, u64> = HashMap::new();
     if let Some(data) = persons_data {
         for entry in &data {
             // Do something with each entry
             //println!("{:?}\n", entry);
+            if let Some(uuid) = entry.get_uuid() {
+                //println!("{}", uuid);
+                if persons_uuids.contains_key(uuid) == true {
+                    warn!("Repeating uuid: {}", uuid);
+                }
+                persons_uuids.insert(uuid.to_string(), 0);
+            } else {
+                error!("Research JSON does not contain uuid.");
+            }
             if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
-                println!("Name: {} {}", first_name, last_name);
+                //println!("Name: {} {}", first_name, last_name);
             } else {
                 println!("First or last name not found.");
             }
-            
         }
     } else {
         println!("No persons data available.");
