@@ -556,8 +556,8 @@ pub struct Workflow {
 // ----
 
 impl ResearchJson {
-    pub fn get_uuid(&self) -> Option<String> {
-        self.uuid.clone()
+    pub fn get_uuid(&self) -> Option<&str> {
+        self.uuid.as_deref()
     }
 }
 
