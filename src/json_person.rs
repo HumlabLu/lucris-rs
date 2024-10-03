@@ -107,9 +107,23 @@ pub struct FormattedText {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum DateField {
+    Struct(DateStruct),
+    String(String),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DateStruct {
+    pub day: Option<u32>,
+    pub month: Option<u32>,
+    pub year: Option<u32>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Period {
-    pub startDate: Option<Date>,
-    pub endDate: Option<Date>,
+    pub startDate: Option<DateField>,
+    pub endDate: Option<DateField>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -499,7 +513,8 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
                 },
                 Err(e) => {
                     error!("{}", e);
-
+                    panic!("{}", line);
+                    
                     // Increment the failure counter.
                     let mut failed = failed_count.lock().unwrap();
                     *failed += 1;

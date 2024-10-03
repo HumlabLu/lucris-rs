@@ -30,6 +30,8 @@ fn main() -> Result<(), String> {
 
     let config = LogConfigBuilder::builder()
         .path("./lucris.log")
+        .size(1024) // MB
+        .roll_count(10)
         .output_file()
         .level(cli.log_level)?
         .time_format("%Y-%m-%d %H:%M:%S")
