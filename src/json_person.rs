@@ -476,7 +476,7 @@ impl PersonJson {
 
     // Getter function for first and last name.
     #[allow(dead_code)]
-    pub fn get_first_and_last_name(&self) -> Option<(String, String)> {
+    pub fn get_first_and_last_name_old(&self) -> Option<(String, String)> {
         if let Some(name) = &self.name {
             if let (Some(first_name), Some(last_name)) = (&name.firstName, &name.lastName) {
                 Some((first_name.clone(), last_name.clone()))
@@ -488,10 +488,18 @@ impl PersonJson {
         }
     }
     
+    #[allow(dead_code)]
+    pub fn get_first_and_last_name(&self) -> Option<(&str, &str)> {
+        Some((
+        self.name.as_ref()?.firstName.as_deref()?,
+        self.name.as_ref()?.lastName.as_deref()?,
+        ))
+    }
+
+    // The uuid, should always be present. Return a slice.
     pub fn get_uuid(&self) -> Option<&str> {
         self.uuid.as_deref()
     }
-
 }
 
 // ----
