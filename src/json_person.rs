@@ -549,6 +549,13 @@ mod tests {
     }
 
     #[test]
+    fn empty_person() {
+        let data = r#"{}"#;
+        let person: PersonJson = serde_json::from_str(data).expect("Err");
+        assert!(person.pureId == None);
+    }
+
+    #[test]
     fn test_person_parsing() {
         let data = r#"
         {
