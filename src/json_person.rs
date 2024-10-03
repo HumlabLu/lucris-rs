@@ -461,6 +461,7 @@ pub struct Visibility {
 // ----
 
 impl PersonJson {
+    #[allow(dead_code)]
     pub fn get_all_education_pure_ids(&self) -> Vec<u64> {
         let mut ids = Vec::new();
         if let Some(educations) = &self.educations {
@@ -474,6 +475,7 @@ impl PersonJson {
     }
 
     // Getter function for first and last name.
+    #[allow(dead_code)]
     pub fn get_first_and_last_name(&self) -> Option<(String, String)> {
         if let Some(name) = &self.name {
             if let (Some(first_name), Some(last_name)) = (&name.firstName, &name.lastName) {

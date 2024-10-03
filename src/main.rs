@@ -102,11 +102,14 @@ fn main() -> Result<(), String> {
             } else {
                 error!("Research JSON does not contain uuid.");
             }
+            /*
             if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
-                //println!("Name: {} {}", first_name, last_name);
+                trace!("Name: {} {}", first_name, last_name);
             } else {
                 error!("First or last name not found.");
             }
+            trace!("{:?}", entry.get_all_education_pure_ids());
+            */
         }
     } else {
         debug!("No persons data available.");
