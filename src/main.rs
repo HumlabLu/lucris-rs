@@ -40,20 +40,6 @@ fn main() -> Result<(), String> {
         .build();
     simple_log::new(config)?;
     debug!("Starting lucris-rs.");
-
-            let data = r#"
-        {
-          "pureId": 282828,
-          "externallyManaged": true,
-          "uuid": "01234567-0123-0123-0123-0123456789ABC",
-          "name": {
-            "firstName": "Petrus",
-            "lastName": "Berck"
-          }
-        }
-        "#;        
-    let person: PersonJson = serde_json::from_str(data).expect("Err");
-    println!("{:?}", person);
     
     // Parse the research data, structures are pushed
     // into a vector.

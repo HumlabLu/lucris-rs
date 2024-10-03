@@ -579,4 +579,33 @@ mod tests {
             panic!("Could not parse name struct.");
         }
     }
+
+    #[test]
+    fn test_date_parsing() {
+        let data = r#"
+        {
+          "fte": 1.0,
+          "info": {
+            "createdDate": "1966-03-05T05:45:00.128+0100",
+            "modifiedDate": "1966-03-05T05:45:00.128+0100",
+            "portalUrl": "https://portal.research.lu.se/en/persons/01234567-0123-0123-0123-0123456789ABC",
+            "prettyURLIdentifiers": [
+              "petrus-berck"
+            ]
+          }
+        }
+        "#;
+        let person: PersonJson = serde_json::from_str(data).expect("Err");
+        assert_eq!(person.fte, Some(1.0));
+        if let Some(info) = person.info {
+            assert_eq!(info.createdDate.as_deref(), Some("1966-03-05T05:45:00.128+0100"));
+            let expected = "https://portal.research.lu.se/en/persons/01234567-0123-0123-0123-0123456789ABC";
+            assert_eq!(info.portalUrl.as_deref(), Some(expected));
+            let expected = vec!["petrus-berck".to_string()];
+            assert_eq!(info.prettyURLIdentifiers, Some(expected));
+        } else {
+            panic!("Could not parse info struct.");
+        }
+    }
+
 }
