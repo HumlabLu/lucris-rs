@@ -2,7 +2,7 @@ use clap::{Parser};
 mod json_person;
 use json_person::{read_persons_jsonl, PersonJson};
 mod json_research;
-use json_research::{ResearchJson, read_research_jsonl};
+use json_research::{ResearchJson, read_research_jsonl, dump_titles};
 mod json_fingerprint;
 use json_fingerprint::{read_fingerprint_jsonl, FingerprintJson};
 mod json_concepts;
@@ -74,6 +74,8 @@ fn main() -> Result<(), String> {
         }
     }
 
+    dump_titles(research_data.as_ref().unwrap());
+    
     // All the uuids are uniq (should be...). We could make a map
     // with uuids->data to connect it to the other data.
     let mut uuids: HashMap<String, u64> = HashMap::new();

@@ -553,15 +553,54 @@ pub struct Workflow {
     pub workflowStep: Option<String>,
 }
 
-// ----
+// ----------------------------------------------------------------------------
 
 impl ResearchJson {
     pub fn get_uuid(&self) -> Option<&str> {
         self.uuid.as_deref()
     }
+
+    pub fn get_title_value(&self) -> Option<&str> {
+        self.title.as_ref().map(|fv| fv.value.as_str())
+    }
+
+    pub fn get_abstract_text_for_locale(&self, locale: &str) -> Option<&str> {
+        self.abstract_field.as_ref()?.text.iter()
+            .find_map(|locale_value| {
+                if locale_value.locale.as_deref() == Some(locale) {
+                    locale_value.value.as_deref()
+                } else {
+                    None
+                }
+            })
+    }
 }
 
-// ----
+// ----------------------------------------------------------------------------
+
+// Mostly for testing purposes, dumps the uuid, title and abstract
+// from the research JSON.
+pub fn dump_titles(research_data: &Vec<ResearchJson>) {
+    for entry in research_data {
+        if let Some(uuid) = entry.get_uuid() {
+            println!("{}", uuid);
+        } else {
+            println!("No uuid");
+        }
+        if let Some(title) = entry.get_title_value() {
+            println!("{}", title);
+        } else {
+            println!("No title");
+        }        
+        if let Some(abstract_field) = entry.get_abstract_text_for_locale("en_GB") {
+            println!("{}\n", abstract_field);
+        } else {
+            println!("No abstract\n");
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
 
 pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn std::error::Error>> {
     let file = FSFile::open(file_path)?;
