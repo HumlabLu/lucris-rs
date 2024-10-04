@@ -574,6 +574,26 @@ impl ResearchJson {
                 }
             })
     }
+
+    pub fn get_person_names(&self) -> Vec<(&str, &str)> {
+        self.personAssociations
+            .as_ref()
+            .map(|associations| {
+                associations
+                    .iter()
+                    .filter_map(|association| {
+                        association.name.as_ref().and_then(|name| {
+                            Some((
+                                name.firstName.as_deref()?,
+                                name.lastName.as_deref()?,
+                            ))
+                        })
+                    })
+                    .collect()
+            })
+            .unwrap_or_else(Vec::new)
+    }
+
 }
 
 // ----------------------------------------------------------------------------
@@ -581,7 +601,10 @@ impl ResearchJson {
 // Mostly for testing purposes, dumps the uuid, title and abstract
 // from the research JSON.
 pub fn dump_titles(research_data: &Vec<ResearchJson>) {
+    let mut abstract_counter = 0;
+    let mut counter = 0;
     for entry in research_data {
+        counter += 1;
         if let Some(uuid) = entry.get_uuid() {
             println!("{}", uuid);
         } else {
@@ -592,12 +615,22 @@ pub fn dump_titles(research_data: &Vec<ResearchJson>) {
         } else {
             println!("No title");
         }        
+        let person_names = entry.get_person_names();
+        for (i, (first_name, last_name)) in person_names.iter().enumerate() {
+            println!("Person {}: {} {}", i, first_name, last_name);
+        }
         if let Some(abstract_field) = entry.get_abstract_text_for_locale("en_GB") {
             println!("{}\n", abstract_field);
+            abstract_counter += 1;
         } else {
             println!("No abstract\n");
         }
     }
+    println!("counter, abstract_counter: {}, {} (missing {})",
+        counter,
+        abstract_counter,
+        counter-abstract_counter
+    );
 }
 
 // ----------------------------------------------------------------------------
