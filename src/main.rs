@@ -7,6 +7,8 @@ mod json_fingerprint;
 use json_fingerprint::{read_fingerprint_jsonl, FingerprintJson};
 mod json_concepts;
 use json_concepts::{read_concept_jsonl, ConceptJson};
+mod json_orgunits;
+use json_orgunits::{read_orgunits_jsonl, OrgUnitJson};
 use std::collections::HashMap;
 
 #[macro_use]
@@ -28,9 +30,13 @@ struct Cli {
     #[arg(short, long, help = "The file containing the cleaned fingerprints.")]
     fingerprints: Option<String>,
 
-    /// Conceptid info jasonl file
+    /// Concept info jasonl file
     #[arg(short, long, help = "The file containing the cleaned concepts.")]
     concepts: Option<String>,
+
+    /// OrgUnit info jasonl file
+    #[arg(short, long, help = "The file containing the cleaned organisational-units.")]
+    orgunits: Option<String>,
 
     /// Sets the level of logging;
     /// error (highest priority), warn, info, debug, or trace
@@ -154,6 +160,19 @@ fn main() -> Result<(), String> {
         }
     }
 
+    // Parse the orgunits JSON. Each struct is pushed into
+    // a vector. 
+    let mut orgunits_data: Option<Vec<OrgUnitJson>> = None;
+    if let Some(orgunits_filename) = cli.orgunits {
+        info!("organisational-units file {:?}.", orgunits_filename);
+        match read_orgunits_jsonl(&orgunits_filename) {
+            Err(e) => eprintln!("Error reading JSON: {}", e),
+            Ok(data) => {
+                orgunits_data = Some(data);
+            },
+        }
+    }
+    
 
     
     debug!("Ending lucris-rs.");
