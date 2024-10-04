@@ -3,6 +3,8 @@ mod json_person;
 use json_person::{read_persons_jsonl, PersonJson};
 mod json_research;
 use json_research::{ResearchJson, read_research_jsonl};
+mod json_fingerprint;
+use json_fingerprint::{read_fingerprint_jsonl, FingerprintJson};
 use std::collections::HashMap;
 
 #[macro_use]
@@ -19,6 +21,10 @@ struct Cli {
     /// Persons info jasonl file
     #[arg(short, long, help = "The file containing the cleaned persons.")]
     persons: Option<String>,
+
+    /// Fingerprint info jasonl file
+    #[arg(short, long, help = "The file containing the cleaned fingerprints.")]
+    fingerprints: Option<String>,
 
     /// Sets the level of logging;
     /// error (highest priority), warn, info, debug, or trace
@@ -115,6 +121,22 @@ fn main() -> Result<(), String> {
         debug!("No persons data available.");
     }
 
+
+    // Parse the fingerprints JSON. Each struct is pushed into
+    // a vector. 
+    let mut fingerprints_data: Option<Vec<FingerprintJson>> = None;
+    if let Some(fingerprints_filename) = cli.fingerprints {
+        info!("Fingerprint file {:?}.", fingerprints_filename);
+        match read_fingerprint_jsonl(&fingerprints_filename) {
+            Err(e) => eprintln!("Error reading JSON: {}", e),
+            Ok(data) => {
+                fingerprints_data = Some(data);
+            },
+        }
+    }
+
+
+    
     debug!("Ending lucris-rs.");
     Ok(())
 }
