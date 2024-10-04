@@ -39,7 +39,7 @@ struct Cli {
     orgunits: Option<String>,
 
     /// Sets the level of logging;
-    /// error (highest priority), warn, info, debug, or trace
+    /// error, warn, info, debug, or trace
     #[arg(short, long, default_value = "warn")]
     log_level: String,
 }

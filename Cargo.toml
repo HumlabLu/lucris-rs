@@ -2,7 +2,7 @@
 name = "lucris-rs"
 version = "0.1.0"
 edition = "2021"
-description = "Relevant to the Lucris project."
+description = "Process files for the AI Lund project."
 authors = ["Peter Berck <peter.berck@humlab.lu.se>"]
 keywords = ["LUCRIS"]
 publish = false

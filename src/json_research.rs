@@ -7,7 +7,7 @@ use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
 use std::sync::{Arc, Mutex};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ResearchJson {
     #[serde(rename = "abstract")]
     pub abstract_field: Option<FormattedText>,
@@ -89,26 +89,26 @@ pub struct ResearchJson {
     pub workflow: Option<Workflow>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct FormattedText {
     pub formatted: bool,
     pub text: Vec<LocaleValue>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct LocaleValue {
     pub locale: Option<String>,
     pub value: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[derive(Clone)]
 pub struct FormattedValue {
     pub formatted: bool,
     pub value: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct AdditionalFile {
     pub accessType: Option<AccessType>,
     pub created: Option<String>,
@@ -123,20 +123,20 @@ pub struct AdditionalFile {
     pub visibleOnPortalDate: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct AccessType {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Term {
     pub formatted: bool,
     pub text: Vec<LocaleValue>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct File {
     pub fileName: Option<String>,
     pub fileURL: Option<String>,
@@ -145,14 +145,14 @@ pub struct File {
     pub size: Option<u64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct LicenseType {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct AdditionalLink {
     pub description: Option<Term>,
     pub linkType: Option<LinkType>,
@@ -160,21 +160,21 @@ pub struct AdditionalLink {
     pub url: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct LinkType {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct AwardingInstitution {
     pub externalOrganisationalUnit: Option<OrganisationalUnit>,
     pub organisationalUnit: Option<OrganisationalUnit>,
     pub pureId: Option<u64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct OrganisationalUnit {
     pub externalIdSource: Option<String>,
     pub externalId: Option<String>,
@@ -186,28 +186,28 @@ pub struct OrganisationalUnit {
     pub uuid: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Link {
     pub href: Option<String>,
     #[serde(rename = "ref")]
     pub ref_field: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct TypeField {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Category {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Organisation {
     pub externalIdSource: Option<String>,
     pub externalId: Option<String>,
@@ -218,14 +218,14 @@ pub struct Organisation {
     pub uuid: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Country {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ElectronicVersion {
     pub accessType: Option<AccessType>,
     pub created: Option<String>,
@@ -242,20 +242,20 @@ pub struct ElectronicVersion {
     pub visibleOnPortalDate: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct EmbargoPeriod {
     pub endDate: Option<String>,
     pub startDate: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct VersionType {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Event {
     pub link: Option<Link>,
     pub name: Option<Term>,
@@ -264,7 +264,7 @@ pub struct Event {
     pub uuid: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Info {
     pub additionalExternalIds: Option<Vec<AdditionalExternalId>>,
     pub createdBy: Option<String>,
@@ -276,13 +276,13 @@ pub struct Info {
     pub previousUuids: Option<Vec<String>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct AdditionalExternalId {
     pub idSource: Option<String>,
     pub value: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct JournalAssociation {
     pub issn: Option<Issn>,
     pub journal: Option<Journal>,
@@ -290,14 +290,14 @@ pub struct JournalAssociation {
     pub title: Option<JournalTitle>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Issn {
     pub endDate: Option<String>,
     pub startDate: Option<String>,
     pub value: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Journal {
     pub externalIdSource: Option<String>,
     pub externalId: Option<String>,
@@ -308,14 +308,14 @@ pub struct Journal {
     pub uuid: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct JournalTitle {
     pub endDate: Option<String>,
     pub startDate: Option<String>,
     pub value: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct KeywordGroup {
     pub keywordContainers: Option<Vec<KeywordContainer>>,
     pub logicalName: Option<String>,
@@ -324,55 +324,55 @@ pub struct KeywordGroup {
     pub type_field: Option<TypeField>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct KeywordContainer {
     pub freeKeywords: Option<Vec<FreeKeyword>>,
     pub pureId: Option<u64>,
     pub structuredKeyword: Option<StructuredKeyword>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct FreeKeyword {
     pub freeKeywords: Option<Vec<String>>,
     pub locale: Option<String>,
     pub pureId: Option<u64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct StructuredKeyword {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Language {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct OpenAccessPermission {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum OutputMedia {
     String(String),
     Struct(OutputMediaStruct),
 }
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct OutputMediaStruct {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct PersonAssociation {
     pub authorCollaboration: Option<AuthorCollaboration>,
     pub country: Option<Country>,
@@ -386,14 +386,14 @@ pub struct PersonAssociation {
     pub pureId: Option<u64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct AuthorCollaboration {
     pub link: Option<Link>,
     pub name: Option<Term>,
     pub uuid: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ExternalPerson {
     pub externalIdSource: Option<String>,
     pub externalId: Option<String>,
@@ -404,13 +404,13 @@ pub struct ExternalPerson {
     pub uuid: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Name {
     pub firstName: Option<String>,
     pub lastName: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Person {
     pub externalIdSource: Option<String>,
     pub externalId: Option<String>,
@@ -420,14 +420,14 @@ pub struct Person {
     pub uuid: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct PersonRole {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct PublicationSeries {
     pub electronicIssn: Option<String>,
     pub issn: Option<String>,
@@ -438,7 +438,7 @@ pub struct PublicationSeries {
     pub volume: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct PublicationStatus {
     pub current: Option<bool>,
     pub externalIdSource: Option<String>,
@@ -448,28 +448,28 @@ pub struct PublicationStatus {
     pub pureId: Option<u64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct PublicationDate {
     pub day: Option<u32>,
     pub month: Option<u32>,
     pub year: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct PublicationStatusField {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Qualification {
     pub pureId: Option<u64>,
     pub term: Option<Term>,
     pub uri: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct RelatedActivity {
     pub link: Option<Link>,
     pub name: Option<Term>,
@@ -478,7 +478,7 @@ pub struct RelatedActivity {
     pub uuid: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct RelatedEquipment {
     pub link: Option<Link>,
     pub name: Option<Term>,
@@ -487,7 +487,7 @@ pub struct RelatedEquipment {
     pub uuid: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct RelatedPrize {
     pub link: Option<Link>,
     pub name: Option<Term>,
@@ -496,7 +496,7 @@ pub struct RelatedPrize {
     pub uuid: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct RelatedProject {
     pub externalIdSource: Option<String>,
     pub externalId: Option<String>,
@@ -507,7 +507,7 @@ pub struct RelatedProject {
     pub uuid: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct RelatedResearchOutput {
     pub externalIdSource: Option<String>,
     pub externalId: Option<String>,
@@ -518,13 +518,13 @@ pub struct RelatedResearchOutput {
     pub uuid: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ScopusMetric {
     pub value: Option<f64>,
     pub year: Option<u32>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Supervisor {
     pub externalOrganisations: Option<Vec<Organisation>>,
     pub externalPerson: Option<ExternalPerson>,
@@ -535,19 +535,19 @@ pub struct Supervisor {
     pub pureId: Option<u64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct TranslatedText {
     pub formatted: bool,
     pub text: Vec<LocaleValue>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Visibility {
     pub key: Option<String>,
     pub value: Option<Term>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Workflow {
     pub value: Option<Term>,
     pub workflowStep: Option<String>,
@@ -610,10 +610,48 @@ pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::{Path, PathBuf};
+    use std::fs;
+    
+    fn read_test_data(file_name: &str) -> String {
+        let project_root = env!("CARGO_MANIFEST_DIR");
+        let data_path = Path::new(project_root)
+            .join("tests")
+            .join("data")
+            .join(file_name);
+        fs::read_to_string(&data_path).expect("Unable to read test data file")
+    }
+
+    fn make_test_path(file_name: &str) -> PathBuf {
+        let project_root = env!("CARGO_MANIFEST_DIR");
+        let data_path = Path::new(project_root)
+            .join("tests")
+            .join("data")
+            .join(file_name);
+        data_path
+    }
+
+    #[test]
+    fn test_read_research_one() {
+        let data_path = make_test_path("research_one.jsonl");
+        println!("{:?}", data_path);
+        let foo = read_research_jsonl(data_path.to_str().expect("Test data not found!"));
+        let foo = foo.unwrap();
+        let foo = &foo[0];
+        assert_eq!(foo.get_uuid(), Some("1d136ffd-6d08-444a-9c50-76c0e5aec513"));
+    }
+
+    #[test]
+    fn test_read_research_one_err() {
+        let data_path = make_test_path("research_one_err.jsonl");
+        println!("{:?}", data_path);
+        let foo = read_research_jsonl(data_path.to_str().expect("Test data not found!"));
+        let foo = foo.unwrap();
+        assert_eq!(foo, []);            
+    }
     
     #[test]
-
-    pub fn test_full() {
+    pub fn test_research_uuid() {
         let data = r#"
 {"pureId":2940508,"uuid":"1d136ffd-6d08-444a-9c50-76c0e5aec513"}
     "#;
