@@ -5,6 +5,8 @@ mod json_research;
 use json_research::{ResearchJson, read_research_jsonl};
 mod json_fingerprint;
 use json_fingerprint::{read_fingerprint_jsonl, FingerprintJson};
+mod json_concepts;
+use json_concepts::{read_concept_jsonl, ConceptJson};
 use std::collections::HashMap;
 
 #[macro_use]
@@ -25,6 +27,10 @@ struct Cli {
     /// Fingerprint info jasonl file
     #[arg(short, long, help = "The file containing the cleaned fingerprints.")]
     fingerprints: Option<String>,
+
+    /// Conceptid info jasonl file
+    #[arg(short, long, help = "The file containing the cleaned concepts.")]
+    concepts: Option<String>,
 
     /// Sets the level of logging;
     /// error (highest priority), warn, info, debug, or trace
@@ -131,6 +137,19 @@ fn main() -> Result<(), String> {
             Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
                 fingerprints_data = Some(data);
+            },
+        }
+    }
+
+    // Parse the concepts JSON. Each struct is pushed into
+    // a vector. 
+    let mut concepts_data: Option<Vec<ConceptJson>> = None;
+    if let Some(concepts_filename) = cli.concepts {
+        info!("Concept file {:?}.", concepts_filename);
+        match read_concept_jsonl(&concepts_filename) {
+            Err(e) => eprintln!("Error reading JSON: {}", e),
+            Ok(data) => {
+                concepts_data = Some(data);
             },
         }
     }
