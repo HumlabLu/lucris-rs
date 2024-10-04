@@ -110,7 +110,7 @@ fn main() -> Result<(), String> {
         }
     }
 
-    // If we successfully parsed person data, we extracts
+    // If we successfully parsed person data, we extract
     // the uuids.
     let mut persons_uuids: HashMap<String, u64> = HashMap::new();
     if let Some(data) = persons_data {
