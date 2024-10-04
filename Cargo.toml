@@ -3,10 +3,13 @@ name = "lucris-rs"
 version = "0.1.0"
 edition = "2021"
 description = "Relevant to the Lucris project."
-license = "GPL-3"
-authors = ["Petrus Berck"]
+authors = ["Peter Berck <peter.berck@humlab.lu.se>"]
 keywords = ["LUCRIS"]
 publish = false
+#repository  = "https://github.com/HumlabLu/lucris-rs"
+#readme      = "README.md"
+license     = "GNU AGPLv3"
+categories  = ["LUCRIS"]
 
 [profile.dev]
 opt-level = 3
