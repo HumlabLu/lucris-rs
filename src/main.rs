@@ -58,12 +58,14 @@ fn main() -> Result<(), String> {
         .build();
     simple_log::new(config)?;
     debug!("Starting lucris-rs.");
+
+    // ------------------------------------------------------------------------
     
     // Parse the research data, structures are pushed
     // into a vector.
     let mut research_data: Option<Vec<ResearchJson>> = None;
     if let Some(research_filename) = cli.research {
-        info!("Research file {:?}.", research_filename);
+        info!("Reading research file {:?}.", research_filename);
         match read_research_jsonl(&research_filename) {
             Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
@@ -91,11 +93,13 @@ fn main() -> Result<(), String> {
         debug!("No research data available.");
     }
 
+    // ------------------------------------------------------------------------
+    
     // Parse the persons JSON. Each struct is pushed into
     // a vector. 
     let mut persons_data: Option<Vec<PersonJson>> = None;
     if let Some(persons_filename) = cli.persons {
-        info!("Persons file {:?}.", persons_filename);
+        info!("Reading persons file {:?}.", persons_filename);
         match read_persons_jsonl(&persons_filename) {
             Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
@@ -133,12 +137,13 @@ fn main() -> Result<(), String> {
         debug!("No persons data available.");
     }
 
-
+    // ------------------------------------------------------------------------
+    
     // Parse the fingerprints JSON. Each struct is pushed into
     // a vector. 
     let mut fingerprints_data: Option<Vec<FingerprintJson>> = None;
     if let Some(fingerprints_filename) = cli.fingerprints {
-        info!("Fingerprint file {:?}.", fingerprints_filename);
+        info!("Reading fingerprint file {:?}.", fingerprints_filename);
         match read_fingerprint_jsonl(&fingerprints_filename) {
             Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
@@ -147,11 +152,13 @@ fn main() -> Result<(), String> {
         }
     }
 
+    // ------------------------------------------------------------------------
+    
     // Parse the concepts JSON. Each struct is pushed into
     // a vector. 
     let mut concepts_data: Option<Vec<ConceptJson>> = None;
     if let Some(concepts_filename) = cli.concepts {
-        info!("Concept file {:?}.", concepts_filename);
+        info!("Reading concepts file {:?}.", concepts_filename);
         match read_concept_jsonl(&concepts_filename) {
             Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
@@ -160,11 +167,13 @@ fn main() -> Result<(), String> {
         }
     }
 
+    // ------------------------------------------------------------------------
+    
     // Parse the orgunits JSON. Each struct is pushed into
     // a vector. 
     let mut orgunits_data: Option<Vec<OrgUnitJson>> = None;
     if let Some(orgunits_filename) = cli.orgunits {
-        info!("organisational-units file {:?}.", orgunits_filename);
+        info!("Reading organisational-units file {:?}.", orgunits_filename);
         match read_orgunits_jsonl(&orgunits_filename) {
             Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
@@ -173,7 +182,7 @@ fn main() -> Result<(), String> {
         }
     }
     
-
+    // ------------------------------------------------------------------------
     
     debug!("Ending lucris-rs.");
     Ok(())
