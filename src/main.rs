@@ -74,7 +74,9 @@ fn main() -> Result<(), String> {
         }
     }
 
-    dump_titles(research_data.as_ref().unwrap());
+    if let Some(ref data) = research_data {
+        dump_titles(research_data.as_ref().unwrap());
+    }
     
     // All the uuids are uniq (should be...). We could make a map
     // with uuids->data to connect it to the other data.
