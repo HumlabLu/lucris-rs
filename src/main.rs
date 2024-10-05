@@ -47,6 +47,7 @@ struct Cli {
 fn main() -> Result<(), String> {
     let cli = Cli::parse();
 
+    #[cfg(not(debug_assertions))]
     let config = LogConfigBuilder::builder()
         .path("./lucris.log")
         .size(1024) // MB
@@ -54,6 +55,16 @@ fn main() -> Result<(), String> {
         .output_file()
         .level(cli.log_level)?
         .time_format("%Y-%m-%d %H:%M:%S")
+        .output_console()
+        .build();
+    #[cfg(debug_assertions)]
+    let config = LogConfigBuilder::builder()
+        .path("./lucris.log")
+        .size(1024) // MB
+        .roll_count(10)
+        .output_file()
+        .level(cli.log_level)?
+        .time_format("%Y-%m-%d %H:%M:%S.%f")
         .output_console()
         .build();
     simple_log::new(config)?;
