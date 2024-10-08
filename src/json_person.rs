@@ -501,9 +501,20 @@ impl PersonJson {
         self.uuid.as_deref()
     }
 
-    pub fn get_profile_information_texts_for_locale(&self, locale: &str) -> Vec<String> {
+    // Profile info text in difference locales. All values are Option<T> in the
+    // struct, hence the large number of "if let Some(...)"s.
+    /*
+    "profileInformations": [
+    {
+      "value": {
+        "text": [
+          {
+            "locale": "en_GB",
+            "value": "..."
+          }]},
+    */
+    pub fn get_profile_information_texts_for_locale(&self, locale: &str) -> Vec<&str> {
         let mut texts = Vec::new();
-
         if let Some(profile_informations) = &self.profileInformations {
             for profile_information in profile_informations {
                 if let Some(value) = &profile_information.value {
@@ -512,7 +523,8 @@ impl PersonJson {
                             if let Some(text_locale) = &locale_text.locale {
                                 if text_locale == locale {
                                     if let Some(text_value) = &locale_text.value {
-                                        texts.push(text_value.clone());
+                                        //texts.push(text_value.clone());
+                                        texts.push(text_value.as_ref());
                                     }
                                 }
                             }
