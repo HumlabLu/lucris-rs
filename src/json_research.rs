@@ -575,6 +575,8 @@ impl ResearchJson {
             })
     }
 
+    // Get the first and last names, plus associated uuid, from the
+    // personAssociations data.
     pub fn get_person_names(&self) -> Vec<(&str, &str, &str)> {
         self.personAssociations
             .as_ref()
@@ -590,7 +592,7 @@ impl ResearchJson {
                     .collect()
             })
             .unwrap_or_else(Vec::new)
-}
+    }
     
 }
 
