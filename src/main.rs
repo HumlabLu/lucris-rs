@@ -9,7 +9,10 @@ mod json_concepts;
 use json_concepts::{read_concept_jsonl, ConceptJson};
 mod json_orgunits;
 use json_orgunits::{read_orgunits_jsonl, OrgUnitJson};
+mod combined;
+use combined::Combined;
 use std::collections::HashMap;
+use uuid::Uuid;
 
 #[macro_use]
 extern crate simple_log;
@@ -105,6 +108,8 @@ fn main() -> Result<(), String> {
                     warn!("Repeating uuid: {}", uuid);
                 }
                 uuids.insert(uuid.to_string(), 0);
+                let comb = Combined::from(entry);
+                println!("{:?}", comb);
             } else {
                 error!("Research JSON does not contain uuid.");
             }
@@ -207,6 +212,9 @@ fn main() -> Result<(), String> {
     // TODO: How to connect everything?
     
     // ------------------------------------------------------------------------
+
+    let id = Uuid::new_v4();
+    println!("{} {}", id, id.urn());
     
     debug!("Ending lucris-rs.");
     Ok(())
