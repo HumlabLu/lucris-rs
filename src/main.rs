@@ -53,7 +53,7 @@ fn main() -> Result<(), String> {
         .size(1024) // MB
         .roll_count(10)
         .output_file()
-        .level(cli.log_level)?
+        .level(&cli.log_level)?
         .time_format("%Y-%m-%d %H:%M:%S")
         .output_console()
         .build();
@@ -63,7 +63,7 @@ fn main() -> Result<(), String> {
         .size(1024) // MB
         .roll_count(10)
         .output_file()
-        .level(cli.log_level)?
+        .level(&cli.log_level)?
         .time_format("%Y-%m-%d %H:%M:%S.%f")
         .output_console()
         .build();
@@ -85,8 +85,13 @@ fn main() -> Result<(), String> {
         }
     }
 
+    // .as_ref() produces &T inside Option<T>.
     if let Some(ref data) = research_data {
-        dump_titles(research_data.as_ref().unwrap());
+        // This dumps the authors, titles and abstracts
+        // to stdout.
+        if &cli.log_level == "debug" {
+            dump_titles(research_data.as_ref().unwrap());
+        }
     }
     
     // All the uuids are uniq (should be...). We could make a map
@@ -196,6 +201,10 @@ fn main() -> Result<(), String> {
             },
         }
     }
+    
+    // ------------------------------------------------------------------------
+
+    // TODO: How to connect everything?
     
     // ------------------------------------------------------------------------
     
