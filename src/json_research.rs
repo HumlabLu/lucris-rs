@@ -575,25 +575,23 @@ impl ResearchJson {
             })
     }
 
-    pub fn get_person_names(&self) -> Vec<(&str, &str)> {
+    pub fn get_person_names(&self) -> Vec<(&str, &str, &str)> {
         self.personAssociations
             .as_ref()
             .map(|associations| {
                 associations
                     .iter()
                     .filter_map(|association| {
-                        association.name.as_ref().and_then(|name| {
-                            Some((
-                                name.firstName.as_deref()?,
-                                name.lastName.as_deref()?,
-                            ))
-                        })
+                        let first_name = association.name.as_ref()?.firstName.as_deref()?;
+                        let last_name = association.name.as_ref()?.lastName.as_deref()?;
+                        let uuid = association.person.as_ref()?.uuid.as_deref()?;
+                        Some((first_name, last_name, uuid))
                     })
                     .collect()
             })
             .unwrap_or_else(Vec::new)
-    }
-
+}
+    
 }
 
 // ----------------------------------------------------------------------------
@@ -616,8 +614,8 @@ pub fn dump_titles(research_data: &Vec<ResearchJson>) {
             println!("No title");
         }        
         let person_names = entry.get_person_names();
-        for (i, (first_name, last_name)) in person_names.iter().enumerate() {
-            println!("Person {}: {} {}", i, first_name, last_name);
+        for (i, (first_name, last_name, uuid)) in person_names.iter().enumerate() {
+            println!("Person {}: {} {} {}", i, first_name, last_name, uuid);
         }
         if let Some(abstract_field) = entry.get_abstract_text_for_locale("en_GB") {
             println!("{}\n", abstract_field);

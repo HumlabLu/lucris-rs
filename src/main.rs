@@ -108,8 +108,12 @@ fn main() -> Result<(), String> {
                     warn!("Repeating uuid: {}", uuid);
                 }
                 uuids.insert(uuid.to_string(), 0);
-                let comb = Combined::from(entry);
-                println!("{:?}", comb);
+                //let comb = Combined::from(entry);
+                //println!("{:?}", comb);
+                let person_names = entry.get_person_names();
+                for (i, (first_name, last_name, uuid)) in person_names.iter().enumerate() {
+                    println!("Person {}: {} {} {}", i, first_name, last_name, uuid);
+                }
             } else {
                 error!("Research JSON does not contain uuid.");
             }
@@ -213,8 +217,10 @@ fn main() -> Result<(), String> {
     
     // ------------------------------------------------------------------------
 
+    /*
     let id = Uuid::new_v4();
     println!("{} {}", id, id.urn());
+    */
     
     debug!("Ending lucris-rs.");
     Ok(())
