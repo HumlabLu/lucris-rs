@@ -500,6 +500,30 @@ impl PersonJson {
     pub fn get_uuid(&self) -> Option<&str> {
         self.uuid.as_deref()
     }
+
+    pub fn get_profile_information_texts_for_locale(&self, locale: &str) -> Vec<String> {
+        let mut texts = Vec::new();
+
+        if let Some(profile_informations) = &self.profileInformations {
+            for profile_information in profile_informations {
+                if let Some(value) = &profile_information.value {
+                    if let Some(locale_texts) = &value.text {
+                        for locale_text in locale_texts {
+                            if let Some(text_locale) = &locale_text.locale {
+                                if text_locale == locale {
+                                    if let Some(text_value) = &locale_text.value {
+                                        texts.push(text_value.clone());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        texts
+    }
+    
 }
 
 // ----
