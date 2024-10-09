@@ -523,7 +523,6 @@ impl PersonJson {
                             if let Some(text_locale) = &locale_text.locale {
                                 if text_locale == locale {
                                     if let Some(text_value) = &locale_text.value {
-                                        //texts.push(text_value.clone());
                                         texts.push(text_value.as_ref());
                                     }
                                 }

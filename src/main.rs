@@ -163,6 +163,7 @@ fn main() -> Result<(), String> {
             }
             trace!("{:?}", entry.get_all_education_pure_ids());
             */
+            /*
             if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
                 println!("Name: {} {}", first_name, last_name);
             }
@@ -170,6 +171,7 @@ fn main() -> Result<(), String> {
             println!("{:?}", foo);
             let foo = entry.get_profile_information_texts_for_locale("sv_SE");
             println!("{:?}", foo);
+            */
         }
     } else {
         debug!("No persons data available.");
