@@ -112,7 +112,7 @@ fn main() -> Result<(), String> {
                 //println!("{:?}", comb);
                 let person_names = entry.get_person_names();
                 for (i, (first_name, last_name, uuid)) in person_names.iter().enumerate() {
-                    println!("Person {}: {} {} {}", i, first_name, last_name, uuid);
+                    trace!("Person {}: {} {} {}", i, first_name, last_name, uuid);
                 }
                 // Lookup uuid in person_data below. Connect. Does that give extra
                 // research info? Profile information?
@@ -155,23 +155,19 @@ fn main() -> Result<(), String> {
             } else {
                 error!("Research JSON does not contain uuid.");
             }
-            /*
             if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
                 trace!("Name: {} {}", first_name, last_name);
             } else {
                 error!("First or last name not found.");
             }
             trace!("{:?}", entry.get_all_education_pure_ids());
-            */
-            /*
             if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
-                println!("Name: {} {}", first_name, last_name);
+                trace!("Name: {} {}", first_name, last_name);
             }
             let foo = entry.get_profile_information_texts_for_locale("en_GB");
-            println!("{:?}", foo);
+            trace!("{:?}", foo);
             let foo = entry.get_profile_information_texts_for_locale("sv_SE");
-            println!("{:?}", foo);
-            */
+            trace!("{:?}", foo);
         }
     } else {
         debug!("No persons data available.");
