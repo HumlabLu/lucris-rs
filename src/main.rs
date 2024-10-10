@@ -11,9 +11,10 @@ mod json_orgunits;
 use json_orgunits::{read_orgunits_jsonl, OrgUnitJson};
 mod combined;
 use combined::Combined;
+mod formatting;
+use formatting::extract_text_with_formatting;
 use std::collections::HashMap;
 use uuid::Uuid;
-use scraper::{Html, Selector};
 
 #[macro_use]
 extern crate simple_log;
@@ -168,7 +169,7 @@ fn main() -> Result<(), String> {
             }
             trace!("{:?}", entry.get_all_education_pure_ids());
             let info_texts = entry.get_profile_information_texts_for_locale(&cli.locale);
-            let info_texts = extract_text_from_vec(&info_texts);
+            let info_texts = extract_text_with_formatting(&info_texts);
             trace!("{:?}", info_texts);
             println!("{:?}",info_texts);
         }
@@ -236,12 +237,3 @@ fn main() -> Result<(), String> {
     Ok(())
 }
 
-fn extract_text_from_vec(html_snippets: &Vec<&str>) -> Vec<String> {
-    html_snippets
-        .iter()
-        .map(|snippet| {
-            let document = Html::parse_fragment(snippet);
-            document.root_element().text().collect::<Vec<_>>().join(" ")
-        })
-        .collect()
-}
