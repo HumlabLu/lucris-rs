@@ -120,7 +120,7 @@ fn main() -> Result<(), String> {
                 }
                 // Lookup uuid in person_data below. Connect. Does that give extra
                 // research info? Profile information?
-                eprintln!("{:?}", entry.get_title_abstract(&cli.locale));
+                println!("{:?}", entry.get_title_abstract(&cli.locale));
             } else {
                 error!("Research JSON does not contain uuid.");
             }
@@ -168,7 +168,7 @@ fn main() -> Result<(), String> {
             trace!("{:?}", entry.get_all_education_pure_ids());
             let info_texts = entry.get_profile_information_texts_for_locale(&cli.locale);
             trace!("{:?}", info_texts);
-            eprintln!("{:?}",info_texts);
+            println!("{:?}",info_texts);
         }
     } else {
         debug!("No persons data available.");
