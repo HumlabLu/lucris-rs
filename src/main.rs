@@ -120,6 +120,7 @@ fn main() -> Result<(), String> {
                 }
                 // Lookup uuid in person_data below. Connect. Does that give extra
                 // research info? Profile information?
+                eprintln!("{:?}", entry.get_title_abstract(&cli.locale));
             } else {
                 error!("Research JSON does not contain uuid.");
             }
