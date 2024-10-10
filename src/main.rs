@@ -13,6 +13,7 @@ mod combined;
 use combined::Combined;
 use std::collections::HashMap;
 use uuid::Uuid;
+use scraper::{Html, Selector};
 
 #[macro_use]
 extern crate simple_log;
@@ -167,7 +168,8 @@ fn main() -> Result<(), String> {
             }
             trace!("{:?}", entry.get_all_education_pure_ids());
             let info_texts = entry.get_profile_information_texts_for_locale(&cli.locale);
-            trace!("{:?}", info_texts);
+            let foo = extract_text_from_vec(&info_texts);
+            trace!("{:?}", foo);
             println!("{:?}",info_texts);
         }
     } else {
@@ -232,4 +234,14 @@ fn main() -> Result<(), String> {
     
     debug!("Ending lucris-rs.");
     Ok(())
+}
+
+fn extract_text_from_vec(html_snippets: &Vec<&str>) -> Vec<String> {
+    html_snippets
+        .iter()
+        .map(|snippet| {
+            let document = Html::parse_fragment(snippet);
+            document.root_element().text().collect::<Vec<_>>().join(" ")
+        })
+        .collect()
 }
