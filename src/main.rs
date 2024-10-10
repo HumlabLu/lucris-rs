@@ -61,8 +61,8 @@ fn main() -> Result<(), String> {
         .roll_count(10)
         .output_file()
         .level(&cli.log_level)?
-        .time_format("%Y-%m-%d %H:%M:%S")
-        .output_console()
+        .time_format("%Y-%m-%d %H:%M:%S") // No nanoseconds in release mode.
+        // .output_console() // NB no console output in release mode.
         .build();
     #[cfg(debug_assertions)]
     let config = LogConfigBuilder::builder()
@@ -109,7 +109,7 @@ fn main() -> Result<(), String> {
             if let Some(uuid) = entry.get_uuid() {
                 //println!("{}", uuid);
                 if uuids.contains_key(uuid) == true {
-                    warn!("Repeating uuid: {}", uuid);
+                    warn!("Repeating research uuid: {}", uuid);
                 }
                 uuids.insert(uuid.to_string(), 0);
                 //let comb = Combined::from(entry);
@@ -153,7 +153,7 @@ fn main() -> Result<(), String> {
             if let Some(uuid) = entry.get_uuid() {
                 //println!("{}", uuid);
                 if persons_uuids.contains_key(uuid) == true {
-                    warn!("Repeating uuid: {}", uuid);
+                    warn!("Repeating person uuid: {}", uuid);
                 }
                 persons_uuids.insert(uuid.to_string(), 0);
             } else {
@@ -165,10 +165,9 @@ fn main() -> Result<(), String> {
                 error!("First or last name not found.");
             }
             trace!("{:?}", entry.get_all_education_pure_ids());
-            let foo = entry.get_profile_information_texts_for_locale(&cli.locale);
-            trace!("{:?}", foo);
-            //let foo = entry.get_profile_information_texts_for_locale("sv_SE");
-            //trace!("{:?}", foo);
+            let info_texts = entry.get_profile_information_texts_for_locale(&cli.locale);
+            trace!("{:?}", info_texts);
+            eprintln!("{:?}",info_texts);
         }
     } else {
         debug!("No persons data available.");
