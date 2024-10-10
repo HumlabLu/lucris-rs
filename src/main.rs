@@ -168,8 +168,8 @@ fn main() -> Result<(), String> {
             }
             trace!("{:?}", entry.get_all_education_pure_ids());
             let info_texts = entry.get_profile_information_texts_for_locale(&cli.locale);
-            let foo = extract_text_from_vec(&info_texts);
-            trace!("{:?}", foo);
+            let info_texts = extract_text_from_vec(&info_texts);
+            trace!("{:?}", info_texts);
             println!("{:?}",info_texts);
         }
     } else {
