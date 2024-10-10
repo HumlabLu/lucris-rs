@@ -600,7 +600,7 @@ impl ResearchJson {
 
 // Mostly for testing purposes, dumps the uuid, title and abstract
 // from the research JSON.
-pub fn dump_titles(research_data: &Vec<ResearchJson>) {
+pub fn dump_titles(research_data: &Vec<ResearchJson>, locale: &str) {
     let mut abstract_counter = 0;
     let mut counter = 0;
     for entry in research_data {
@@ -619,7 +619,7 @@ pub fn dump_titles(research_data: &Vec<ResearchJson>) {
         for (i, (first_name, last_name, uuid)) in person_names.iter().enumerate() {
             println!("Person {}: {} {} {}", i, first_name, last_name, uuid);
         }
-        if let Some(abstract_field) = entry.get_abstract_text_for_locale("en_GB") {
+        if let Some(abstract_field) = entry.get_abstract_text_for_locale(locale) {
             println!("{}\n", abstract_field);
             abstract_counter += 1;
         } else {

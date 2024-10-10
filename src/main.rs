@@ -41,9 +41,13 @@ struct Cli {
     #[arg(short, long, help = "The file containing the cleaned organisational-units.")]
     orgunits: Option<String>,
 
+    /// Sets the locale for the extracted texts.
+    #[arg(short, long, default_value = "en_GB")]
+    locale: String,
+
     /// Sets the level of logging;
     /// error, warn, info, debug, or trace
-    #[arg(short, long, default_value = "warn")]
+    #[arg(long = "ll", default_value = "warn")]
     log_level: String,
 }
 
@@ -92,8 +96,8 @@ fn main() -> Result<(), String> {
     if let Some(ref data) = research_data {
         // This dumps the authors, titles and abstracts
         // to stdout.
-        if &cli.log_level == "debug" {
-            dump_titles(research_data.as_ref().unwrap());
+        if &cli.log_level == "trace" {
+            dump_titles(research_data.as_ref().unwrap(), &cli.locale);
         }
     }
     
@@ -161,13 +165,10 @@ fn main() -> Result<(), String> {
                 error!("First or last name not found.");
             }
             trace!("{:?}", entry.get_all_education_pure_ids());
-            if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
-                trace!("Name: {} {}", first_name, last_name);
-            }
-            let foo = entry.get_profile_information_texts_for_locale("en_GB");
+            let foo = entry.get_profile_information_texts_for_locale(&cli.locale);
             trace!("{:?}", foo);
-            let foo = entry.get_profile_information_texts_for_locale("sv_SE");
-            trace!("{:?}", foo);
+            //let foo = entry.get_profile_information_texts_for_locale("sv_SE");
+            //trace!("{:?}", foo);
         }
     } else {
         debug!("No persons data available.");
