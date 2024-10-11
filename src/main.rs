@@ -102,45 +102,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .write_mode(WriteMode::BufferAndFlush)
         .start()?;
     
-    /*
-    let _logger = Logger::try_with_str(&cli.log_level)?
-        .log_to_file(
-            FileSpec::default()
-                .suppress_timestamp()
-                .basename("lucris")
-                .suffix("log")
-        )
-        .append()
-        .print_message()
-        .format(flexi_logger::detailed_format)
-        .duplicate_to_stderr(Duplicate::Debug)
-        .write_mode(WriteMode::BufferAndFlush)
-        .adaptive_format_for_stderr(AdaptiveFormat::Default)
-        .start()?;
-
-    #[cfg(not(debug_assertions))]
-    let config = LogConfigBuilder::builder()
-        .path("./lucris.log")
-        .size(1024) // MB
-        .roll_count(10)
-        .output_file()
-        .level(&cli.log_level)?
-        .time_format("%Y-%m-%d %H:%M:%S") // No nanoseconds in release mode.
-        // .output_console() // NB no console output in release mode.
-        .build();
-    #[cfg(debug_assertions)]
-    let config = LogConfigBuilder::builder()
-        .path("./lucris.log")
-        .size(1024) // MB
-        .roll_count(10)
-        .output_file()
-        .level(&cli.log_level)?
-        .time_format("%Y-%m-%d %H:%M:%S.%f")
-        .output_console()
-        .build();
-    simple_log::new(config)?;
-    */
-    debug!("Starting lucris-rs.");
+    info!("Starting lucris-rs.");
 
     // ------------------------------------------------------------------------
     
