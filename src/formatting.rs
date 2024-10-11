@@ -110,5 +110,21 @@ mod tests {
         println!("{}", cleaned);
         assert_eq!(cleaned, "PhD in NLP\nDeveloper of lucris-rs");
     }
-    
+
+    #[test]
+    fn extract_h2luli() {
+        let html_snippet = "<h2>Heading 2</h2><ul><li>PhD in NLP</li><li>Developer of lucris-rs</li></lu>";
+        let cleaned = extract_text_with_formatting(html_snippet);
+        println!("{}", cleaned);
+        assert_eq!(cleaned, "Heading 2\nPhD in NLP\nDeveloper of lucris-rs");
+    }
+
+    #[test]
+    fn extract_entities() {
+        let html_snippet = "&lt;foo&gt;&#xDF; and &#12354; &#x1F602;";
+        let cleaned = extract_text_with_formatting(html_snippet);
+        println!("{}", cleaned);
+        assert_eq!(cleaned, "<foo>ß and あ 😂");
+    }
+
 }
