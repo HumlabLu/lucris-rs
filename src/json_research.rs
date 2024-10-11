@@ -594,10 +594,12 @@ impl ResearchJson {
             .unwrap_or_else(Vec::new)
     }
 
+    // We return an empty string if the info is not present. Could change to
+    // Option<T> but seems overkill at the moment.
     pub fn get_title_abstract(&self, locale: &str) -> (&str, &str) {
-        let title_text = self.get_title_value().unwrap_or("No title text in entry.");
+        let title_text = self.get_title_value().unwrap_or("");
         // IT seems that some research contains the abstract string "[abstract missing]".
-        let abstract_text = self.get_abstract_text_for_locale(locale).unwrap_or("No abstract text in entry.");
+        let abstract_text = self.get_abstract_text_for_locale(locale).unwrap_or("");
         //let names = self.get_person_names();
         //let names = [names[0].0, " ", names[0].1].concat();
         (title_text, abstract_text)

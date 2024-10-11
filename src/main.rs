@@ -109,7 +109,7 @@ fn main() -> Result<(), String> {
     if let Some(data) = research_data {
         for entry in &data {
             if let Some(uuid) = entry.get_uuid() {
-                println!("Research {}", uuid);
+                println!("RESEACH: {}", uuid);
                 if uuids.contains_key(uuid) == true {
                     warn!("Repeating research uuid: {}", uuid);
                 }
@@ -120,7 +120,7 @@ fn main() -> Result<(), String> {
                 for (i, (first_name, last_name, uuid)) in person_names.iter().enumerate() {
                     trace!("Person {}: {} {} {}", i, first_name, last_name, uuid);
                     // Often more than one.
-                    println!("  Person {}: {} {} {}", i, first_name, last_name, uuid);
+                    println!("PERSON{}: {} {} {}", i, first_name, last_name, uuid);
                 }
                 // Lookup uuid in person_data below. Connect. Does that give extra
                 // research info? Profile information?
@@ -128,8 +128,8 @@ fn main() -> Result<(), String> {
                 // The abstract, cleaned because it often contains HTML.
                 let (abstract_title, abstract_text) = entry.get_title_abstract(&cli.locale);
                 let abstract_text = extract_text_with_formatting(abstract_text);
-                println!("  {}", abstract_title);
-                println!("    {}", abstract_text);
+                println!("TITLE: {}", abstract_title);
+                println!("ABSTRACT: {}", abstract_text);
             } else {
                 error!("Research JSON does not contain uuid.");
             }
