@@ -6,6 +6,7 @@ use std::io::BufRead;
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
 use std::sync::{Arc, Mutex};
+use log::{debug, error, info, trace, warn};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FingerprintJson {

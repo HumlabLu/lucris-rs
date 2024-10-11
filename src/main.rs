@@ -15,10 +15,9 @@ mod formatting;
 use formatting::{extract_text_with_formatting, extract_texts_with_formatting};
 use std::collections::HashMap;
 use uuid::Uuid;
-
-#[macro_use]
-extern crate simple_log;
-use simple_log::LogConfigBuilder;
+use log::{debug, error, info, trace, warn, LevelFilter};
+use flexi_logger::{FileSpec, Logger, WriteMode, AdaptiveFormat, Duplicate, LogSpecification};
+use std::str::FromStr;
 
 #[derive(Parser)]
 #[command(version, about, long_about = "Reading data.")]
@@ -53,8 +52,47 @@ struct Cli {
     log_level: String,
 }
 
-fn main() -> Result<(), String> {
+// TODO: better error handling.
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
+
+    // This switches off logging from html5 and other crates.
+    let level_filter = LevelFilter::from_str(&cli.log_level).unwrap_or(LevelFilter::Off);
+    let log_spec = LogSpecification::builder()
+        .module("html5ever", LevelFilter::Off)
+        .module("lucris", level_filter) // Sets our level to the one on the cli.
+        .build();
+    
+    let _logger = Logger::with(log_spec)
+        .log_to_file(
+            FileSpec::default()
+                .suppress_timestamp()
+                .basename("lucris")
+                .suffix("log")
+        )
+        .append()
+        .print_message()
+        .format(flexi_logger::opt_format)
+        .duplicate_to_stderr(Duplicate::All)
+        .write_mode(WriteMode::BufferAndFlush)
+        //.adaptive_format_for_stderr(AdaptiveFormat::Default)
+        .start()?;
+    
+    /*
+    let _logger = Logger::try_with_str(&cli.log_level)?
+        .log_to_file(
+            FileSpec::default()
+                .suppress_timestamp()
+                .basename("lucris")
+                .suffix("log")
+        )
+        .append()
+        .print_message()
+        .format(flexi_logger::detailed_format)
+        .duplicate_to_stderr(Duplicate::Debug)
+        .write_mode(WriteMode::BufferAndFlush)
+        .adaptive_format_for_stderr(AdaptiveFormat::Default)
+        .start()?;
 
     #[cfg(not(debug_assertions))]
     let config = LogConfigBuilder::builder()
@@ -77,6 +115,7 @@ fn main() -> Result<(), String> {
         .output_console()
         .build();
     simple_log::new(config)?;
+    */
     debug!("Starting lucris-rs.");
 
     // ------------------------------------------------------------------------
@@ -109,7 +148,7 @@ fn main() -> Result<(), String> {
     if let Some(data) = research_data {
         for entry in &data {
             if let Some(uuid) = entry.get_uuid() {
-                println!("RESEACH: {}", uuid);
+                println!("RESEARCH: {}", uuid);
                 if uuids.contains_key(uuid) == true {
                     warn!("Repeating research uuid: {}", uuid);
                 }

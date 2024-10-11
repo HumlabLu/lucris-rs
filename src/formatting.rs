@@ -1,4 +1,5 @@
 use scraper::{Html, Selector, ElementRef, Node};
+use log::{debug, error, info, trace, warn};
 
 fn extract_text_from_vec(html_snippets: &Vec<&str>) -> Vec<String> {
     html_snippets
