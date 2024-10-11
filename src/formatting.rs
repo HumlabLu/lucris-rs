@@ -66,3 +66,49 @@ fn is_block_element(tag_name: &str) -> bool {
     )
 }
 
+// ----------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn extract_sub() {
+        let html_snippet = "alpha<sub>1</sub>-antitrypsin deficiency.";
+        let cleaned = extract_text_with_formatting(html_snippet);
+        assert_eq!(cleaned, "alpha1-antitrypsin deficiency.");
+    }
+
+    #[test]
+    fn extract_div() {
+        let html_snippet = "This is <div>on a new line</div> after the div";
+        let cleaned = extract_text_with_formatting(html_snippet);
+        println!("{}", cleaned);
+        assert_eq!(cleaned, "This is on a new line\n after the div");
+    }
+
+    #[test]
+    fn extract_p() {
+        let html_snippet = "<p>Paragraph 1</p><p>Paragraph 2</p>";
+        let cleaned = extract_text_with_formatting(html_snippet);
+        println!("{}", cleaned);
+        assert_eq!(cleaned, "Paragraph 1\nParagraph 2");
+    }
+
+    #[test]
+    fn extract_missing_p() {
+        let html_snippet = "<p>Paragraph 1<p>Paragraph 2</p>";
+        let cleaned = extract_text_with_formatting(html_snippet);
+        println!("{}", cleaned);
+        assert_eq!(cleaned, "Paragraph 1\nParagraph 2");
+    }
+
+    #[test]
+    fn extract_luli() {
+        let html_snippet = "<ul><li>PhD in NLP</li><li>Developer of lucris-rs</li></lu>";
+        let cleaned = extract_text_with_formatting(html_snippet);
+        println!("{}", cleaned);
+        assert_eq!(cleaned, "PhD in NLP\nDeveloper of lucris-rs");
+    }
+    
+}
