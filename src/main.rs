@@ -12,7 +12,7 @@ use json_orgunits::{read_orgunits_jsonl, OrgUnitJson};
 mod combined;
 use combined::Combined;
 mod formatting;
-use formatting::extract_text_with_formatting;
+use formatting::{extract_text_with_formatting, extract_texts_with_formatting};
 use std::collections::HashMap;
 use uuid::Uuid;
 
@@ -109,20 +109,27 @@ fn main() -> Result<(), String> {
     if let Some(data) = research_data {
         for entry in &data {
             if let Some(uuid) = entry.get_uuid() {
-                //println!("{}", uuid);
+                println!("Research {}", uuid);
                 if uuids.contains_key(uuid) == true {
                     warn!("Repeating research uuid: {}", uuid);
                 }
                 uuids.insert(uuid.to_string(), 0);
                 //let comb = Combined::from(entry);
                 //println!("{:?}", comb);
-                let person_names = entry.get_person_names();
+                let person_names = entry.get_person_names(); // People responsible for the research.
                 for (i, (first_name, last_name, uuid)) in person_names.iter().enumerate() {
                     trace!("Person {}: {} {} {}", i, first_name, last_name, uuid);
+                    // Often more than one.
+                    println!("  Person {}: {} {} {}", i, first_name, last_name, uuid);
                 }
                 // Lookup uuid in person_data below. Connect. Does that give extra
                 // research info? Profile information?
-                println!("{:?}", entry.get_title_abstract(&cli.locale));
+                //
+                // The abstract, cleaned because it often contains HTML.
+                let (abstract_title, abstract_text) = entry.get_title_abstract(&cli.locale);
+                let abstract_text = extract_text_with_formatting(abstract_text);
+                println!("  {}", abstract_title);
+                println!("    {}", abstract_text);
             } else {
                 error!("Research JSON does not contain uuid.");
             }
@@ -169,7 +176,7 @@ fn main() -> Result<(), String> {
             }
             trace!("{:?}", entry.get_all_education_pure_ids());
             let info_texts = entry.get_profile_information_texts_for_locale(&cli.locale);
-            let info_texts = extract_text_with_formatting(&info_texts);
+            let info_texts = extract_texts_with_formatting(&info_texts);
             trace!("{:?}", info_texts);
             println!("{:?}",info_texts);
         }
