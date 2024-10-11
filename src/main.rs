@@ -18,6 +18,9 @@ use uuid::Uuid;
 use log::{debug, error, info, trace, warn, LevelFilter};
 use flexi_logger::{FileSpec, Logger, WriteMode, AdaptiveFormat, Duplicate, LogSpecification};
 use std::str::FromStr;
+use flexi_logger::{DeferredNow, Record};
+use std::io::Write;
+use std::path::Path;
 
 #[derive(Parser)]
 #[command(version, about, long_about = "Reading data.")]
@@ -52,6 +55,28 @@ struct Cli {
     log_level: String,
 }
 
+fn log_format(
+    w: &mut dyn Write,
+    now: &mut DeferredNow,
+    record: &Record,
+) -> Result<(), std::io::Error> {
+    let file_path = record.file().unwrap_or("<unknown>");
+    let file_name = Path::new(file_path)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("<unknown>");
+    let line = record.line().unwrap_or(0);
+    write!(
+        w,
+        "{} [{}] {}:{} - {}",
+        now.format("%Y-%m-%d %H:%M:%S"), // Custom timestamp format without timezone.
+        record.level(),
+        file_name,
+        line,
+        &record.args()
+    )
+}
+
 // TODO: better error handling.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
@@ -64,6 +89,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .build();
     
     let _logger = Logger::with(log_spec)
+        .format(log_format)
         .log_to_file(
             FileSpec::default()
                 .suppress_timestamp()
@@ -72,10 +98,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .append()
         .print_message()
-        .format(flexi_logger::opt_format)
         .duplicate_to_stderr(Duplicate::All)
         .write_mode(WriteMode::BufferAndFlush)
-        //.adaptive_format_for_stderr(AdaptiveFormat::Default)
         .start()?;
     
     /*
