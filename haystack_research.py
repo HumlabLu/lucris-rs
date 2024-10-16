@@ -1,6 +1,12 @@
 # PJB: Use the VENV in Development/HayStack
 #
+# -----------------------------------------------------------------------------
+# We could extract names (and other meta data) from the query
+# using a LLM and use it in the retrieval.
+# -----------------------------------------------------------------------------
+#
 import sys
+import ollama
 from haystack import Pipeline
 from haystack import Document
 from haystack.document_stores.in_memory import InMemoryDocumentStore
@@ -8,6 +14,7 @@ from haystack.components.retrievers.in_memory import InMemoryBM25Retriever
 from haystack.components.converters import TextFileToDocument
 from haystack.components.preprocessors import DocumentCleaner
 from haystack.components.preprocessors import DocumentSplitter
+from haystack.document_stores.types import DuplicatePolicy
 from haystack.components.writers import DocumentWriter
 from haystack.components.rankers import LostInTheMiddleRanker
 from haystack.components.rankers import TransformersSimilarityRanker
@@ -21,7 +28,10 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--model", help="Model for text generation.", default="llama3.1")
-parser.add_argument("-q", "--query", help="query.", default="What is the meaning of life?")
+parser.add_argument("-e", "--extractionmodel", help="Model for text exxtraction.", default="mistral")
+parser.add_argument("-q", "--query", help="query.", default=None)
+parser.add_argument("-r", "--research", help="Research file.", default=None) #"research_docs.txt"
+parser.add_argument("-p", "--showprompt", action='store_true', help="Show LLM prompts.", default=False)
 args = parser.parse_args()
 
 store_filename = "docs_research.store"
@@ -57,9 +67,14 @@ if False:
 #ABSTRACT: We compared manual ...
 #RESEARCH: 740c676d-7ab4-4975-a1c6-d4d0d2976092
 
-def read_research(a_file): # -> [Document]:
+# We could have defaults for the other values as well.
+def get_new_meta() -> dict:
+    return {"persons":[]}
+
+# Document(id=a364dddc7b9dfdefbbc7584920912d6c7dfe8c30c646cf7c586d4906525f2cf6, content: 'We ...', meta: {'uuid': 'f05eb79e-ac84-4d33-b6b1-55d650621132', 'title': 'A self-consistent ...'})
+def read_research(a_file) -> [Document]:
     current_content = None
-    current_meta = {}
+    current_meta = get_new_meta()
     documents = []
     with open(a_file, "r") as f:
         for line in f:
@@ -74,12 +89,20 @@ def read_research(a_file): # -> [Document]:
                         doc = Document(content=current_content, meta=current_meta)
                         documents.append(doc)
                         print("ADDED", current_meta)
+                    current_meta = get_new_meta()
                     current_meta["uuid"] = uuid.strip()
                     current_content = None
             if line.startswith("PERSON"):
                 bits = line.split(":")
                 if len(bits) == 2:
                     person = bits[1].strip()
+                    # get the number from PERSONn
+                    number = bits[0][6:] # bits[0] == "PERSON"
+                    person = person.split() # You got to love untyped languages...
+                    person_uuid = person[-1]
+                    person_name = " ".join(person[:-1])
+                    print("PERSON", number, person_name, person_uuid)
+                    current_meta["persons"].append(person_name) # Note assumes "persons" is present.
             if line.startswith("TITLE:"):
                 bits = line.split(":")
                 if len(bits) == 2:
@@ -96,17 +119,67 @@ def read_research(a_file): # -> [Document]:
         print("ADDED", current_meta)
     return documents
 
-docs = read_research("research_docs.txt")
-print("Doc count:", len(docs))
-print(docs[0])
+# mistral seems to be better than llama, at least on the test cases.
+def extract_persons(a_text) -> str:
+    prompt = "Your task is to extract the names of the people mentioned in the users input after TEXT:\n"\
+        "Only reply with the json structure.\n"\
+        "Do not repeat the input text.\n"\
+        "Remove titles like Mr. or Mrs.\n"\
+        "If you cannot find any persons, reply with an empty structure like this: [{}].\n"\
+        "Format your output as a list of json with the following structure.\n"\
+        "[{\n"\
+        "   \"person\": The name of the person\n"\
+        "}]\n"\
+        "Example user input: \"TEXT: What is Mr. John Doe working on?\n"\
+        "Example output: [{\"person\": \"John Doe\"}]\n"
+    prompt = prompt + "TEXT:" + a_text + "\n"
+    if args.showprompt:
+        print(prompt)
+    output = ollama.generate(
+        model=args.extractionmodel,
+        options={
+            'temperature': 0.0,
+            'top_k': 10, # ?
+            'num_ctx': 8096,
+            'repeat_last_n': -1,
+        },
+        prompt=prompt
+    )
+    return output['response']
 
-doc_embedder = SentenceTransformersDocumentEmbedder(model="sentence-transformers/all-MiniLM-L6-v2")
-doc_embedder.warm_up()
-docs_with_embeddings = doc_embedder.run(docs)
-document_store = InMemoryDocumentStore()
-document_store.write_documents(docs_with_embeddings["documents"])
-document_store.save_to_disk(store_filename)
+# -----------------------------------------------------------------------------
 
+# Specifying a research file reads it and save the resulting
+# documents to disk.
+if args.research:
+    docs = read_research("research_docs.txt")
+    print("Doc count:", len(docs))
+    print(docs[0])
+
+    doc_embedder = SentenceTransformersDocumentEmbedder(model="sentence-transformers/all-MiniLM-L6-v2")
+    doc_embedder.warm_up()
+    docs_with_embeddings = doc_embedder.run(docs)
+    document_store = InMemoryDocumentStore()
+    document_writer = DocumentWriter(
+        document_store=document_store,
+        policy=DuplicatePolicy.SKIP
+    )
+    document_writer.run(documents=docs_with_embeddings["documents"])
+    document_store.save_to_disk(store_filename)
+
+# -----------------------------------------------------------------------------
+
+# Test name extraction.
+print(extract_persons("What is Peter Berck working on?"))
+print(extract_persons("Tell me what John and Nisse Nissesson are researching?"))
+print(extract_persons("I did my shopping at ICAs"))
+print(extract_persons("We used site-directed mutagenesis by Van den Bosch and Mr. Smith to do this."))
+
+# -----------------------------------------------------------------------------
+
+if not args.query:
+    sys.exit(0)
+    
 # -----------------------------------------------------------------------------
 
 print("Loading...")
@@ -178,7 +251,7 @@ if True:
 
 template = """
 Given the following context, answer the question.
-Do not make up facts. Do not use lists. Be concise.
+Do not make up facts. Do not use lists.
 
 Context:
 {% for document in documents %}
@@ -222,7 +295,7 @@ print(response["llm"]["replies"][0])
 print("-" * 78)
 print()
 
-if True:
+if args.showprompt:
     print()
     print("Prompt builder:")
     print(response["prompt_builder"]["prompt"])

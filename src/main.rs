@@ -55,11 +55,7 @@ struct Cli {
     log_level: String,
 }
 
-fn log_format(
-    w: &mut dyn Write,
-    now: &mut DeferredNow,
-    record: &Record,
-) -> Result<(), std::io::Error> {
+fn log_format(w: &mut dyn Write, now: &mut DeferredNow, record: &Record) -> Result<(), std::io::Error> {
     let file_path = record.file().unwrap_or("<unknown>");
     let file_name = Path::new(file_path)
         .file_name()
@@ -97,7 +93,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .suffix("log")
         )
         .append()
-        .print_message()
         .duplicate_to_stderr(Duplicate::All)
         .write_mode(WriteMode::BufferAndFlush)
         .start()?;
