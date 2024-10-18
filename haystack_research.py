@@ -31,6 +31,7 @@ parser.add_argument("-m", "--model", help="Model for text generation.", default=
 parser.add_argument("-e", "--extractionmodel", help="Model for text exxtraction.", default="mistral")
 parser.add_argument("-q", "--query", help="query.", default=None)
 parser.add_argument("-r", "--research", help="Research file.", default=None) #"research_docs.txt"
+parser.add_argument("-R", "--reranker", action='store_true', help="Run re-ranker.", default=False)
 parser.add_argument("-p", "--showprompt", action='store_true', help="Show LLM prompts.", default=False)
 args = parser.parse_args()
 
@@ -126,13 +127,14 @@ def extract_persons(a_text) -> str:
         "Do not repeat the input text.\n"\
         "Remove titles like Mr. or Mrs.\n"\
         "If you cannot find any persons, reply with an empty structure like this: [{}].\n"\
+        "If the text is empty, reply with an empty structure like this: [{}].\n"\
         "Format your output as a list of json with the following structure.\n"\
         "[{\n"\
         "   \"person\": The name of the person\n"\
         "}]\n"\
         "Example user input: \"TEXT: What is Mr. John Doe working on?\n"\
         "Example output: [{\"person\": \"John Doe\"}]\n"
-    prompt = prompt + "TEXT:" + a_text + "\n"
+    prompt = prompt + "TEXT:" + a_text + ".\n"
     if args.showprompt:
         print(prompt)
     output = ollama.generate(
@@ -151,12 +153,16 @@ def extract_persons(a_text) -> str:
 
 # Specifying a research file reads it and save the resulting
 # documents to disk.
+# Pipeline example: https://docs.haystack.deepset.ai/docs/documentwriter
 if args.research:
     docs = read_research("research_docs.txt")
     print("Doc count:", len(docs))
     print(docs[0])
 
-    doc_embedder = SentenceTransformersDocumentEmbedder(model="sentence-transformers/all-MiniLM-L6-v2")
+    doc_embedder = SentenceTransformersDocumentEmbedder(
+        model="sentence-transformers/all-MiniLM-L6-v2", # Dim depends on model.
+        meta_fields_to_embed=["title", "persons"]
+    )
     doc_embedder.warm_up()
     docs_with_embeddings = doc_embedder.run(docs)
     document_store = InMemoryDocumentStore()
@@ -170,11 +176,13 @@ if args.research:
 # -----------------------------------------------------------------------------
 
 # Test name extraction.
-print(extract_persons("What is Peter Berck working on?"))
-print(extract_persons("Tell me what John and Nisse Nissesson are researching?"))
-print(extract_persons("I did my shopping at ICAs"))
-print(extract_persons("We used site-directed mutagenesis by Van den Bosch and Mr. Smith to do this."))
-
+if False:
+    print(extract_persons("What is Quinten Berck working on?"))
+    print(extract_persons("Tell me what John and Nisse Nissesson are researching?"))
+    print(extract_persons("I did my shopping at ICAs"))
+    print(extract_persons(""))
+    print(extract_persons("We used site-directed mutagenesis by Van den Bosch and Mr. Smith to do this."))
+    sys.exit(0)
 # -----------------------------------------------------------------------------
 
 if not args.query:
@@ -186,20 +194,23 @@ print("Loading...")
 document_store_new = InMemoryDocumentStore().load_from_disk(store_filename)
 print(f"Number of documents: {document_store_new.count_documents()}.")
 retriever = InMemoryBM25Retriever(document_store=document_store_new)
-
-#query = "Who is Sirius? Where does he live? What about Maja?"
-#query = "Who is worse, Scylla or Charybdis?"
+#retriever = InMemoryEmbeddingRetriever(document_store_new)
 query = args.query
 print(f"Query: {query}")
 
 retrieve_top_k = 9
 rank_top_k = 3
 
-res = retriever.run(query=query, top_k=retrieve_top_k, scale_score=True)
+# Filter of meta-data?
+res = retriever.run(
+    query=query,
+    top_k=retrieve_top_k,
+    #scale_score=True
+)
 print("Retriever")
 for i, r in enumerate(res["documents"]):
-    print()
     print(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
+    #print(r)
 print()
 print("=" * 78)
 
@@ -218,7 +229,7 @@ if False:
 
 if False:
     print("Running TransformersSimilarityRanker()")
-    ranker = TransformersSimilarityRanker()
+    ranker = TransformersSimilarityRanker(model="BAAI/bge-reranker-base")
     ranker.warm_up()
     res = ranker.run(
         query=query,
@@ -231,7 +242,7 @@ if False:
     print()
     print("=" * 78)
 
-if True:
+if args.reranker:
     ranker = SentenceTransformersDiversityRanker(
         model="sentence-transformers/all-MiniLM-L6-v2",
         #model="cross-encoder/ms-marco-MiniLM-L-6-v2",
@@ -251,7 +262,8 @@ if True:
 
 template = """
 Given the following context, answer the question.
-Do not make up facts. Do not use lists.
+Do not make up facts. Do not use lists. When referring to research
+mention the researchers names from the meta-data.
 
 Context:
 {% for document in documents %}
