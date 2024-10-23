@@ -13,32 +13,35 @@ from haystack import Document
 from haystack.document_stores.in_memory import InMemoryDocumentStore
 
 document_store = InMemoryDocumentStore()
+store_filename = "hybrid_documents.store"
 
-dataset = load_dataset("anakin87/medrag-pubmed-chunk", split="train")
-docs = []
-for doc in dataset:
-    docs.append(
-        Document(
-            content=doc["contents"],
-            meta={"title": doc["title"], "abstract": doc["content"], "pmid": doc["id"]}
+if False:
+    dataset = load_dataset("anakin87/medrag-pubmed-chunk", split="train")
+    docs = []
+    for doc in dataset:
+        docs.append(
+            Document(
+                content=doc["contents"],
+                meta={"title": doc["title"], "abstract": doc["content"], "pmid": doc["id"]}
+            )
         )
+    document_splitter = DocumentSplitter(split_by="word", split_length=512, split_overlap=32)
+    document_embedder = SentenceTransformersDocumentEmbedder(
+        model="BAAI/bge-small-en-v1.5" #, device=ComponentDevice.from_str("cuda:0")
     )
-
-document_splitter = DocumentSplitter(split_by="word", split_length=512, split_overlap=32)
-document_embedder = SentenceTransformersDocumentEmbedder(
-    model="BAAI/bge-small-en-v1.5" #, device=ComponentDevice.from_str("cuda:0")
-)
-document_writer = DocumentWriter(document_store)
-
-indexing_pipeline = Pipeline()
-indexing_pipeline.add_component("document_splitter", document_splitter)
-indexing_pipeline.add_component("document_embedder", document_embedder)
-indexing_pipeline.add_component("document_writer", document_writer)
-
-indexing_pipeline.connect("document_splitter", "document_embedder")
-indexing_pipeline.connect("document_embedder", "document_writer")
-
-indexing_pipeline.run({"document_splitter": {"documents": docs}})
+    document_writer = DocumentWriter(document_store)
+    indexing_pipeline = Pipeline()
+    indexing_pipeline.add_component("document_splitter", document_splitter)
+    indexing_pipeline.add_component("document_embedder", document_embedder)
+    indexing_pipeline.add_component("document_writer", document_writer)
+    indexing_pipeline.connect("document_splitter", "document_embedder")
+    indexing_pipeline.connect("document_embedder", "document_writer")
+    indexing_pipeline.run({"document_splitter": {"documents": docs}})
+    document_store.save_to_disk(store_filename)
+else:
+    print("Loading...")
+    document_store = InMemoryDocumentStore().load_from_disk(store_filename)
+    print(f"Number of documents: {document_store.count_documents()}.")
 
 text_embedder = SentenceTransformersTextEmbedder(
     model="BAAI/bge-small-en-v1.5" #, device=ComponentDevice.from_str("cuda:0")
