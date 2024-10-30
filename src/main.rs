@@ -1,3 +1,9 @@
+//
+// ---------------------------------------------------------------------------
+// TODO:
+// Output format...
+// ---------------------------------------------------------------------------
+//
 use clap::{Parser};
 mod json_person;
 use json_person::{read_persons_jsonl, PersonJson};
@@ -73,7 +79,7 @@ fn log_format(w: &mut dyn Write, now: &mut DeferredNow, record: &Record) -> Resu
     )
 }
 
-// TODO: better error handling.
+// TODO: Better error handling.
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
@@ -260,7 +266,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("{} {}", id, id.urn());
     */
     
-    debug!("Ending lucris-rs.");
+    info!("Ending lucris-rs.");
     Ok(())
 }
 
