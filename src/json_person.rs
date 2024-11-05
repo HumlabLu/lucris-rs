@@ -689,9 +689,9 @@ mod tests {
         }
         "#;
         let person: PersonJson = serde_json::from_str(data).expect("Err");
-        let foo = PersonJsonDes::try_from(&person);
-        println!("{:?}", foo); // Err(MissingNameField)
-        assert!(PersonJsonDes::try_from(&person).is_err());
+        let person_des = PersonJsonDes::try_from(&person);
+        println!("{:?}", person_des); // Err(MissingNameField)
+        assert!(person_des.is_err());
     }
 
     #[test]
