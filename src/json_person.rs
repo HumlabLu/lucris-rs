@@ -661,6 +661,40 @@ mod tests {
     }
 
     #[test]
+    fn test_person_des_ok() {
+        let data = r#"
+        {
+          "pureId": 282828,
+          "externallyManaged": true,
+          "uuid": "01234567-0123-0123-0123-0123456789ABC",
+          "name": {
+            "firstName": "Quinten",
+            "lastName": "Berck"
+          }
+        }
+        "#;
+        let person: PersonJson = serde_json::from_str(data).expect("Err");
+        let person_des:PersonJsonDes = PersonJsonDes::try_from(&person).expect("Err");
+        let person_des_jstr = serde_json::to_string(&person_des).unwrap();
+        assert_eq!(person_des_jstr, r#"{"name":"Quinten Berck"}"#);
+    }
+
+    #[test]
+    fn test_person_des_noname() {
+        let data = r#"
+        {
+          "pureId": 282828,
+          "externallyManaged": true,
+          "uuid": "01234567-0123-0123-0123-0123456789ABC"
+        }
+        "#;
+        let person: PersonJson = serde_json::from_str(data).expect("Err");
+        let foo = PersonJsonDes::try_from(&person);
+        println!("{:?}", foo); // Err(MissingNameField)
+        assert!(PersonJsonDes::try_from(&person).is_err());
+    }
+
+    #[test]
     fn test_date_parsing() {
         let data = r#"
         {
