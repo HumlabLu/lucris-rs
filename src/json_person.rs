@@ -45,11 +45,13 @@ pub struct PersonJson {
 
 #[derive(Debug, Serialize)]
 pub struct PersonJsonDes {
+    uuid: String,
     name: String,
 }
 
 #[derive(Debug)]
 pub enum PersonJsonDesError {
+    MissingUUID,
     MissingNameField,
     MissingFirstName,
     MissingLastName,
@@ -59,6 +61,8 @@ impl TryFrom<&PersonJson> for PersonJsonDes {
     type Error = PersonJsonDesError;
 
     fn try_from(value: &PersonJson) -> Result<Self, Self::Error> {
+        let uuid = value.uuid.as_ref().ok_or(PersonJsonDesError::MissingUUID)?;
+        
         // Extract name field as a reference.
         let name_struct = value.name.as_ref().ok_or(PersonJsonDesError::MissingNameField)?;
 
@@ -68,7 +72,10 @@ impl TryFrom<&PersonJson> for PersonJsonDes {
         let full_name = format!("{} {}", first_name, last_name);
 
         // Create the PersonJsonDes.
-        Ok(PersonJsonDes { name: full_name })
+        Ok(PersonJsonDes {
+            uuid: uuid.to_string(),
+            name: full_name
+        })
     }
 }
 
@@ -676,7 +683,7 @@ mod tests {
         let person: PersonJson = serde_json::from_str(data).expect("Err");
         let person_des:PersonJsonDes = PersonJsonDes::try_from(&person).expect("Err");
         let person_des_jstr = serde_json::to_string(&person_des).unwrap();
-        assert_eq!(person_des_jstr, r#"{"name":"Quinten Berck"}"#);
+        assert_eq!(person_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck"}"#);
     }
 
     #[test]
@@ -691,6 +698,24 @@ mod tests {
         let person: PersonJson = serde_json::from_str(data).expect("Err");
         let person_des = PersonJsonDes::try_from(&person);
         println!("{:?}", person_des); // Err(MissingNameField)
+        assert!(person_des.is_err());
+    }
+    
+    #[test]
+    fn test_person_des_nouuid() {
+        let data = r#"
+        {
+          "pureId": 282828,
+          "externallyManaged": true,
+          "name": {
+            "firstName": "Quinten",
+            "lastName": "Berck"
+          }
+        }
+        "#;
+        let person: PersonJson = serde_json::from_str(data).expect("Err");
+        let person_des = PersonJsonDes::try_from(&person);
+        println!("{:?}", person_des); // Err(MissingUUID)
         assert!(person_des.is_err());
     }
 
