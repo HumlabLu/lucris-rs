@@ -56,7 +56,6 @@ pub enum PersonJsonDesError {
     MissingNameField,
     MissingFirstName,
     MissingLastName,
-    EmptyVec,
 }
 
 impl TryFrom<&PersonJson> for PersonJsonDes {
@@ -96,7 +95,8 @@ impl PersonJsonDes {
         let profile_info_text = value.get_profile_information_texts_for_locale(locale);
         let profile_info_text = profile_info_text
             .first()
-            .ok_or(PersonJsonDesError::EmptyVec)?;
+            .copied()
+            .unwrap_or("There is no info");
         
         Ok(PersonJsonDes {
             uuid: uuid.to_string(),

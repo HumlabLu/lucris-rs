@@ -207,7 +207,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("{:?}",info_texts);
 
             // TEST
-            match PersonJsonDes::try_from(entry) {
+            match PersonJsonDes::try_from_with_locale(entry, &cli.locale) {
                 Ok(person_des) => {
                     println!("Converted person: {:?}", person_des);
                     let json_output = serde_json::to_string(&person_des).unwrap();
