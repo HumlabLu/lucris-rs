@@ -7,6 +7,7 @@ use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
 use std::sync::{Arc, Mutex};
 use log::{debug, error, info, trace, warn};
+use std::convert::TryFrom;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PersonJson {
@@ -39,6 +40,39 @@ pub struct PersonJson {
     pub visibility: Option<Visibility>,
     pub visitingScholarOrganisationAssociations: Option<Vec<OrganisationAssociation>>,
 }
+
+// Simplified struct for output. Keep only relevant fields.
+
+#[derive(Debug, Serialize)]
+pub struct PersonJsonDes {
+    name: String,
+}
+
+#[derive(Debug)]
+pub enum PersonJsonDesError {
+    MissingNameField,
+    MissingFirstName,
+    MissingLastName,
+}
+
+impl TryFrom<&PersonJson> for PersonJsonDes {
+    type Error = PersonJsonDesError;
+
+    fn try_from(value: &PersonJson) -> Result<Self, Self::Error> {
+        // Extract name field as a reference.
+        let name_struct = value.name.as_ref().ok_or(PersonJsonDesError::MissingNameField)?;
+
+        // Extract 'firstName' and 'lastName' as references, combine.
+        let first_name = name_struct.firstName.as_ref().ok_or(PersonJsonDesError::MissingFirstName)?;
+        let last_name = name_struct.lastName.as_ref().ok_or(PersonJsonDesError::MissingLastName)?;
+        let full_name = format!("{} {}", first_name, last_name);
+
+        // Create the PersonJsonDes.
+        Ok(PersonJsonDes { name: full_name })
+    }
+}
+
+// End simplified.
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Education {

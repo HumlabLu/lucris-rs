@@ -6,7 +6,7 @@
 //
 use clap::{Parser};
 mod json_person;
-use json_person::{read_persons_jsonl, PersonJson};
+use json_person::{read_persons_jsonl, PersonJson, PersonJsonDes};
 mod json_research;
 use json_research::{ResearchJson, read_research_jsonl, dump_titles};
 mod json_fingerprint;
@@ -205,6 +205,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let info_texts = extract_texts_with_formatting(&info_texts);
             trace!("{:?}", info_texts);
             println!("{:?}",info_texts);
+
+            // TEST
+            match PersonJsonDes::try_from(entry) {
+                Ok(person_des) => {
+                    println!("Converted person: {:?}", person_des);
+                    let json_output = serde_json::to_string(&person_des).unwrap();
+                    println!("PersonJsonDes as JSON: {}", json_output);
+                }
+                Err(e) => {
+                    println!("Failed to convert PersonJson: {:?}", e);
+                }
+            }
+            // TEST
         }
     } else {
         debug!("No persons data available.");
