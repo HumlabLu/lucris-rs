@@ -47,14 +47,16 @@ pub struct PersonJson {
 pub struct PersonJsonDes {
     uuid: String,
     name: String,
+    profile_info: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub enum PersonJsonDesError {
     MissingUUID,
     MissingNameField,
     MissingFirstName,
     MissingLastName,
+    EmptyVec,
 }
 
 impl TryFrom<&PersonJson> for PersonJsonDes {
@@ -74,7 +76,32 @@ impl TryFrom<&PersonJson> for PersonJsonDes {
         // Create the PersonJsonDes.
         Ok(PersonJsonDes {
             uuid: uuid.to_string(),
-            name: full_name
+            name: full_name,
+            profile_info: "".to_string(), // Take a default en_GB locale?
+        })
+    }
+}
+
+impl PersonJsonDes {
+    pub fn try_from_with_locale(value: &PersonJson, locale: &str) -> Result<Self, PersonJsonDesError> {
+        let uuid = value.uuid.as_ref().ok_or(PersonJsonDesError::MissingUUID)?;
+        
+        let name_struct = value.name.as_ref().ok_or(PersonJsonDesError::MissingNameField)?;
+        let first_name = name_struct.firstName.as_ref().ok_or(PersonJsonDesError::MissingFirstName)?;
+        let last_name = name_struct.lastName.as_ref().ok_or(PersonJsonDesError::MissingLastName)?;
+        let full_name = format!("{} {}", first_name, last_name);
+        
+        // Extract profile informations using locale? The function returns a vec,
+        // which can be empty ([]).
+        let profile_info_text = value.get_profile_information_texts_for_locale(locale);
+        let profile_info_text = profile_info_text
+            .first()
+            .ok_or(PersonJsonDesError::EmptyVec)?;
+        
+        Ok(PersonJsonDes {
+            uuid: uuid.to_string(),
+            name: full_name,
+            profile_info: profile_info_text.to_string(),
         })
     }
 }
@@ -683,7 +710,7 @@ mod tests {
         let person: PersonJson = serde_json::from_str(data).expect("Err");
         let person_des:PersonJsonDes = PersonJsonDes::try_from(&person).expect("Err");
         let person_des_jstr = serde_json::to_string(&person_des).unwrap();
-        assert_eq!(person_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck"}"#);
+        assert_eq!(person_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":""}"#);
     }
 
     #[test]
@@ -717,6 +744,39 @@ mod tests {
         let person_des = PersonJsonDes::try_from(&person);
         println!("{:?}", person_des); // Err(MissingUUID)
         assert!(person_des.is_err());
+    }
+    
+    #[test]
+    fn test_person_des_profile_text() {
+        let data = r#"
+        {
+          "pureId": 282828,
+          "externallyManaged": true,
+          "name": {
+            "firstName": "Quinten",
+            "lastName": "Berck"
+          },
+          "uuid": "01234567-0123-0123-0123-0123456789ABC",
+          "profileInformations": [
+            {
+              "pureId": 37832137,
+              "value": {
+              "formatted": true,
+              "text": [
+                {
+                  "locale": "en_GB",
+                  "value": "Research Engineer, Lund University Humanities Lab"
+                }
+              ]
+            }
+           }
+          ]
+        }
+        "#;
+        let person: PersonJson = serde_json::from_str(data).expect("Err");
+        let person_des = PersonJsonDes::try_from_with_locale(&person, "en_GB").expect("Err");
+        let person_des_jstr = serde_json::to_string(&person_des).unwrap();
+        assert_eq!(person_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":"Research Engineer, Lund University Humanities Lab"}"#);
     }
 
     #[test]
