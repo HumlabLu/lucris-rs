@@ -7,6 +7,7 @@ use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
 use std::sync::{Arc, Mutex};
 use log::{debug, error, info, trace, warn};
+use crate::errors::{JsonDesError};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ResearchJson {
@@ -99,16 +100,10 @@ pub struct ResearchJsonDes {
     abstract_text: String,
 }
 
-// Errors thrown when doing a try_from().
-#[derive(Debug, Serialize)]
-pub enum ResearchJsonDesError { // TODO: Make a general JsonDesError for all structs.
-    MissingUUID,
-}
-
 // This one takes a locale string and extracts the information for the specified locale.
 impl ResearchJsonDes {
-    pub fn try_from_with_locale(value: &ResearchJson, locale: &str) -> Result<Self, ResearchJsonDesError> {
-        let uuid = value.uuid.as_ref().ok_or(ResearchJsonDesError::MissingUUID)?;
+    pub fn try_from_with_locale(value: &ResearchJson, locale: &str) -> Result<Self, JsonDesError> {
+        let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
         let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
 
         // We have come this far, return the new struct.

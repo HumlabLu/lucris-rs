@@ -27,6 +27,7 @@ use std::str::FromStr;
 use flexi_logger::{DeferredNow, Record};
 use std::io::Write;
 use std::path::Path;
+mod errors;
 
 #[derive(Parser)]
 #[command(version, about, long_about = "Reading data.")]

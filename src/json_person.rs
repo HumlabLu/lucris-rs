@@ -8,6 +8,7 @@ use rayon::iter::ParallelIterator;
 use std::sync::{Arc, Mutex};
 use log::{debug, error, info, trace, warn};
 use std::convert::TryFrom;
+use crate::errors::{JsonDesError};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PersonJson {
@@ -49,27 +50,18 @@ pub struct PersonJsonDes {
     profile_info: String,
 }
 
-// Errors thrown when doing a try_from().
-#[derive(Debug, Serialize)]
-pub enum PersonJsonDesError {
-    MissingUUID,
-    MissingNameField,
-    MissingFirstName,
-    MissingLastName,
-}
-
 impl TryFrom<&PersonJson> for PersonJsonDes {
-    type Error = PersonJsonDesError;
+    type Error = JsonDesError;
 
     fn try_from(value: &PersonJson) -> Result<Self, Self::Error> {
-        let uuid = value.uuid.as_ref().ok_or(PersonJsonDesError::MissingUUID)?;
+        let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
         
         // Extract name field as a reference.
-        let name_struct = value.name.as_ref().ok_or(PersonJsonDesError::MissingNameField)?;
+        let name_struct = value.name.as_ref().ok_or(JsonDesError::MissingNameField)?;
 
         // Extract 'firstName' and 'lastName' as references, combine.
-        let first_name = name_struct.firstName.as_ref().ok_or(PersonJsonDesError::MissingFirstName)?;
-        let last_name = name_struct.lastName.as_ref().ok_or(PersonJsonDesError::MissingLastName)?;
+        let first_name = name_struct.firstName.as_ref().ok_or(JsonDesError::MissingFirstName)?;
+        let last_name = name_struct.lastName.as_ref().ok_or(JsonDesError::MissingLastName)?;
         let full_name = format!("{} {}", first_name, last_name);
 
         // Create the PersonJsonDes.
@@ -84,12 +76,12 @@ impl TryFrom<&PersonJson> for PersonJsonDes {
 // Another try_from, but this one takes a locale string and extracts the
 // profile_information for the specified locale.
 impl PersonJsonDes {
-    pub fn try_from_with_locale(value: &PersonJson, locale: &str) -> Result<Self, PersonJsonDesError> {
-        let uuid = value.uuid.as_ref().ok_or(PersonJsonDesError::MissingUUID)?;
+    pub fn try_from_with_locale(value: &PersonJson, locale: &str) -> Result<Self, JsonDesError> {
+        let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
         
-        let name_struct = value.name.as_ref().ok_or(PersonJsonDesError::MissingNameField)?;
-        let first_name = name_struct.firstName.as_ref().ok_or(PersonJsonDesError::MissingFirstName)?;
-        let last_name = name_struct.lastName.as_ref().ok_or(PersonJsonDesError::MissingLastName)?;
+        let name_struct = value.name.as_ref().ok_or(JsonDesError::MissingNameField)?;
+        let first_name = name_struct.firstName.as_ref().ok_or(JsonDesError::MissingFirstName)?;
+        let last_name = name_struct.lastName.as_ref().ok_or(JsonDesError::MissingLastName)?;
         let full_name = format!("{} {}", first_name, last_name);
         
         // Extract profile informations using locale? The function returns a vec,
