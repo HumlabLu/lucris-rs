@@ -136,13 +136,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(data) = research_data {
         for entry in &data {
             if let Some(uuid) = entry.get_uuid() {
-                println!("RESEARCH: {}", uuid);
                 if uuids.contains_key(uuid) == true {
                     warn!("Repeating research uuid: {}", uuid);
                 }
                 uuids.insert(uuid.to_string(), 0);
                 //let comb = Combined::from(entry);
                 //println!("{:?}", comb);
+                /*
                 let person_names = entry.get_person_names(); // People responsible for the research.
                 for (i, (first_name, last_name, uuid)) in person_names.iter().enumerate() {
                     trace!("Person {}: {} {} {}", i, first_name, last_name, uuid);
@@ -157,12 +157,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let abstract_text = extract_text_with_formatting(abstract_text);
                 println!("TITLE: {}", abstract_title);
                 println!("ABSTRACT: {}", abstract_text);
-
+                */
+                
                 // TEST
                 match ResearchJsonDes::try_from_with_locale(entry, &cli.locale) {
                 Ok(research_des) => {
                     let json_output = serde_json::to_string(&research_des).unwrap();
-                    println!("{}", json_output);
+                    println!("{}\n", json_output);
                 }
                 Err(e) => {
                     panic!("Failed to convert ResearchJson: {:?}", e);
@@ -173,7 +174,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 error!("Research JSON does not contain uuid.");
             }
-        }
+        } // for entry
+        
+        let foo:Vec<ResearchJsonDes> = data.iter()
+            .map(|x| ResearchJsonDes::try_from_with_locale(x, &cli.locale).unwrap())
+            .collect();
+        
     } else {
         debug!("No research data available.");
     }

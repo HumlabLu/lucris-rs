@@ -115,15 +115,29 @@ impl ResearchJsonDes {
         let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
 
         let mut persons:Vec<PersonDes> = vec![];
+
         let person_names = value.get_person_names(); // People responsible for the research.
-        for (i, (first_name, last_name, uuid)) in person_names.iter().enumerate() {
+        let mut c = 0;
+        for (first_name, last_name, uuid) in person_names.iter() {
             // Often more than one.
             let person = PersonDes {
-                idx: i,
+                idx: c,
                 uuid: uuid.to_string(),
                 name: format!("{} {}", first_name, last_name),
             };
             persons.push(person);
+            c += 1;
+        }
+        
+        let external_person_names = value.get_external_person_names();
+        for (full_name, uuid) in external_person_names.iter() {
+            let person = PersonDes {
+                idx: c,
+                uuid: uuid.to_string(),
+                name: full_name.to_string(),
+            };
+            persons.push(person);
+            c += 1;
         }
 
         // We have come this far, return the new struct.
@@ -643,6 +657,29 @@ impl ResearchJson {
             .unwrap_or_else(Vec::new)
     }
 
+    // Get the name(s) and UUID of the externalPersons from the personAssociations data.
+    pub fn get_external_person_names(&self) -> Vec<(&str, &str)> {
+        self.personAssociations
+            .as_ref()
+            .map(|associations| {
+                associations
+                    .iter()
+                    .filter_map(|association| {
+                        let external_person = association.externalPerson.as_ref()?;
+                        let term = external_person.name.as_ref()?;
+                        let name_value = term
+                            .text
+                            .iter()
+                            .filter_map(|locale_value| locale_value.value.as_deref())
+                            .next()?;
+                        let uuid = external_person.uuid.as_deref()?;
+                        Some((name_value, uuid))
+                    })
+                    .collect()
+            })
+            .unwrap_or_else(Vec::new)
+    }
+    
     // We return an empty string if the info is not present. Could change to
     // Option<T> but seems overkill at the moment.
     pub fn get_title_abstract(&self, locale: &str) -> (&str, &str) {
@@ -789,4 +826,26 @@ mod tests {
         let research: ResearchJson = serde_json::from_str(data).expect("Err");
         assert!(research.uuid.as_deref() == Some("1d136ffd-6d08-444a-9c50-76c0e5aec513"));
     }
+
+    #[test]
+    fn test_research_des_ok() {
+        let data = r#"
+        {
+          "uuid": "01234567-0123-0123-0123-0123456789ABC",
+          "title": {
+            "formatted": true,
+            "value": "A nice title."
+          },
+          "name": {
+            "firstName": "Quinten",
+            "lastName": "Berck"
+          }
+        }
+        "#;
+        let research: ResearchJson = serde_json::from_str(data).expect("Err");
+        let research_des:ResearchJsonDes = ResearchJsonDes::try_from_with_locale(&research, "en_GB").expect("Err");
+        let research_des_jstr = serde_json::to_string(&research_des).unwrap();
+        assert_eq!(research_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","title":"A nice title.","abstract":"","persons":[]}"#);
+    }
+
 }
