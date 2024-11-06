@@ -102,10 +102,17 @@ pub struct ResearchJsonDes {
 }
 
 #[derive(Debug, Serialize)]
+enum PersonInEx {
+    Internal,
+    External,
+}
+
+#[derive(Debug, Serialize)]
 pub struct PersonDes {
-    idx: usize,
+    idx: u32,
     uuid: String,
     name: String,
+    inex: PersonInEx, // Needs a better name...
 }
 
 // This one takes a locale string and extracts the information for the specified locale.
@@ -124,17 +131,19 @@ impl ResearchJsonDes {
                 idx: c,
                 uuid: uuid.to_string(),
                 name: format!("{} {}", first_name, last_name),
+                inex: PersonInEx::Internal,
             };
             persons.push(person);
             c += 1;
         }
-        
+
         let external_person_names = value.get_external_person_names();
-        for (full_name, uuid) in external_person_names.iter() {
+        for (full_name, uuid) in external_person_names.iter() { // Full name seems lower case.
             let person = PersonDes {
                 idx: c,
                 uuid: uuid.to_string(),
                 name: full_name.to_string(),
+                inex: PersonInEx::External,
             };
             persons.push(person);
             c += 1;
