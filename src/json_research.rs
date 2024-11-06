@@ -8,6 +8,7 @@ use rayon::iter::ParallelIterator;
 use std::sync::{Arc, Mutex};
 use log::{debug, error, info, trace, warn};
 use crate::errors::{JsonDesError};
+use std::fmt;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ResearchJson {
@@ -113,6 +114,15 @@ pub struct PersonDes {
     uuid: String,
     name: String,
     inex: PersonInEx, // Needs a better name...
+}
+
+impl fmt::Display for PersonDes {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // Returns `fmt::Result` which indicates whether the
+        // operation succeeded or failed. Note that `write!` uses syntax which
+        // is very similar to `println!`.
+        write!(f, "{}", self.name)
+    }
 }
 
 // This one takes a locale string and extracts the information for the specified locale.

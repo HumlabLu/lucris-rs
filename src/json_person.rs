@@ -9,6 +9,7 @@ use std::sync::{Arc, Mutex};
 use log::{debug, error, info, trace, warn};
 use std::convert::TryFrom;
 use crate::errors::{JsonDesError};
+use std::fmt;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PersonJson {
@@ -48,6 +49,15 @@ pub struct PersonJsonDes {
     uuid: String,
     name: String,
     profile_info: String,
+}
+
+impl fmt::Display for PersonJsonDes {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // Returns `fmt::Result` which indicates whether the
+        // operation succeeded or failed. Note that `write!` uses syntax which
+        // is very similar to `println!`.
+        write!(f, "{}", self.name)
+    }
 }
 
 impl TryFrom<&PersonJson> for PersonJsonDes {
