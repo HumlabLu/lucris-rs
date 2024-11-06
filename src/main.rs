@@ -8,7 +8,7 @@ use clap::{Parser};
 mod json_person;
 use json_person::{read_persons_jsonl, PersonJson, PersonJsonDes};
 mod json_research;
-use json_research::{ResearchJson, read_research_jsonl, dump_titles};
+use json_research::{ResearchJson, ResearchJsonDes, read_research_jsonl, dump_titles};
 mod json_fingerprint;
 use json_fingerprint::{read_fingerprint_jsonl, FingerprintJson};
 mod json_concepts;
@@ -156,6 +156,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let abstract_text = extract_text_with_formatting(abstract_text);
                 println!("TITLE: {}", abstract_title);
                 println!("ABSTRACT: {}", abstract_text);
+
+                // TEST
+                match ResearchJsonDes::try_from_with_locale(entry, &cli.locale) {
+                Ok(research_des) => {
+                    let json_output = serde_json::to_string(&research_des).unwrap();
+                    println!("{}", json_output);
+                }
+                Err(e) => {
+                    println!("Failed to convert ResearchJson: {:?}", e);
+                }
+            }
+            // TEST
+
             } else {
                 error!("Research JSON does not contain uuid.");
             }
@@ -204,14 +217,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let info_texts = entry.get_profile_information_texts_for_locale(&cli.locale);
             let info_texts = extract_texts_with_formatting(&info_texts);
             trace!("{:?}", info_texts);
-            println!("{:?}",info_texts);
+            //println!("{:?}",info_texts);
 
             // TEST
             match PersonJsonDes::try_from_with_locale(entry, &cli.locale) {
                 Ok(person_des) => {
-                    println!("Converted person: {:?}", person_des);
                     let json_output = serde_json::to_string(&person_des).unwrap();
-                    println!("PersonJsonDes as JSON: {}", json_output);
+                    println!("{}", json_output);
                 }
                 Err(e) => {
                     println!("Failed to convert PersonJson: {:?}", e);

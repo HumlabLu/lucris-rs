@@ -42,7 +42,6 @@ pub struct PersonJson {
 }
 
 // Simplified struct for output. Keep only relevant fields.
-
 #[derive(Debug, Serialize)]
 pub struct PersonJsonDes {
     uuid: String,
@@ -50,6 +49,7 @@ pub struct PersonJsonDes {
     profile_info: String,
 }
 
+// Errors thrown when doing a try_from().
 #[derive(Debug, Serialize)]
 pub enum PersonJsonDesError {
     MissingUUID,
@@ -81,6 +81,8 @@ impl TryFrom<&PersonJson> for PersonJsonDes {
     }
 }
 
+// Another try_from, but this one takes a locale string and extracts the
+// profile_information for the specified locale.
 impl PersonJsonDes {
     pub fn try_from_with_locale(value: &PersonJson, locale: &str) -> Result<Self, PersonJsonDesError> {
         let uuid = value.uuid.as_ref().ok_or(PersonJsonDesError::MissingUUID)?;
@@ -94,10 +96,11 @@ impl PersonJsonDes {
         // which can be empty ([]).
         let profile_info_text = value.get_profile_information_texts_for_locale(locale);
         let profile_info_text = profile_info_text
-            .first()
-            .copied()
-            .unwrap_or("There is no info");
-        
+            .first() // First element of the vector (it should only contain one?).
+            .copied() // Dereferences &&str to &str.
+            .unwrap_or("There is no profile_information.");
+
+        // We have come this far, return the new struct.
         Ok(PersonJsonDes {
             uuid: uuid.to_string(),
             name: full_name,
