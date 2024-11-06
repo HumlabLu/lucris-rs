@@ -165,7 +165,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("{}", json_output);
                 }
                 Err(e) => {
-                    println!("Failed to convert ResearchJson: {:?}", e);
+                    panic!("Failed to convert ResearchJson: {:?}", e);
                 }
             }
             // TEST
@@ -227,7 +227,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("{}", json_output);
                 }
                 Err(e) => {
-                    println!("Failed to convert PersonJson: {:?}", e);
+                    panic!("Failed to convert PersonJson: {:?}", e);
                 }
             }
             // TEST

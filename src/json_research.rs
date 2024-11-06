@@ -98,6 +98,14 @@ pub struct ResearchJsonDes {
     title: String,
     #[serde(rename = "abstract")]
     abstract_text: String,
+    persons: Vec<PersonDes>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PersonDes {
+    idx: usize,
+    uuid: String,
+    name: String,
 }
 
 // This one takes a locale string and extracts the information for the specified locale.
@@ -106,11 +114,24 @@ impl ResearchJsonDes {
         let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
         let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
 
+        let mut persons:Vec<PersonDes> = vec![];
+        let person_names = value.get_person_names(); // People responsible for the research.
+        for (i, (first_name, last_name, uuid)) in person_names.iter().enumerate() {
+            // Often more than one.
+            let person = PersonDes {
+                idx: i,
+                uuid: uuid.to_string(),
+                name: format!("{} {}", first_name, last_name),
+            };
+            persons.push(person);
+        }
+
         // We have come this far, return the new struct.
         Ok(ResearchJsonDes {
             uuid: uuid.to_string(),
             title: abstract_title.to_string(),
             abstract_text: abstract_text.to_string(),
+            persons: persons,
         })
     }
 }
