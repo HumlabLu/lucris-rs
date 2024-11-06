@@ -123,7 +123,7 @@ impl ResearchJsonDes {
 
         let mut persons:Vec<PersonDes> = vec![];
 
-        let person_names = value.get_person_names(); // People responsible for the research.
+        let person_names = value.get_internal_person_names(); // People responsible for the research.
         let mut c = 0;
         for (first_name, last_name, uuid) in person_names.iter() {
             // Often more than one.
@@ -138,7 +138,7 @@ impl ResearchJsonDes {
         }
 
         let external_person_names = value.get_external_person_names();
-        for (full_name, uuid) in external_person_names.iter() { // Full name seems lower case.
+        for (full_name, uuid) in external_person_names.iter() {
             let person = PersonDes {
                 idx: c,
                 uuid: uuid.to_string(),
@@ -649,7 +649,7 @@ impl ResearchJson {
 
     // Get the first and last names, plus associated uuid, from the
     // personAssociations data.
-    pub fn get_person_names(&self) -> Vec<(&str, &str, &str)> {
+    pub fn get_internal_person_names(&self) -> Vec<(&str, &str, &str)> {
         self.personAssociations
             .as_ref()
             .map(|associations| {
@@ -720,7 +720,7 @@ pub fn dump_titles(research_data: &Vec<ResearchJson>, locale: &str) {
         } else {
             println!("No title");
         }        
-        let person_names = entry.get_person_names();
+        let person_names = entry.get_internal_person_names();
         for (i, (first_name, last_name, uuid)) in person_names.iter().enumerate() {
             println!("Person {}: {} {} {}", i, first_name, last_name, uuid);
         }
