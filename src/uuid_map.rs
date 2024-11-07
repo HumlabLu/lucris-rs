@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
+use short_uuid::ShortUuid;
 
 // Maybe use: https://docs.rs/short-uuid/latest/short_uuid/
 
@@ -20,7 +21,11 @@ impl UuidMap {
             uuids: HashMap::new(),
         }
     }
-    
+
+    fn create_short(self, uuid: &Uuid) -> String {
+        ShortUuid::from_uuid(uuid).to_string()
+    }
+
     pub fn add_uuid(&mut self, uuid: &str) -> String {
         if self.uuids.contains_key(uuid) == true {
             eprintln!("Repeating research uuid: {}", uuid);
