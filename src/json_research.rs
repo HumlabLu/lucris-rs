@@ -128,7 +128,11 @@ impl fmt::Display for PersonDes {
 
 impl fmt::Display for ResearchJsonDes {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.title)
+        write!(f, "{}", self.title)?;
+        for p in &self.persons {
+            write!(f, "/{}", p)?;
+        }
+        Ok(())
     }
 }
 
