@@ -134,19 +134,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             dump_titles(research_data.as_ref().unwrap(), &cli.locale);
         }
     }
+
+    // Save a mapping from uuid to data, so we can combine later.
+    let mut research_map: HashMap<String, ResearchJsonDes> = HashMap::new();
     
     // All the uuids are uniq (should be...). We could make a map
     // with uuids->data to connect it to the other data.
-    let mut uuids: HashMap<String, u64> = HashMap::new();
     if let Some(data) = research_data {
         for entry in &data {
             if let Some(uuid) = entry.get_uuid() {
-                if uuids.contains_key(uuid) == true {
-                    warn!("Repeating research uuid: {}", uuid);
-                }
-                uuids.insert(uuid.to_string(), 0);
-                println!("-> {}", umap.get_uuid_as_str(uuid));
-
                 //let comb = Combined::from(entry);
                 //println!("{:?}", comb);
                 /*
@@ -168,15 +164,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 
                 // TEST
                 match ResearchJsonDes::try_from_with_locale(entry, &cli.locale) {
-                Ok(research_des) => {
-                    let json_output = serde_json::to_string(&research_des).unwrap();
-                    println!("{}\n", json_output);
+                    Ok(research_des) => {
+                        let json_output = serde_json::to_string(&research_des).unwrap();
+                        println!("{}\n", json_output);
+                        research_map.insert(uuid.to_string(), research_des);
+                    }
+                    Err(e) => {
+                        panic!("Failed to convert ResearchJson: {:?}", e);
+                    }
                 }
-                Err(e) => {
-                    panic!("Failed to convert ResearchJson: {:?}", e);
-                }
-            }
-            // TEST
+                // TEST
 
             } else {
                 error!("Research JSON does not contain uuid.");
@@ -187,7 +184,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let foo:Vec<ResearchJsonDes> = data.iter()
             .map(|x| ResearchJsonDes::try_from_with_locale(x, &cli.locale).unwrap())
             .collect();
-         */
+        */
         
         let mut foo = Vec::new();
         for x in data.iter() {
@@ -200,6 +197,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     info!("Mappings {}.", &umap.count());
+
+    println!("{:?}", research_map); // use this for Combined?
     
     // ------------------------------------------------------------------------
     
@@ -216,46 +215,44 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    // If we successfully parsed person data, we extract
-    // the uuids.
-    let mut persons_uuids: HashMap<String, u64> = HashMap::new();
+    // Save a mapping from uuid to data, so we can combine later.
+    let mut person_map: HashMap<String, PersonJsonDes> = HashMap::new();
+    
     if let Some(data) = persons_data {
         for entry in &data {
             // Do something with each entry
             //println!("{:?}\n", entry);
             if let Some(uuid) = entry.get_uuid() {
-                //println!("{}", uuid);
-                if persons_uuids.contains_key(uuid) == true {
-                    warn!("Repeating person uuid: {}", uuid);
-                }
-                persons_uuids.insert(uuid.to_string(), 0);
                 // Check in uuid_map.
-                println!("--> {}", umap.get_uuid_as_str(uuid));
+                //println!("--> {}", umap.get_uuid_as_str(uuid));
+                
+                if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
+                    trace!("Name: {} {}", first_name, last_name);
+                } else {
+                    error!("First or last name not found.");
+                }
+                trace!("{:?}", entry.get_all_education_pure_ids());
+                let info_texts = entry.get_profile_information_texts_for_locale(&cli.locale);
+                let info_texts = extract_texts_with_formatting(&info_texts);
+                trace!("{:?}", info_texts);
+                //println!("{:?}",info_texts);
+                
+                // TEST
+                match PersonJsonDes::try_from_with_locale(entry, &cli.locale) {
+                    Ok(person_des) => {
+                        let json_output = serde_json::to_string(&person_des).unwrap();
+                        println!("{}", json_output);
+                        person_map.insert(uuid.to_string(), person_des);
+                    }
+                    Err(e) => {
+                        panic!("Failed to convert PersonJson: {:?}", e);
+                    }
+                }
+                // TEST
             } else {
                 error!("Research JSON does not contain uuid.");
             }
-            if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
-                trace!("Name: {} {}", first_name, last_name);
-            } else {
-                error!("First or last name not found.");
-            }
-            trace!("{:?}", entry.get_all_education_pure_ids());
-            let info_texts = entry.get_profile_information_texts_for_locale(&cli.locale);
-            let info_texts = extract_texts_with_formatting(&info_texts);
-            trace!("{:?}", info_texts);
-            //println!("{:?}",info_texts);
-
-            // TEST
-            match PersonJsonDes::try_from_with_locale(entry, &cli.locale) {
-                Ok(person_des) => {
-                    let json_output = serde_json::to_string(&person_des).unwrap();
-                    println!("{}", json_output);
-                }
-                Err(e) => {
-                    panic!("Failed to convert PersonJson: {:?}", e);
-                }
-            }
-            // TEST
+            
         }
 
         let mut foo = Vec::new();

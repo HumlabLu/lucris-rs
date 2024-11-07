@@ -8,6 +8,11 @@ use uuid::Uuid;
 // All uuids need to be translated to a new uuid, only opted-info
 // data should get an uuid.
 
+// Can we keep extra meta data? Like: this uuid is a person, connects to
+// this and that research? We need to look up persons via uuid in the
+// research data, how to we do this? A new struct with uuid -> ResearchJson?
+// This can also be done in a "real" database (select from persons where ...).
+
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct UuidMap {
     uuids: HashMap<String, Uuid>,
