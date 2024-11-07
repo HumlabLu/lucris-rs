@@ -72,7 +72,7 @@ fn log_format(w: &mut dyn Write, now: &mut DeferredNow, record: &Record) -> Resu
     write!(
         w,
         "{} [{}] {}:{} - {}",
-        now.format("%Y-%m-%d %H:%M:%S"), // Custom timestamp format without timezone.
+        now.format("%Y-%m-%d %H:%M:%S"), // Format without standard timezone.
         record.level(),
         file_name,
         line,
