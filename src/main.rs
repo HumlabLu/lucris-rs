@@ -28,6 +28,8 @@ use flexi_logger::{DeferredNow, Record};
 use std::io::Write;
 use std::path::Path;
 mod errors;
+mod uuid_map;
+use uuid_map::{UuidMap};
 
 #[derive(Parser)]
 #[command(version, about, long_about = "Reading data.")]
@@ -107,6 +109,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Starting lucris-rs.");
 
     // ------------------------------------------------------------------------
+
+    // The map.
+    let mut uuidmap = UuidMap::new();
     
     // Parse the research data, structures are pushed
     // into a vector.
@@ -140,6 +145,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     warn!("Repeating research uuid: {}", uuid);
                 }
                 uuids.insert(uuid.to_string(), 0);
+                println!("-> {}", uuidmap.get_uuid_as_str(uuid));
+
                 //let comb = Combined::from(entry);
                 //println!("{:?}", comb);
                 /*
