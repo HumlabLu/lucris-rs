@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
+// Maybe use: https://docs.rs/short-uuid/latest/short_uuid/
+
 // We need a mapping somewhere of uuid to original_uuids.
 // All uuids need to be translated to a new uuid, only opted-info
 // data should get an uuid.
@@ -36,6 +38,9 @@ impl UuidMap {
         self.add_uuid(uuid)
     }
 
+    pub fn count(&self) -> usize {
+        self.uuids.len()
+    }
 }
 
 

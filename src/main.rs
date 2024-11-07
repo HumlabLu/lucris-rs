@@ -111,7 +111,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ------------------------------------------------------------------------
 
     // The map.
-    let mut uuidmap = UuidMap::new();
+    let mut umap = UuidMap::new();
     
     // Parse the research data, structures are pushed
     // into a vector.
@@ -145,7 +145,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     warn!("Repeating research uuid: {}", uuid);
                 }
                 uuids.insert(uuid.to_string(), 0);
-                println!("-> {}", uuidmap.get_uuid_as_str(uuid));
+                println!("-> {}", umap.get_uuid_as_str(uuid));
 
                 //let comb = Combined::from(entry);
                 //println!("{:?}", comb);
@@ -182,15 +182,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 error!("Research JSON does not contain uuid.");
             }
         } // for entry
-        
+
+        /*
         let foo:Vec<ResearchJsonDes> = data.iter()
             .map(|x| ResearchJsonDes::try_from_with_locale(x, &cli.locale).unwrap())
             .collect();
+         */
+        
+        let mut foo = Vec::new();
+        for x in data.iter() {
+            let res = ResearchJsonDes::try_from_with_locale_umap(x, &cli.locale, &mut umap).unwrap();
+            foo.push(res);
+        }
         
     } else {
         debug!("No research data available.");
     }
 
+    info!("Mappings {}.", &umap.count());
+    
     // ------------------------------------------------------------------------
     
     // Parse the persons JSON. Each struct is pushed into
@@ -219,6 +229,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     warn!("Repeating person uuid: {}", uuid);
                 }
                 persons_uuids.insert(uuid.to_string(), 0);
+                // Check in uuid_map.
+                println!("--> {}", umap.get_uuid_as_str(uuid));
             } else {
                 error!("Research JSON does not contain uuid.");
             }
@@ -245,10 +257,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             // TEST
         }
+
+        let mut foo = Vec::new();
+        for x in data.iter() {
+            let res = PersonJsonDes::try_from_with_locale_umap(x, &cli.locale, &mut umap).unwrap();
+            foo.push(res);
+        }
+        
     } else {
         debug!("No persons data available.");
     }
 
+    info!("Mappings {}.", &umap.count());
+    
     // ------------------------------------------------------------------------
     
     // Parse the fingerprints JSON. Each struct is pushed into

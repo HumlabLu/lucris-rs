@@ -9,6 +9,7 @@ use std::sync::{Arc, Mutex};
 use log::{debug, error, info, trace, warn};
 use crate::errors::{JsonDesError};
 use std::fmt;
+use crate::uuid_map::{UuidMap};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ResearchJson {
@@ -167,6 +168,52 @@ impl ResearchJsonDes {
             persons: persons,
         })
     }
+
+    pub fn try_from_with_locale_umap(value: &ResearchJson, locale: &str, umap: &mut UuidMap) -> Result<Self, JsonDesError> {
+        let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
+        let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
+
+        let safe_uuid = umap.get_uuid_as_str(&uuid);
+        
+        let mut persons:Vec<PersonDes> = vec![];
+
+        let person_names = value.get_internal_person_names(); // People responsible for the research.
+        let mut c = 0;
+        for (first_name, last_name, uuid) in person_names.iter() {
+            let safe_uuid = umap.get_uuid_as_str(&uuid);
+            // Often more than one.
+            let person = PersonDes {
+                idx: c,
+                uuid: uuid.to_string(),
+                name: format!("{} {}", first_name, last_name),
+                inex: PersonInEx::Internal,
+            };
+            persons.push(person);
+            c += 1;
+        }
+
+        let external_person_names = value.get_external_person_names();
+        for (full_name, uuid) in external_person_names.iter() {
+            let safe_uuid = umap.get_uuid_as_str(&uuid);
+            let person = PersonDes {
+                idx: c,
+                uuid: uuid.to_string(),
+                name: full_name.to_string(),
+                inex: PersonInEx::External,
+            };
+            persons.push(person);
+            c += 1;
+        }
+
+        // We have come this far, return the new struct.
+        Ok(ResearchJsonDes {
+            uuid: uuid.to_string(),
+            title: abstract_title.to_string(),
+            abstract_text: abstract_text.to_string(),
+            persons: persons,
+        })
+    }
+
 }
 
 // End simplified.

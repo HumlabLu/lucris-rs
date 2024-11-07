@@ -10,6 +10,7 @@ use log::{debug, error, info, trace, warn};
 use std::convert::TryFrom;
 use crate::errors::{JsonDesError};
 use std::fmt;
+use crate::uuid_map::{UuidMap};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PersonJson {
@@ -85,9 +86,37 @@ impl TryFrom<&PersonJson> for PersonJsonDes {
 
 // Another try_from, but this one takes a locale string and extracts the
 // profile_information for the specified locale.
+//
+// Can we map the uuid already here? Probably not, there could be unknown
+// uuids at this point?
 impl PersonJsonDes {
     pub fn try_from_with_locale(value: &PersonJson, locale: &str) -> Result<Self, JsonDesError> {
         let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
+        
+        let name_struct = value.name.as_ref().ok_or(JsonDesError::MissingNameField)?;
+        let first_name = name_struct.firstName.as_ref().ok_or(JsonDesError::MissingFirstName)?;
+        let last_name = name_struct.lastName.as_ref().ok_or(JsonDesError::MissingLastName)?;
+        let full_name = format!("{} {}", first_name, last_name);
+        
+        // Extract profile informations using locale? The function returns a vec,
+        // which can be empty ([]).
+        let profile_info_text = value.get_profile_information_texts_for_locale(locale);
+        let profile_info_text = profile_info_text
+            .first() // First element of the vector (it should only contain one?).
+            .copied() // Dereferences &&str to &str.
+            .unwrap_or("There is no profile_information.");
+
+        // We have come this far, return the new struct.
+        Ok(PersonJsonDes {
+            uuid: uuid.to_string(),
+            name: full_name,
+            profile_info: profile_info_text.to_string(),
+        })
+    }
+
+    pub fn try_from_with_locale_umap(value: &PersonJson, locale: &str, umap: &mut UuidMap) -> Result<Self, JsonDesError> {
+        let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
+        let safe_uuid = umap.get_uuid_as_str(&uuid);
         
         let name_struct = value.name.as_ref().ok_or(JsonDesError::MissingNameField)?;
         let first_name = name_struct.firstName.as_ref().ok_or(JsonDesError::MissingFirstName)?;
