@@ -126,6 +126,12 @@ impl fmt::Display for PersonDes {
     }
 }
 
+impl fmt::Display for ResearchJsonDes {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.title)
+    }
+}
+
 // This one takes a locale string and extracts the information for the specified locale.
 impl ResearchJsonDes {
     pub fn try_from_with_locale(value: &ResearchJson, locale: &str) -> Result<Self, JsonDesError> {

@@ -199,6 +199,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Mappings {}.", &umap.count());
 
     println!("{:?}", research_map); // use this for Combined?
+    for (k, v) in research_map {
+        println!("{}", v);
+    }
     
     // ------------------------------------------------------------------------
     
@@ -266,6 +269,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     info!("Mappings {}.", &umap.count());
+
+    // Go through the research_map, extracts the person-uuids and look them up in the
+    // person_map. Print/store/save/...
     
     // ------------------------------------------------------------------------
     
