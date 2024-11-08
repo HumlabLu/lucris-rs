@@ -7,7 +7,7 @@ use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
 use std::sync::{Arc, Mutex};
 use log::{debug, error, info, trace, warn};
-use crate::errors::{JsonDesError};
+use crate::errors::{CleanError};
 use std::fmt;
 use crate::uuid_map::{UuidMap};
 
@@ -100,7 +100,7 @@ pub struct ResearchClean {
     title: String,
     #[serde(rename = "abstract")]
     abstract_text: String,
-    pub persons: Vec<PersonDes>,
+    pub persons: Vec<PersonDes>, // Or PersonClean?
 }
 
 #[derive(Debug, Serialize)]
@@ -112,7 +112,7 @@ enum PersonInEx {
 #[derive(Debug, Serialize)]
 pub struct PersonDes {
     idx: u32,
-    pub uuid: String,
+    pub uuid: String, // Can be used to lookup in the person_map data.
     name: String,
     inex: PersonInEx, // Needs a better name...
 }
@@ -146,8 +146,8 @@ impl fmt::Display for ResearchClean {
 
 // This one takes a locale string and extracts the information for the specified locale.
 impl ResearchClean {
-    pub fn try_from_with_locale(value: &ResearchJson, locale: &str) -> Result<Self, JsonDesError> {
-        let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
+    pub fn try_from_with_locale(value: &ResearchJson, locale: &str) -> Result<Self, CleanError> {
+        let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
         let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
 
         let mut persons:Vec<PersonDes> = vec![];
@@ -187,8 +187,8 @@ impl ResearchClean {
         })
     }
 
-    pub fn try_from_with_locale_umap(value: &ResearchJson, locale: &str, umap: &mut UuidMap) -> Result<Self, JsonDesError> {
-        let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
+    pub fn try_from_with_locale_umap(value: &ResearchJson, locale: &str, umap: &mut UuidMap) -> Result<Self, CleanError> {
+        let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
         let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
 
         let safe_uuid = umap.get_uuid_as_str(&uuid);

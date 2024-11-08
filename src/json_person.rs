@@ -8,7 +8,7 @@ use rayon::iter::ParallelIterator;
 use std::sync::{Arc, Mutex};
 use log::{debug, error, info, trace, warn};
 use std::convert::TryFrom;
-use crate::errors::{JsonDesError};
+use crate::errors::{CleanError};
 use std::fmt;
 use crate::uuid_map::{UuidMap};
 
@@ -64,18 +64,19 @@ impl fmt::Display for PersonClean {
 }
 
 impl TryFrom<&PersonJson> for PersonClean {
-    type Error = JsonDesError;
+    type Error = CleanError;
 
     fn try_from(value: &PersonJson) -> Result<Self, Self::Error> {
-        let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
+        let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
 
         // Extract name field as a reference.
-        let name_struct = value.name.as_ref().ok_or(JsonDesError::MissingNameField)?;
+        let name_struct = value.name.as_ref().ok_or(CleanError::MissingNameField)?;
 
         // Extract 'firstName' and 'lastName' as references, combine.
-        let first_name = name_struct.firstName.as_ref().ok_or(JsonDesError::MissingFirstName)?;
-        let last_name = name_struct.lastName.as_ref().ok_or(JsonDesError::MissingLastName)?;
+        let first_name = name_struct.firstName.as_ref().ok_or(CleanError::MissingFirstName)?;
+        let last_name = name_struct.lastName.as_ref().ok_or(CleanError::MissingLastName)?;
         let full_name = format!("{} {}", first_name, last_name);
+
 
         // Create the PersonClean.
         Ok(PersonClean {
@@ -92,12 +93,12 @@ impl TryFrom<&PersonJson> for PersonClean {
 // Can we map the uuid already here? Probably not, there could be unknown
 // uuids at this point?
 impl PersonClean {
-    pub fn try_from_with_locale(value: &PersonJson, locale: &str) -> Result<Self, JsonDesError> {
-        let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
+    pub fn try_from_with_locale(value: &PersonJson, locale: &str) -> Result<Self, CleanError> {
+        let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
 
-        let name_struct = value.name.as_ref().ok_or(JsonDesError::MissingNameField)?;
-        let first_name = name_struct.firstName.as_ref().ok_or(JsonDesError::MissingFirstName)?;
-        let last_name = name_struct.lastName.as_ref().ok_or(JsonDesError::MissingLastName)?;
+        let name_struct = value.name.as_ref().ok_or(CleanError::MissingNameField)?;
+        let first_name = name_struct.firstName.as_ref().ok_or(CleanError::MissingFirstName)?;
+        let last_name = name_struct.lastName.as_ref().ok_or(CleanError::MissingLastName)?;
         let full_name = format!("{} {}", first_name, last_name);
 
         // Extract profile informations using locale? The function returns a vec,
@@ -116,13 +117,13 @@ impl PersonClean {
         })
     }
 
-    pub fn try_from_with_locale_umap(value: &PersonJson, locale: &str, umap: &mut UuidMap) -> Result<Self, JsonDesError> {
-        let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
+    pub fn try_from_with_locale_umap(value: &PersonJson, locale: &str, umap: &mut UuidMap) -> Result<Self, CleanError> {
+        let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
         let safe_uuid = umap.get_uuid_as_str(&uuid);
 
-        let name_struct = value.name.as_ref().ok_or(JsonDesError::MissingNameField)?;
-        let first_name = name_struct.firstName.as_ref().ok_or(JsonDesError::MissingFirstName)?;
-        let last_name = name_struct.lastName.as_ref().ok_or(JsonDesError::MissingLastName)?;
+        let name_struct = value.name.as_ref().ok_or(CleanError::MissingNameField)?;
+        let first_name = name_struct.firstName.as_ref().ok_or(CleanError::MissingFirstName)?;
+        let last_name = name_struct.lastName.as_ref().ok_or(CleanError::MissingLastName)?;
         let full_name = format!("{} {}", first_name, last_name);
 
         // Extract profile informations using locale? The function returns a vec,
