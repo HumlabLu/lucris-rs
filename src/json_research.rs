@@ -95,7 +95,7 @@ pub struct ResearchJson {
 
 // Simplified struct for output. Keep only relevant fields.
 #[derive(Debug, Serialize)]
-pub struct ResearchJsonDes {
+pub struct ResearchClean {
     uuid: String,
     title: String,
     #[serde(rename = "abstract")]
@@ -126,7 +126,7 @@ impl fmt::Display for PersonDes {
     }
 }
 
-impl fmt::Display for ResearchJsonDes {
+impl fmt::Display for ResearchClean {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.title)?;
         for p in &self.persons {
@@ -137,7 +137,7 @@ impl fmt::Display for ResearchJsonDes {
 }
 
 // This one takes a locale string and extracts the information for the specified locale.
-impl ResearchJsonDes {
+impl ResearchClean {
     pub fn try_from_with_locale(value: &ResearchJson, locale: &str) -> Result<Self, JsonDesError> {
         let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
         let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
@@ -171,7 +171,7 @@ impl ResearchJsonDes {
         }
 
         // We have come this far, return the new struct.
-        Ok(ResearchJsonDes {
+        Ok(ResearchClean {
             uuid: uuid.to_string(),
             title: abstract_title.to_string(),
             abstract_text: abstract_text.to_string(),
@@ -184,7 +184,7 @@ impl ResearchJsonDes {
         let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
 
         let safe_uuid = umap.get_uuid_as_str(&uuid);
-        
+
         let mut persons:Vec<PersonDes> = vec![];
 
         let person_names = value.get_internal_person_names(); // People responsible for the research.
@@ -216,7 +216,7 @@ impl ResearchJsonDes {
         }
 
         // We have come this far, return the new struct.
-        Ok(ResearchJsonDes {
+        Ok(ResearchClean {
             uuid: uuid.to_string(),
             title: abstract_title.to_string(),
             abstract_text: abstract_text.to_string(),
@@ -755,7 +755,7 @@ impl ResearchJson {
             })
             .unwrap_or_else(Vec::new)
     }
-    
+
     // We return an empty string if the info is not present. Could change to
     // Option<T> but seems overkill at the moment.
     pub fn get_title_abstract(&self, locale: &str) -> (&str, &str) {
@@ -786,7 +786,7 @@ pub fn dump_titles(research_data: &Vec<ResearchJson>, locale: &str) {
             println!("{}", title);
         } else {
             println!("No title");
-        }        
+        }
         let person_names = entry.get_internal_person_names();
         for (i, (first_name, last_name, uuid)) in person_names.iter().enumerate() {
             println!("Person {}: {} {} {}", i, first_name, last_name, uuid);
@@ -812,7 +812,7 @@ pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn
     let reader = BufReader::new(file);
     let data = Arc::new(Mutex::new(vec![]));
     let failed_count = Arc::new(Mutex::new(0));
-    
+
     reader
         .lines()
         .filter_map(|line: Result<String, _>| line.ok())
@@ -825,7 +825,7 @@ pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn
                 Ok(json) => {
                     //trace!("title={:?}", json.title.clone().unwrap().value);
                     trace!("uuid={:?}", json.uuid);
-                    
+
                     // Add it to the data vector.
                     let mut data = data.lock().unwrap();
                     data.push(json);
@@ -844,7 +844,7 @@ pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn
     if *failed_count.lock().unwrap() > 0 {
         warn!("Failed to parse {} lines.", *failed_count.lock().unwrap());
     }
-    
+
     // Extract the data from Arc<Mutex<...>> and return it.
     let extracted_data = Arc::try_unwrap(data).unwrap().into_inner().unwrap();
     info!("Extracted {} entries.", extracted_data.len());
@@ -856,7 +856,7 @@ mod tests {
     use super::*;
     use std::path::{Path, PathBuf};
     use std::fs;
-    
+
     fn read_test_data(file_name: &str) -> String {
         let project_root = env!("CARGO_MANIFEST_DIR");
         let data_path = Path::new(project_root)
@@ -891,9 +891,9 @@ mod tests {
         println!("{:?}", data_path);
         let foo = read_research_jsonl(data_path.to_str().expect("Test data not found!"));
         let foo = foo.unwrap();
-        assert_eq!(foo, []);            
+        assert_eq!(foo, []);
     }
-    
+
     #[test]
     pub fn test_research_uuid() {
         let data = r#"
@@ -919,7 +919,7 @@ mod tests {
         }
         "#;
         let research: ResearchJson = serde_json::from_str(data).expect("Err");
-        let research_des:ResearchJsonDes = ResearchJsonDes::try_from_with_locale(&research, "en_GB").expect("Err");
+        let research_des:ResearchClean = ResearchClean::try_from_with_locale(&research, "en_GB").expect("Err");
         let research_des_jstr = serde_json::to_string(&research_des).unwrap();
         assert_eq!(research_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","title":"A nice title.","abstract":"","persons":[]}"#);
     }

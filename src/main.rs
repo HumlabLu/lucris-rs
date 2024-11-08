@@ -6,9 +6,9 @@
 //
 use clap::{Parser};
 mod json_person;
-use json_person::{read_persons_jsonl, PersonJson, PersonJsonDes};
+use json_person::{read_persons_jsonl, PersonJson, PersonClean};
 mod json_research;
-use json_research::{ResearchJson, ResearchJsonDes, read_research_jsonl, dump_titles};
+use json_research::{ResearchJson, ResearchClean, read_research_jsonl, dump_titles};
 mod json_fingerprint;
 use json_fingerprint::{read_fingerprint_jsonl, FingerprintJson};
 mod json_concepts;
@@ -92,7 +92,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .module("html5ever", LevelFilter::Off)
         .module("lucris", level_filter) // Sets our level to the one on the cli.
         .build();
-    
+
     let _logger = Logger::with(log_spec)
         .format(log_format)
         .log_to_file(
@@ -105,14 +105,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .duplicate_to_stderr(Duplicate::All)
         .write_mode(WriteMode::BufferAndFlush)
         .start()?;
-    
+
     info!("Starting lucris-rs.");
 
     // ------------------------------------------------------------------------
 
     // The map.
     let mut umap = UuidMap::new();
-    
+
     // Parse the research data, structures are pushed
     // into a vector.
     let mut research_data: Option<Vec<ResearchJson>> = None;
@@ -136,8 +136,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Save a mapping from uuid to data, so we can combine later.
-    let mut research_map: HashMap<String, ResearchJsonDes> = HashMap::new();
-    
+    let mut research_map: HashMap<String, ResearchClean> = HashMap::new();
+
     // All the uuids are uniq (should be...). We could make a map
     // with uuids->data to connect it to the other data.
     if let Some(data) = research_data {
@@ -161,9 +161,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("TITLE: {}", abstract_title);
                 println!("ABSTRACT: {}", abstract_text);
                 */
-                
+
                 // TEST
-                match ResearchJsonDes::try_from_with_locale(entry, &cli.locale) {
+                match ResearchClean::try_from_with_locale(entry, &cli.locale) {
                     Ok(research_des) => {
                         let json_output = serde_json::to_string(&research_des).unwrap();
                         println!("{}\n", json_output);
@@ -185,13 +185,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .map(|x| ResearchJsonDes::try_from_with_locale(x, &cli.locale).unwrap())
             .collect();
         */
-        
+
         let mut foo = Vec::new();
         for x in data.iter() {
-            let res = ResearchJsonDes::try_from_with_locale_umap(x, &cli.locale, &mut umap).unwrap();
+            let res = ResearchClean::try_from_with_locale_umap(x, &cli.locale, &mut umap).unwrap();
             foo.push(res);
         }
-        
+
     } else {
         debug!("No research data available.");
     }
@@ -202,11 +202,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for (k, v) in &research_map {
         println!("{}", v);
     }
-    
+
     // ------------------------------------------------------------------------
-    
+
     // Parse the persons JSON. Each struct is pushed into
-    // a vector. 
+    // a vector.
     let mut persons_data: Option<Vec<PersonJson>> = None;
     if let Some(persons_filename) = cli.persons {
         info!("Reading persons file {:?}.", persons_filename);
@@ -219,8 +219,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // Save a mapping from uuid to data, so we can combine later.
-    let mut person_map: HashMap<String, PersonJsonDes> = HashMap::new();
-    
+    let mut person_map: HashMap<String, PersonClean> = HashMap::new();
+
     if let Some(data) = persons_data {
         for entry in &data {
             // Do something with each entry
@@ -228,7 +228,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Some(uuid) = entry.get_uuid() {
                 // Check in uuid_map.
                 //println!("--> {}", umap.get_uuid_as_str(uuid));
-                
+
                 if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
                     trace!("Name: {} {}", first_name, last_name);
                 } else {
@@ -239,9 +239,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let info_texts = extract_texts_with_formatting(&info_texts);
                 trace!("{:?}", info_texts);
                 //println!("{:?}",info_texts);
-                
+
                 // TEST
-                match PersonJsonDes::try_from_with_locale(entry, &cli.locale) {
+                match PersonClean::try_from_with_locale(entry, &cli.locale) {
                     Ok(person_des) => {
                         let json_output = serde_json::to_string(&person_des).unwrap();
                         //println!("{}", json_output);
@@ -255,15 +255,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 error!("Research JSON does not contain uuid.");
             }
-            
+
         }
 
         let mut foo = Vec::new();
         for x in data.iter() {
-            let res = PersonJsonDes::try_from_with_locale_umap(x, &cli.locale, &mut umap).unwrap();
+            let res = PersonClean::try_from_with_locale_umap(x, &cli.locale, &mut umap).unwrap();
             foo.push(res);
         }
-        
+
     } else {
         debug!("No persons data available.");
     }
@@ -284,14 +284,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    let foo = Combined::new(research_map, person_map);
+    println!("{:?}", foo);
 
     // Go through the research_map, extracts the person-uuids and look them up in the
     // person_map. Print/store/save/...
-    
+
     // ------------------------------------------------------------------------
-    
+
     // Parse the fingerprints JSON. Each struct is pushed into
-    // a vector. 
+    // a vector.
     let mut fingerprints_data: Option<Vec<FingerprintJson>> = None;
     if let Some(fingerprints_filename) = cli.fingerprints {
         info!("Reading fingerprint file {:?}.", fingerprints_filename);
@@ -304,9 +306,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // ------------------------------------------------------------------------
-    
+
     // Parse the concepts JSON. Each struct is pushed into
-    // a vector. 
+    // a vector.
     let mut concepts_data: Option<Vec<ConceptJson>> = None;
     if let Some(concepts_filename) = cli.concepts {
         info!("Reading concepts file {:?}.", concepts_filename);
@@ -319,9 +321,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // ------------------------------------------------------------------------
-    
+
     // Parse the orgunits JSON. Each struct is pushed into
-    // a vector. 
+    // a vector.
     let mut orgunits_data: Option<Vec<OrgUnitJson>> = None;
     if let Some(orgunits_filename) = cli.orgunits {
         info!("Reading organisational-units file {:?}.", orgunits_filename);
@@ -332,19 +334,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             },
         }
     }
-    
+
     // ------------------------------------------------------------------------
 
     // TODO: How to connect everything?
-    
+
     // ------------------------------------------------------------------------
 
     /*
     let id = Uuid::new_v4();
     println!("{} {}", id, id.urn());
     */
-    
+
     info!("Ending lucris-rs.");
     Ok(())
 }
-

@@ -46,13 +46,15 @@ pub struct PersonJson {
 
 // Simplified struct for output. Keep only relevant fields.
 #[derive(Debug, Serialize)]
-pub struct PersonJsonDes {
+pub struct PersonClean {
     uuid: String,
     name: String,
     profile_info: String,
 }
 
-impl fmt::Display for PersonJsonDes {
+// We may need a mapping from (safe-)uuid to PersonClean?
+
+impl fmt::Display for PersonClean {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // Returns `fmt::Result` which indicates whether the
         // operation succeeded or failed. Note that `write!` uses syntax which
@@ -61,12 +63,12 @@ impl fmt::Display for PersonJsonDes {
     }
 }
 
-impl TryFrom<&PersonJson> for PersonJsonDes {
+impl TryFrom<&PersonJson> for PersonClean {
     type Error = JsonDesError;
 
     fn try_from(value: &PersonJson) -> Result<Self, Self::Error> {
         let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
-        
+
         // Extract name field as a reference.
         let name_struct = value.name.as_ref().ok_or(JsonDesError::MissingNameField)?;
 
@@ -75,8 +77,8 @@ impl TryFrom<&PersonJson> for PersonJsonDes {
         let last_name = name_struct.lastName.as_ref().ok_or(JsonDesError::MissingLastName)?;
         let full_name = format!("{} {}", first_name, last_name);
 
-        // Create the PersonJsonDes.
-        Ok(PersonJsonDes {
+        // Create the PersonClean.
+        Ok(PersonClean {
             uuid: uuid.to_string(),
             name: full_name,
             profile_info: "".to_string(), // Take a default en_GB locale?
@@ -89,15 +91,15 @@ impl TryFrom<&PersonJson> for PersonJsonDes {
 //
 // Can we map the uuid already here? Probably not, there could be unknown
 // uuids at this point?
-impl PersonJsonDes {
+impl PersonClean {
     pub fn try_from_with_locale(value: &PersonJson, locale: &str) -> Result<Self, JsonDesError> {
         let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
-        
+
         let name_struct = value.name.as_ref().ok_or(JsonDesError::MissingNameField)?;
         let first_name = name_struct.firstName.as_ref().ok_or(JsonDesError::MissingFirstName)?;
         let last_name = name_struct.lastName.as_ref().ok_or(JsonDesError::MissingLastName)?;
         let full_name = format!("{} {}", first_name, last_name);
-        
+
         // Extract profile informations using locale? The function returns a vec,
         // which can be empty ([]).
         let profile_info_text = value.get_profile_information_texts_for_locale(locale);
@@ -107,7 +109,7 @@ impl PersonJsonDes {
             .unwrap_or("There is no profile_information.");
 
         // We have come this far, return the new struct.
-        Ok(PersonJsonDes {
+        Ok(PersonClean {
             uuid: uuid.to_string(),
             name: full_name,
             profile_info: profile_info_text.to_string(),
@@ -117,12 +119,12 @@ impl PersonJsonDes {
     pub fn try_from_with_locale_umap(value: &PersonJson, locale: &str, umap: &mut UuidMap) -> Result<Self, JsonDesError> {
         let uuid = value.uuid.as_ref().ok_or(JsonDesError::MissingUUID)?;
         let safe_uuid = umap.get_uuid_as_str(&uuid);
-        
+
         let name_struct = value.name.as_ref().ok_or(JsonDesError::MissingNameField)?;
         let first_name = name_struct.firstName.as_ref().ok_or(JsonDesError::MissingFirstName)?;
         let last_name = name_struct.lastName.as_ref().ok_or(JsonDesError::MissingLastName)?;
         let full_name = format!("{} {}", first_name, last_name);
-        
+
         // Extract profile informations using locale? The function returns a vec,
         // which can be empty ([]).
         let profile_info_text = value.get_profile_information_texts_for_locale(locale);
@@ -132,7 +134,7 @@ impl PersonJsonDes {
             .unwrap_or("There is no profile_information.");
 
         // We have come this far, return the new struct.
-        Ok(PersonJsonDes {
+        Ok(PersonClean {
             uuid: uuid.to_string(),
             name: full_name,
             profile_info: profile_info_text.to_string(),
@@ -590,7 +592,7 @@ impl PersonJson {
             None
         }
     }
-    
+
     #[allow(dead_code)]
     pub fn get_first_and_last_name(&self) -> Option<(&str, &str)> {
         Some((
@@ -637,7 +639,7 @@ impl PersonJson {
         }
         texts
     }
-    
+
 }
 
 // ----
@@ -647,7 +649,7 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
     let reader = BufReader::new(file);
     let data = Arc::new(Mutex::new(vec![]));
     let failed_count = Arc::new(Mutex::new(0));
-    
+
     reader
         .lines()
         .filter_map(|line: Result<String, _>| line.ok())
@@ -667,7 +669,7 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
                 Err(e) => {
                     error!("{}", e);
                     //panic!("{}", line);
-                    
+
                     // Increment the failure counter.
                     let mut failed = failed_count.lock().unwrap();
                     *failed += 1;
@@ -678,7 +680,7 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
     if *failed_count.lock().unwrap() > 0 {
         warn!("Failed to parse {} lines.", *failed_count.lock().unwrap());
     }
-    
+
     // Extract the data from Arc<Mutex<...>> and return it.
     let extracted_data = Arc::try_unwrap(data).unwrap().into_inner().unwrap();
     info!("Extracted {} entries.", extracted_data.len());
@@ -688,7 +690,7 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn person_extract_pureid() {
         let data = r#"{"pureId":282828}"#;
@@ -715,7 +717,7 @@ mod tests {
             "lastName": "Berck"
           }
         }
-        "#;        
+        "#;
         let person: PersonJson = serde_json::from_str(data).expect("Err");
         assert_eq!(person.pureId, Some(282828));
         assert_eq!(person.externallyManaged, Some(true));
@@ -742,7 +744,7 @@ mod tests {
         }
         "#;
         let person: PersonJson = serde_json::from_str(data).expect("Err");
-        let person_des:PersonJsonDes = PersonJsonDes::try_from(&person).expect("Err");
+        let person_des:PersonClean = PersonClean::try_from(&person).expect("Err");
         let person_des_jstr = serde_json::to_string(&person_des).unwrap();
         assert_eq!(person_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":""}"#);
     }
@@ -757,11 +759,11 @@ mod tests {
         }
         "#;
         let person: PersonJson = serde_json::from_str(data).expect("Err");
-        let person_des = PersonJsonDes::try_from(&person);
+        let person_des = PersonClean::try_from(&person);
         println!("{:?}", person_des); // Err(MissingNameField)
         assert!(person_des.is_err());
     }
-    
+
     #[test]
     fn test_person_des_nouuid() {
         let data = r#"
@@ -775,11 +777,11 @@ mod tests {
         }
         "#;
         let person: PersonJson = serde_json::from_str(data).expect("Err");
-        let person_des = PersonJsonDes::try_from(&person);
+        let person_des = PersonClean::try_from(&person);
         println!("{:?}", person_des); // Err(MissingUUID)
         assert!(person_des.is_err());
     }
-    
+
     #[test]
     fn test_person_des_profile_text() {
         let data = r#"
@@ -808,7 +810,7 @@ mod tests {
         }
         "#;
         let person: PersonJson = serde_json::from_str(data).expect("Err");
-        let person_des = PersonJsonDes::try_from_with_locale(&person, "en_GB").expect("Err");
+        let person_des = PersonClean::try_from_with_locale(&person, "en_GB").expect("Err");
         let person_des_jstr = serde_json::to_string(&person_des).unwrap();
         assert_eq!(person_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":"Research Engineer, Lund University Humanities Lab"}"#);
     }
