@@ -23,7 +23,13 @@ impl Combined {
 
     pub fn get_research_from_uuid(self, uuid: &str) {
         if self.research.contains_key(uuid) == true {
-            // Yay
+            let research = self.research.get(uuid).unwrap();
+            for p in &research.persons {
+                let uuid = &p.uuid;
+                if let Some(value) = self.persons.get(uuid) {
+                    println!("-> person in research: {}", value);
+                }
+            }
         }
     }
 }

@@ -285,7 +285,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let foo = Combined::new(research_map, person_map);
-    println!("{:?}", foo);
+    println!("{:?}", &foo);
+    foo.get_research_from_uuid("dd0ce568-96e7-449b-9a59-9ee857f79a13");
 
     // Go through the research_map, extracts the person-uuids and look them up in the
     // person_map. Print/store/save/...
