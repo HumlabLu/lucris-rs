@@ -809,7 +809,7 @@ pub fn dump_titles(research_data: &Vec<ResearchJson>, locale: &str) {
     println!("counter, abstract_counter: {}, {} (missing {})",
         counter,
         abstract_counter,
-        counter-abstract_counter
+        counter - abstract_counter
     );
 }
 

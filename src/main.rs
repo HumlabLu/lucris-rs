@@ -131,7 +131,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // This dumps the authors, titles and abstracts
         // to stdout.
         if &cli.log_level == "trace" {
-            dump_titles(research_data.as_ref().unwrap(), &cli.locale);
+            //dump_titles(research_data.as_ref().unwrap(), &cli.locale);
         }
     }
 
@@ -166,7 +166,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 match ResearchClean::try_from_with_locale(entry, &cli.locale) {
                     Ok(research_des) => {
                         let json_output = serde_json::to_string(&research_des).unwrap();
-                        println!("{}\n", json_output);
+                        trace!("{}", json_output);
                         research_map.insert(uuid.to_string(), research_des);
                     }
                     Err(e) => {
@@ -198,9 +198,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Mappings {}.", &umap.count());
 
-    println!("{:?}", research_map); // use this for Combined?
     for (k, v) in &research_map {
-        println!("{}", v);
+        trace!("{}", v);
     }
 
     // ------------------------------------------------------------------------
@@ -241,10 +240,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 //println!("{:?}",info_texts);
 
                 // TEST
-                match PersonClean::try_from_with_locale(entry, &cli.locale) {
+                match PersonClean::try_from_with_locale_umap(entry, &cli.locale, &mut umap) {
                     Ok(person_des) => {
                         let json_output = serde_json::to_string(&person_des).unwrap();
-                        //println!("{}", json_output);
+                        trace!("{}", json_output);
                         person_map.insert(uuid.to_string(), person_des);
                     }
                     Err(e) => {
@@ -258,12 +257,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         }
 
-        let mut foo = Vec::new();
-        for x in data.iter() {
-            let res = PersonClean::try_from_with_locale_umap(x, &cli.locale, &mut umap).unwrap();
-            foo.push(res);
-        }
-
     } else {
         debug!("No persons data available.");
     }
@@ -271,7 +264,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Mappings {}.", &umap.count());
 
     for (k, v) in &person_map {
-        //println!("{}", v);
+        trace!("{}", v);
     }
 
     for (k, v) in &research_map {
@@ -284,9 +277,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    let foo = Combined::new(research_map, person_map);
-    println!("{:?}", &foo);
-    foo.get_research_from_uuid("dd0ce568-96e7-449b-9a59-9ee857f79a13");
+    let combined = Combined::new(research_map, person_map);
+    trace!("{:?}", &combined);
+    combined.get_research_from_uuid("dd0ce568-96e7-449b-9a59-9ee857f79a13");
 
     // Go through the research_map, extracts the person-uuids and look them up in the
     // person_map. Print/store/save/...
