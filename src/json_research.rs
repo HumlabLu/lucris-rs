@@ -100,7 +100,7 @@ pub struct ResearchJsonDes {
     title: String,
     #[serde(rename = "abstract")]
     abstract_text: String,
-    persons: Vec<PersonDes>,
+    pub persons: Vec<PersonDes>,
 }
 
 #[derive(Debug, Serialize)]
@@ -112,7 +112,7 @@ enum PersonInEx {
 #[derive(Debug, Serialize)]
 pub struct PersonDes {
     idx: u32,
-    uuid: String,
+    pub uuid: String,
     name: String,
     inex: PersonInEx, // Needs a better name...
 }

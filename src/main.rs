@@ -199,7 +199,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Mappings {}.", &umap.count());
 
     println!("{:?}", research_map); // use this for Combined?
-    for (k, v) in research_map {
+    for (k, v) in &research_map {
         println!("{}", v);
     }
     
@@ -244,7 +244,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 match PersonJsonDes::try_from_with_locale(entry, &cli.locale) {
                     Ok(person_des) => {
                         let json_output = serde_json::to_string(&person_des).unwrap();
-                        println!("{}", json_output);
+                        //println!("{}", json_output);
                         person_map.insert(uuid.to_string(), person_des);
                     }
                     Err(e) => {
@@ -269,6 +269,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     info!("Mappings {}.", &umap.count());
+
+    for (k, v) in &person_map {
+        //println!("{}", v);
+    }
+
+    for (k, v) in &research_map {
+        println!("research: {}", v);
+        for p in &v.persons {
+            let uuid = &p.uuid;
+            if let Some(value) = person_map.get(uuid) {
+                println!("-> person in research: {}", value);
+            }
+        }
+    }
+
 
     // Go through the research_map, extracts the person-uuids and look them up in the
     // person_map. Print/store/save/...
