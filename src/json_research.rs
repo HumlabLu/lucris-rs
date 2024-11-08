@@ -127,11 +127,19 @@ impl fmt::Display for PersonDes {
 }
 
 impl fmt::Display for ResearchClean {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+       fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.title)?;
-        for p in &self.persons {
+        let counts = self.persons // Count number of internal/external authors.
+            .iter()
+            .map(|p| match p.inex {
+                PersonInEx::Internal => (1, 0),
+                PersonInEx::External => (0, 1),
+            })
+            .fold((0, 0), |acc, (in_count, ex_count)| (acc.0 + in_count, acc.1 + ex_count));
+        write!(f, " [{}/{}]", counts.0, counts.1)?;
+        /*for p in &self.persons {
             write!(f, "/{}", p)?;
-        }
+        }*/
         Ok(())
     }
 }
