@@ -110,7 +110,7 @@ impl PersonClean {
 
         //let titles = value.get_title_for_locale(locale).unwrap();
         if let Some(titles) = value.get_title_for_locale(locale) {
-            println!("TITLES {:?}", titles);
+            println!("TITLES {:?}", titles); // See below for get_titiels().
         }
 
         let keywords = value.get_keywords_for_locale(locale);
@@ -141,9 +141,7 @@ impl PersonClean {
             .copied() // Dereferences &&str to &str.
             .unwrap_or("There is no profile_information.");
 
-        //let titles = value.get_title_for_locale(locale).unwrap();
-        let titles = value.get_title_for_locale(locale)
-            .unwrap_or_else(|| "no titles".to_string());
+        let titles = value.get_titles_for_locale(locale);
         trace!("TITLES {:?}", titles);
 
         let keywords = value.get_keywords_for_locale(locale);
@@ -669,6 +667,28 @@ impl PersonJson {
                     }
                 })
     }
+
+    pub fn get_titles_for_locale(&self, locale: &str) -> Vec<String> {
+            let mut titles = Vec::new();
+
+            if let Some(titles_vec) = &self.titles {
+                for title in titles_vec {
+                    if let Some(formatted_text) = &title.value {
+                        if let Some(locale_texts) = &formatted_text.text {
+                            for locale_text in locale_texts {
+                                if locale_text.locale.as_deref() == Some(locale) {
+                                    if let Some(value) = &locale_text.value {
+                                        titles.push(value.clone());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            titles
+        }
 
     pub fn get_keywords_for_locale(&self, locale: &str) -> Vec<String> {
         let mut keywords = Vec::new();
