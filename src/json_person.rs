@@ -108,8 +108,10 @@ impl PersonClean {
             .copied() // Dereferences &&str to &str.
             .unwrap_or("There is no profile_information.");
 
-        let titles = value.get_title_for_locale(locale).unwrap();
-        println!("TITLES {:?}", titles);
+        //let titles = value.get_title_for_locale(locale).unwrap();
+        if let Some(titles) = value.get_title_for_locale(locale) {
+            println!("TITLES {:?}", titles);
+        }
 
         let keywords = value.get_keywords_for_locale(locale);
         println!("KEYWORDS {:?}", keywords);
@@ -139,7 +141,9 @@ impl PersonClean {
             .copied() // Dereferences &&str to &str.
             .unwrap_or("There is no profile_information.");
 
-        let titles = value.get_title_for_locale(locale).unwrap();
+        //let titles = value.get_title_for_locale(locale).unwrap();
+        let titles = value.get_title_for_locale(locale)
+            .unwrap_or_else(|| "no titles".to_string());
         trace!("TITLES {:?}", titles);
 
         let keywords = value.get_keywords_for_locale(locale);
@@ -664,34 +668,33 @@ impl PersonJson {
                         None
                     }
                 })
-        }
+    }
 
-        pub fn get_keywords_for_locale(&self, locale: &str) -> Vec<String> {
-                let mut keywords = Vec::new();
+    pub fn get_keywords_for_locale(&self, locale: &str) -> Vec<String> {
+        let mut keywords = Vec::new();
 
-                if let Some(keyword_groups) = &self.keywordGroups {
-                    for group in keyword_groups {
-                        if let Some(containers) = &group.keywordContainers {
-                            for container in containers {
-                                // Process freeKeywords
-                                if let Some(free_keywords_list) = &container.freeKeywords {
-                                    for free_keyword in free_keywords_list {
-                                        if free_keyword.locale.as_deref() == Some(locale) {
-                                            if let Some(free_keywords) = &free_keyword.freeKeywords {
-                                                keywords.extend(free_keywords.clone());
-                                            }
+        if let Some(keyword_groups) = &self.keywordGroups {
+            for group in keyword_groups {
+                if let Some(containers) = &group.keywordContainers {
+                    for container in containers {
+                        // Process freeKeywords
+                        if let Some(free_keywords_list) = &container.freeKeywords {
+                                for free_keyword in free_keywords_list {
+                                    if free_keyword.locale.as_deref() == Some(locale) {
+                                        if let Some(free_keywords) = &free_keyword.freeKeywords {
+                                            keywords.extend(free_keywords.clone());
                                         }
                                     }
                                 }
-                                // Process structuredKeyword
-                                if let Some(structured_keyword) = &container.structuredKeyword {
-                                    if let Some(term) = &structured_keyword.term {
-                                        if let Some(texts) = &term.text {
-                                            for locale_text in texts {
-                                                if locale_text.locale.as_deref() == Some(locale) {
-                                                    if let Some(value) = &locale_text.value {
-                                                        keywords.push(value.clone());
-                                                    }
+                            }
+                            // Process structuredKeyword
+                            if let Some(structured_keyword) = &container.structuredKeyword {
+                                if let Some(term) = &structured_keyword.term {
+                                    if let Some(texts) = &term.text {
+                                        for locale_text in texts {
+                                            if locale_text.locale.as_deref() == Some(locale) {
+                                                if let Some(value) = &locale_text.value {
+                                                    keywords.push(value.clone());
                                                 }
                                             }
                                         }
@@ -701,9 +704,10 @@ impl PersonJson {
                         }
                     }
                 }
-
-                keywords
             }
+        keywords
+    }
+
 }
 
 // ----
