@@ -759,7 +759,7 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
         .for_each(|line: String| {
             match serde_json::from_str::<PersonJson>(&line) {
                 Ok(json) => {
-                    trace!("uuid={:?}", json.uuid);
+                    debug!("uuid={:?}", json.uuid);
 
                     // Add it to the data vector.
                     let mut data = data.lock().unwrap();

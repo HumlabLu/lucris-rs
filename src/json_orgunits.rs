@@ -238,7 +238,7 @@ pub fn read_orgunits_jsonl(file_path: &str) -> Result<Vec<OrgUnitJson>, Box<dyn 
     let reader = BufReader::new(file);
     let data = Arc::new(Mutex::new(vec![]));
     let failed_count = Arc::new(Mutex::new(0));
-    
+
     reader
         .lines()
         .filter_map(|line: Result<String, _>| line.ok())
@@ -246,7 +246,7 @@ pub fn read_orgunits_jsonl(file_path: &str) -> Result<Vec<OrgUnitJson>, Box<dyn 
         .for_each(|line: String| {
             match serde_json::from_str::<OrgUnitJson>(&line) {
                 Ok(json) => {
-                    trace!("uuid={:?}", json.uuid);
+                    debug!("uuid={:?}", json.uuid);
 
                     // Add it to the data vector.
                     let mut data = data.lock().unwrap();
@@ -255,7 +255,7 @@ pub fn read_orgunits_jsonl(file_path: &str) -> Result<Vec<OrgUnitJson>, Box<dyn 
                 Err(e) => {
                     error!("{}", e);
                     //panic!("{}", line);
-                    
+
                     // Increment the failure counter.
                     let mut failed = failed_count.lock().unwrap();
                     *failed += 1;
@@ -266,7 +266,7 @@ pub fn read_orgunits_jsonl(file_path: &str) -> Result<Vec<OrgUnitJson>, Box<dyn 
     if *failed_count.lock().unwrap() > 0 {
         warn!("Failed to parse {} lines.", *failed_count.lock().unwrap());
     }
-    
+
     // Extract the data from Arc<Mutex<...>> and return it.
     let extracted_data = Arc::try_unwrap(data).unwrap().into_inner().unwrap();
     info!("Extracted {} entries.", extracted_data.len());

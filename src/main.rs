@@ -110,7 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // ------------------------------------------------------------------------
 
-    // The map.
+    // The map. This translates uuids to "safe" uuids.
     let mut umap = UuidMap::new();
 
     // Parse the research data, structures are pushed
@@ -217,7 +217,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    // Save a mapping from uuid to data, so we can combine later.
+    // Save a mapping from uuid to data, so we can combine later. PersonClean
+    // is a simpler/cleaner version of PersonJson with only the fields we are
+    // interested in.
     let mut person_map: HashMap<String, PersonClean> = HashMap::new();
 
     if let Some(data) = persons_data {
@@ -323,6 +325,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             },
         }
     }
+    trace!("\n{:?}", fingerprints_data);
 
     // ------------------------------------------------------------------------
 
@@ -338,6 +341,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             },
         }
     }
+    trace!("\n{:?}", concepts_data);
 
     // ------------------------------------------------------------------------
 
@@ -353,6 +357,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             },
         }
     }
+    trace!("\n{:?}", orgunits_data);
 
     // ------------------------------------------------------------------------
 
