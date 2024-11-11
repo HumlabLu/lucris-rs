@@ -866,15 +866,6 @@ mod tests {
     use std::path::{Path, PathBuf};
     use std::fs;
 
-    fn read_test_data(file_name: &str) -> String {
-        let project_root = env!("CARGO_MANIFEST_DIR");
-        let data_path = Path::new(project_root)
-            .join("tests")
-            .join("data")
-            .join(file_name);
-        fs::read_to_string(&data_path).expect("Unable to read test data file")
-    }
-
     fn make_test_path(file_name: &str) -> PathBuf {
         let project_root = env!("CARGO_MANIFEST_DIR");
         let data_path = Path::new(project_root)
