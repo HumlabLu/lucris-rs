@@ -156,6 +156,9 @@ impl PersonClean {
         let keywords = value.get_keywords_for_locale(locale);
         trace!("KEYWORDS {:?}", keywords);
 
+        let orgname = value.get_organisationalunit_for_locale(locale);
+        trace!("ORGNAME {:?}", orgname);
+
         // We have come this far, return the new struct.
         Ok(PersonClean {
             uuid: uuid.to_string(),
@@ -739,6 +742,31 @@ impl PersonJson {
         keywords
     }
 
+    // pub organisationalUnit: Option<OrganisationalUnit>,
+    // pub struct OrganisationalUnit {
+    //     pub name: Option<FormattedText>,
+    pub fn get_organisationalunit_for_locale(&self, locale: &str) -> &str {
+        if let Some(associations) = &self.staffOrganisationAssociations {
+            for association in associations {
+                if let Some(unit) = &association.organisationalUnit {
+                    if let Some(name) = &unit.name {
+                        if let Some(texts) = &name.text {
+                            for locale_text in texts {
+                                if let Some(loc) = &locale_text.locale {
+                                    if loc == locale {
+                                        if let Some(value) = &locale_text.value {
+                                            return value;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        "no organisation unit"
+    }
 }
 
 // ----
