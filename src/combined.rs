@@ -50,21 +50,30 @@ impl Combined {
             Ok((research.clone(), persons))
         }
 
-        pub fn get_research_from_uuid_ref(&self, uuid: &str) -> Result<(&ResearchClean, Vec<&PersonClean>), CombinedError> {
-                let mut persons = Vec::new();
+    pub fn get_research_from_uuid_ref(&self, uuid: &str) -> Result<(&ResearchClean, Vec<&PersonClean>), CombinedError> {
+        let mut persons = Vec::new();
 
-                let research = self.research.get(uuid).ok_or(CombinedError::NoSuchUUID)?;
-                println!("-> {:?}", research);
+        let research = self.research.get(uuid).ok_or(CombinedError::NoSuchUUID)?;
+        println!("-> {:?}", research);
 
-                for p in &research.persons {
-                    let person_uuid = &p.uuid;
-                    if let Some(person) = self.persons.get(person_uuid) {
-                        println!("--> person in research: {:?}", person);
-                        persons.push(person);
-                    }
-                }
-
-                Ok((research, persons))
+        for p in &research.persons {
+            let person_uuid = &p.uuid;
+            if let Some(person) = self.persons.get(person_uuid) {
+                println!("--> person in research: {:?}", person);
+                persons.push(person);
             }
+        }
+
+        Ok((research, persons))
+    }
+
+    // Return all the uuids in the research HashMap. If empty we
+    // return an empty vector.
+    pub fn get_all_research_uuids(&self) -> Vec<&String> {
+        let mut uuids = Vec::new();
+        uuids = self.research.keys()
+            .collect();
+        uuids
+    }
 
 }
