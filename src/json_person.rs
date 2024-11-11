@@ -51,6 +51,7 @@ pub struct PersonClean {
     name: String,
     profile_info: String,
     titles: Vec<String>,
+    keywords: Vec<String>
 }
 
 // We may need a mapping from (safe-)uuid to PersonClean?
@@ -84,6 +85,7 @@ impl TryFrom<&PersonJson> for PersonClean {
             name: full_name,
             profile_info: "".to_string(), // Take a default en_GB locale?
             titles: vec![],
+            keywords: vec![],
         })
     }
 }
@@ -122,6 +124,7 @@ impl PersonClean {
             name: full_name,
             profile_info: profile_info_text.to_string(),
             titles: titles,
+            keywords: keywords,
         })
     }
 
@@ -154,6 +157,7 @@ impl PersonClean {
             name: full_name,
             profile_info: profile_info_text.to_string(),
             titles: titles,
+            keywords: keywords,
         })
     }
 }
