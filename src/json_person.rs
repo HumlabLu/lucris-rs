@@ -845,7 +845,8 @@ mod tests {
         let person: PersonJson = serde_json::from_str(data).expect("Err");
         let person_des:PersonClean = PersonClean::try_from(&person).expect("Err");
         let person_des_jstr = serde_json::to_string(&person_des).unwrap();
-        assert_eq!(person_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":""}"#);
+        println!("{}", person_des_jstr);
+        assert_eq!(person_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":"","titles":[],"keywords":[]}"#);
     }
 
     #[test]
@@ -911,7 +912,7 @@ mod tests {
         let person: PersonJson = serde_json::from_str(data).expect("Err");
         let person_des = PersonClean::try_from_with_locale(&person, "en_GB").expect("Err");
         let person_des_jstr = serde_json::to_string(&person_des).unwrap();
-        assert_eq!(person_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":"Research Engineer, Lund University Humanities Lab"}"#);
+        assert_eq!(person_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":"Research Engineer, Lund University Humanities Lab","titles":[],"keywords":[]}"#);
     }
 
     #[test]
