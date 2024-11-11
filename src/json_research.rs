@@ -94,7 +94,7 @@ pub struct ResearchJson {
 }
 
 // Simplified struct for output. Keep only relevant fields.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct ResearchClean {
     uuid: String,
     title: String,
@@ -103,13 +103,13 @@ pub struct ResearchClean {
     pub persons: Vec<PersonDes>, // Or PersonClean?
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 enum PersonInEx {
     Internal,
     External,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct PersonDes {
     idx: u32,
     pub uuid: String, // Can be used to lookup in the person_map data.

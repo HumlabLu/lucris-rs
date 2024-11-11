@@ -8,3 +8,9 @@ pub enum CleanError {
     MissingFirstName,
     MissingLastName,
 }
+
+// Errors thrown when working with Combined.
+#[derive(Debug, Serialize)]
+pub enum CombinedError {
+    NoSuchUUID,
+}

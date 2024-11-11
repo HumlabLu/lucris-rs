@@ -45,7 +45,7 @@ pub struct PersonJson {
 }
 
 // Simplified struct for output. Keep only relevant fields.
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Clone)]
 pub struct PersonClean {
     uuid: String,
     name: String,
@@ -110,7 +110,7 @@ impl PersonClean {
 
         //let titles = value.get_title_for_locale(locale).unwrap();
         if let Some(titles) = value.get_title_for_locale(locale) {
-            println!("TITLES {:?}", titles); // See below for get_titiels().
+            println!("TITLES {:?}", titles); // FIXME: See below for get_titles().
         }
 
         let keywords = value.get_keywords_for_locale(locale);
