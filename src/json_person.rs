@@ -65,6 +65,8 @@ impl fmt::Display for PersonClean {
     }
 }
 
+// These extract a few fields which can be read without needing the
+// locale. We added titles adn keywords with a hard-coded "en_GB" locale.
 impl TryFrom<&PersonJson> for PersonClean {
     type Error = CleanError;
 
@@ -79,13 +81,16 @@ impl TryFrom<&PersonJson> for PersonClean {
         let last_name = name_struct.lastName.as_ref().ok_or(CleanError::MissingLastName)?;
         let full_name = format!("{} {}", first_name, last_name);
 
+        let titles = value.get_titles_for_locale("en_GB");
+        let keywords = value.get_keywords_for_locale("en_GB");
+
         // Create the PersonClean.
         Ok(PersonClean {
             uuid: uuid.to_string(),
             name: full_name,
             profile_info: "".to_string(), // Take a default en_GB locale?
-            titles: vec![],
-            keywords: vec![],
+            titles: titles,
+            keywords: keywords,
         })
     }
 }

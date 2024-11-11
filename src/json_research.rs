@@ -100,7 +100,7 @@ pub struct ResearchClean {
     title: String,
     #[serde(rename = "abstract")]
     abstract_text: String,
-    pub persons: Vec<PersonDes>, // Or PersonClean?
+    pub persons: Vec<PersonRef>, // Or PersonClean?
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -109,15 +109,16 @@ enum PersonInEx {
     External,
 }
 
+// Pointer to the data in persons.
 #[derive(Debug, Serialize, Clone)]
-pub struct PersonDes {
+pub struct PersonRef {
     idx: u32,
     pub uuid: String, // Can be used to lookup in the person_map data.
     name: String,
     inex: PersonInEx, // Needs a better name...
 }
 
-impl fmt::Display for PersonDes {
+impl fmt::Display for PersonRef {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // Returns `fmt::Result` which indicates whether the
         // operation succeeded or failed. Note that `write!` uses syntax which
@@ -150,13 +151,13 @@ impl ResearchClean {
         let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
         let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
 
-        let mut persons:Vec<PersonDes> = vec![];
+        let mut persons:Vec<PersonRef> = vec![];
 
         let person_names = value.get_internal_person_names(); // People responsible for the research.
         let mut c = 0;
         for (first_name, last_name, uuid) in person_names.iter() {
             // Often more than one.
-            let person = PersonDes {
+            let person = PersonRef {
                 idx: c,
                 uuid: uuid.to_string(),
                 name: format!("{} {}", first_name, last_name),
@@ -168,7 +169,7 @@ impl ResearchClean {
 
         let external_person_names = value.get_external_person_names();
         for (full_name, uuid) in external_person_names.iter() {
-            let person = PersonDes {
+            let person = PersonRef {
                 idx: c,
                 uuid: uuid.to_string(),
                 name: full_name.to_string(),
@@ -193,14 +194,14 @@ impl ResearchClean {
 
         let safe_uuid = umap.get_uuid_as_str(&uuid);
 
-        let mut persons:Vec<PersonDes> = vec![];
+        let mut persons:Vec<PersonRef> = vec![];
 
         let person_names = value.get_internal_person_names(); // People responsible for the research.
         let mut c = 0;
         for (first_name, last_name, uuid) in person_names.iter() {
             let safe_uuid = umap.get_uuid_as_str(&uuid);
             // Often more than one.
-            let person = PersonDes {
+            let person = PersonRef {
                 idx: c,
                 uuid: uuid.to_string(),
                 name: format!("{} {}", first_name, last_name),
@@ -213,7 +214,7 @@ impl ResearchClean {
         let external_person_names = value.get_external_person_names();
         for (full_name, uuid) in external_person_names.iter() {
             let safe_uuid = umap.get_uuid_as_str(&uuid);
-            let person = PersonDes {
+            let person = PersonRef {
                 idx: c,
                 uuid: uuid.to_string(),
                 name: full_name.to_string(),
