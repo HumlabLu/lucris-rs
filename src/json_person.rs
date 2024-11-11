@@ -110,10 +110,8 @@ impl PersonClean {
             .copied() // Dereferences &&str to &str.
             .unwrap_or("There is no profile_information.");
 
-        //let titles = value.get_title_for_locale(locale).unwrap();
-        if let Some(titles) = value.get_title_for_locale(locale) {
-            println!("TITLES {:?}", titles); // FIXME: See below for get_titles().
-        }
+        let titles = value.get_titles_for_locale(locale);
+        trace!("TITLES {:?}", titles);
 
         let keywords = value.get_keywords_for_locale(locale);
         println!("KEYWORDS {:?}", keywords);
@@ -123,7 +121,7 @@ impl PersonClean {
             uuid: uuid.to_string(),
             name: full_name,
             profile_info: profile_info_text.to_string(),
-            titles: vec![],
+            titles: titles,
         })
     }
 
