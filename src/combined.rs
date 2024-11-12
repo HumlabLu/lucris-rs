@@ -16,13 +16,17 @@ use crate::errors::CombinedError;
 pub struct Combined {
     pub research: HashMap<String, ResearchClean>,
     pub persons: HashMap<String, PersonClean>,
+    pub person_research: HashMap<String, Vec<String>>,
 }
 
 impl Combined {
-    pub fn new(research: HashMap<String, ResearchClean>, persons: HashMap<String, PersonClean>) -> Self {
+    pub fn new(research: HashMap<String, ResearchClean>,
+        persons: HashMap<String, PersonClean>,
+        person_research: HashMap<String, Vec<String>>) -> Self {
         Self {
             research,
             persons,
+            person_research,
         }
     }
 

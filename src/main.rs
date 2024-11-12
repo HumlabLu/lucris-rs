@@ -268,11 +268,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     info!("Mappings {}.", &umap.count());
 
-    for (k, v) in &person_map {
+    for v in person_map.values() {
         trace!("{}", v);
     }
 
-    for (k, v) in &research_map {
+    for v in research_map.values() {
         println!("research: {}", v);
         for p in &v.persons {
             let uuid = &p.uuid;
@@ -282,7 +282,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    let combined = Combined::new(research_map, person_map);
+    // No te that the person_reseach is the Option<...> returned from read_research_jsonl(...)
+    // without processing.
+    let combined = Combined::new(research_map, person_map, person_research.expect("No person_researcfh data?"));
     trace!("{:?}", &combined);
 
     // dd0ce568-96e7-449b-9a59-9ee857f79a13 (ok in research_1.jsonl)
