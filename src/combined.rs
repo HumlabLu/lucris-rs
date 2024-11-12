@@ -11,6 +11,8 @@ use crate::errors::CombinedError;
 // Maybe we should combine the research and persons (plus others) in two
 // structs, ResearchClean and PersonClean. ResearchClean has persons, and
 // in PersonClean we have research (or uuids?).
+//
+// Probably better "solved" in a relational DB.
 
 #[derive(Debug)]
 pub struct Combined {
@@ -102,8 +104,16 @@ impl Combined {
 
     pub fn get_research_for_person_uuid(&self, uuid: &str) -> Result<Vec<&ResearchClean>, CombinedError> {
         let mut research = vec![];
-        let person = self.persons.get(uuid).ok_or(CombinedError::NoSuchUUID)?; // we don't actually need this?
-        // search for uuid in research-people? Not efficient, need an index.
+        let research_uuids = self.person_research.get(uuid).ok_or(CombinedError::NoSuchUUID)?;
+        for r in research_uuids {
+            match self.research.get(r) {
+               Some(res) => {
+                   research.push(res);
+               },
+               None => (),
+            }
+        }
+
         Ok(research)
     }
 }

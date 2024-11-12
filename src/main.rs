@@ -303,7 +303,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     */
 
-    combined.output_test();
+    //combined.output_test();
+
+    println!("\ncombined.get_research_for_person_uuid(...)");
+    match combined.get_research_for_person_uuid("61781b1a-c069-4971-bb76-b18ed231a453") {
+        Ok(res) => {
+            for r in res {
+                println!("-> {}", r);
+            }
+        },
+        _ => ()
+    }
 
     // Go through the research_map, extracts the person-uuids and look them up in the
     // person_map. Print/store/save/...
