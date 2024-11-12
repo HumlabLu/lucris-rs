@@ -817,7 +817,7 @@ pub fn dump_titles(research_data: &Vec<ResearchJson>, locale: &str) {
 
 // ----------------------------------------------------------------------------
 
-pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn std::error::Error>> {
+pub fn read_research_jsonl(file_path: &str) -> Result<(Vec<ResearchJson>, HashMap<String, Vec<String>>), Box<dyn std::error::Error>> {
     let file = FSFile::open(file_path)?;
     let reader = BufReader::new(file);
     let data = Arc::new(Mutex::new(vec![]));
@@ -875,7 +875,7 @@ pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn
     // Extract the data from Arc<Mutex<...>> and return it.
     let extracted_data = Arc::try_unwrap(data).unwrap().into_inner().unwrap();
     info!("Extracted {} entries.", extracted_data.len());
-    Ok(extracted_data)
+    Ok((extracted_data, extracted_pr))
 }
 
 #[cfg(test)]
@@ -898,7 +898,7 @@ mod tests {
         let data_path = make_test_path("research_one.jsonl");
         println!("{:?}", data_path);
         let foo = read_research_jsonl(data_path.to_str().expect("Test data not found!"));
-        let foo = foo.unwrap();
+        let (foo, bar) = foo.unwrap();
         let foo = &foo[0];
         assert_eq!(foo.get_uuid(), Some("1d136ffd-6d08-444a-9c50-76c0e5aec513"));
     }
@@ -907,8 +907,8 @@ mod tests {
     fn test_read_research_one_err() {
         let data_path = make_test_path("research_one_err.jsonl");
         println!("{:?}", data_path);
-        let foo = read_research_jsonl(data_path.to_str().expect("Test data not found!"));
-        let foo = foo.unwrap();
+        let (foo, bar) = read_research_jsonl(data_path.to_str().expect("Test data not found!"))
+            .expect("Failed to read research JSONL data");
         assert_eq!(foo, []);
     }
 

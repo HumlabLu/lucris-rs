@@ -116,12 +116,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Parse the research data, structures are pushed
     // into a vector.
     let mut research_data: Option<Vec<ResearchJson>> = None;
+    let mut person_research: Option<HashMap<String, Vec<String>>> = None;
+
     if let Some(research_filename) = cli.research {
         info!("Reading research file {:?}.", research_filename);
         match read_research_jsonl(&research_filename) {
             Err(e) => eprintln!("Error reading JSON: {}", e),
-            Ok(data) => {
+            Ok((data, data1)) => {
                 research_data = Some(data);
+                person_research = Some(data1);
             },
         }
     }
