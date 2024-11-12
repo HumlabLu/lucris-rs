@@ -284,7 +284,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // No te that the person_reseach is the Option<...> returned from read_research_jsonl(...)
     // without processing.
-    let combined = Combined::new(research_map, person_map, person_research.expect("No person_researcfh data?"));
+    let combined = Combined::new(research_map, person_map, person_research.expect("No person_research data?"));
     trace!("{:?}", &combined);
 
     // dd0ce568-96e7-449b-9a59-9ee857f79a13 (ok in research_1.jsonl)
