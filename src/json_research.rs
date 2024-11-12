@@ -10,6 +10,7 @@ use log::{debug, error, info, trace, warn};
 use crate::errors::{CleanError};
 use std::fmt;
 use crate::uuid_map::{UuidMap};
+use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ResearchJson {
@@ -821,6 +822,7 @@ pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn
     let reader = BufReader::new(file);
     let data = Arc::new(Mutex::new(vec![]));
     let failed_count = Arc::new(Mutex::new(0));
+    let person_research: Arc<Mutex<HashMap<String, Vec<String>>>> = Arc::new(Mutex::new(HashMap::new()));
 
     reader
         .lines()
@@ -834,6 +836,16 @@ pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn
                 Ok(json) => {
                     //trace!("title={:?}", json.title.clone().unwrap().value);
                     debug!("uuid={:?}", json.uuid);
+
+                    // Check persons for research reverse index?
+                    let mut map = person_research.lock().unwrap();
+                    let uuid = json.uuid.clone().unwrap();
+                    let persons = json.get_internal_person_names();
+                    println!("{:?}", persons);
+                    for (first_name, last_name, person_uuid) in persons {
+                        map.entry(person_uuid.to_string()).or_insert_with(Vec::new).push(uuid.clone());
+                    }
+
 
                     // Add it to the data vector.
                     let mut data = data.lock().unwrap();
@@ -853,6 +865,12 @@ pub fn read_research_jsonl(file_path: &str) -> Result<Vec<ResearchJson>, Box<dyn
     if *failed_count.lock().unwrap() > 0 {
         warn!("Failed to parse {} lines.", *failed_count.lock().unwrap());
     }
+
+    let extracted_pr = Arc::try_unwrap(person_research)
+           .expect("Multiple references to person_research")
+           .into_inner()
+           .expect("Mutex was poisoned");
+    println!("{:?}", extracted_pr);
 
     // Extract the data from Arc<Mutex<...>> and return it.
     let extracted_data = Arc::try_unwrap(data).unwrap().into_inner().unwrap();

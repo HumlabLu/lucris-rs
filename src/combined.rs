@@ -76,4 +76,30 @@ impl Combined {
         uuids
     }
 
+    // We need different output, for example:
+    //   - research ID -> research + people + ...
+    //   - person ID -> all research + ...
+    pub fn output_test(&self) {
+        println!("hi there");
+        let all_uuids = self.get_all_research_uuids();
+        for uuid in all_uuids {
+            println!("-------- {}", uuid);
+            match self.get_research_from_uuid_ref(uuid) {
+                Ok((research, persons)) => {
+                    println!("Research: {:?}", research);
+                    for person in persons {
+                        println!("{} / {}", research, person);
+                    }
+                }
+                Err(e) => eprintln!("Error: {:?}", e),
+            }
+        }
+    }
+
+    pub fn get_research_for_person_uuid(&self, uuid: &str) -> Result<Vec<&ResearchClean>, CombinedError> {
+        let mut research = vec![];
+        let person = self.persons.get(uuid).ok_or(CombinedError::NoSuchUUID)?; // we don't actually need this?
+        // search for uuid in research-people? Not efficient, need an index.
+        Ok(research)
+    }
 }

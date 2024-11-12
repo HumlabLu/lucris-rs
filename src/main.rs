@@ -285,6 +285,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // dd0ce568-96e7-449b-9a59-9ee857f79a13 (ok in research_1.jsonl)
     // 147e206b-b9d5-49a6-bc83-ddec9ff21af1 (ok in research_10.jasonl)
     // dd0ce568-96e7-449b-9a59-9ee857f79a13 (err in research_10.jasonl)
+    //
+    /*
     match combined.get_research_from_uuid_ref("dd0ce568-96e7-449b-9a59-9ee857f79a13") {
         Ok((research, persons)) => {
             println!("Research: {:?}", research);
@@ -294,20 +296,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Err(e) => eprintln!("Error: {:?}", e),
     }
+    */
 
-    let all_uuids = combined.get_all_research_uuids();
-    for uuid in all_uuids {
-        println!("-------- {}", uuid);
-        match combined.get_research_from_uuid_ref(uuid) {
-            Ok((research, persons)) => {
-                println!("Research: {:?}", research);
-                for person in persons {
-                    println!("{} / {}", research, person);
-                }
-            }
-            Err(e) => eprintln!("Error: {:?}", e),
-        }
-    }
+    combined.output_test();
+
     // Go through the research_map, extracts the person-uuids and look them up in the
     // person_map. Print/store/save/...
 
