@@ -48,7 +48,7 @@ pub struct PersonJson {
 #[derive(Debug, Serialize, Clone)]
 pub struct PersonClean {
     uuid: String,
-    name: String,
+    pub name: String,
     profile_info: String,
     titles: Vec<String>,
     keywords: Vec<String>

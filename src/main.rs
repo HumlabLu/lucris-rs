@@ -132,7 +132,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .len()
                 );
                 person_research = Some(pers_data);
-                info!("Person-ressearch contains {} elements.",
+                info!("Person-research contains {} elements.",
                     person_research
                         .as_ref()
                         .expect("No person-research data")
@@ -391,6 +391,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         },
         _ => ()
+    }
+
+    let all_persons_uuids = combined.persons.keys();
+    for (person_uuid, person) in &combined.persons {
+        //println!("\n{}", person.name);
+        match combined.get_research_for_person_uuid(&person_uuid) {
+            Ok(res) => {
+                for r in res {
+                    println!("{} {}", person.name, r);
+                }
+            },
+            _ => ()
+        }
     }
 
     // ------------------------------------------------------------------------
