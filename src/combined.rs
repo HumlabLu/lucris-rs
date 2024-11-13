@@ -60,12 +60,12 @@ impl Combined {
         let mut persons = Vec::new();
 
         let research = self.research.get(uuid).ok_or(CombinedError::NoSuchUUID)?;
-        println!("-> {:?}", research);
+        //println!("-> {:?}", research);
 
         for p in &research.persons {
             let person_uuid = &p.uuid;
             if let Some(person) = self.persons.get(person_uuid) {
-                println!("--> person in research: {:?}", person);
+                //println!("--> person in research: {:?}", person);
                 persons.push(person);
             }
         }
@@ -86,14 +86,12 @@ impl Combined {
     //   - research ID -> research + people + ...
     //   - person ID -> all research + ...
     pub fn output_test(&self) {
-        println!("hi there");
         let all_uuids = self.get_all_research_uuids();
         for uuid in all_uuids {
             println!("-------- {}", uuid);
             match self.get_research_from_uuid_ref(uuid) {
                 Ok((research, persons)) => {
-                    println!("Research: {:?}", research);
-                    for person in persons {
+                    for person in persons { // Print title/name for each person.
                         println!("{} / {}", research, person);
                     }
                 }
@@ -102,6 +100,8 @@ impl Combined {
         }
     }
 
+    // Get all ResearchClean articles where uuid is one of the authors.
+    // (Probably only internal.)
     pub fn get_research_for_person_uuid(&self, uuid: &str) -> Result<Vec<&ResearchClean>, CombinedError> {
         let mut research = vec![];
         let research_uuids = self.person_research.get(uuid).ok_or(CombinedError::NoSuchUUID)?;

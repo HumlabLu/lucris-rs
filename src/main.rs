@@ -303,7 +303,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     */
 
-    //combined.output_test();
+    combined.output_test();
 
     println!("\ncombined.get_research_for_person_uuid(...)");
     match combined.get_research_for_person_uuid("61781b1a-c069-4971-bb76-b18ed231a453") {
