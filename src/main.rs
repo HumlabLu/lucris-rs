@@ -361,6 +361,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // If we don't read the research data, this will fail!
     info!("Creating Combined.");
     let combined = Combined::new(research_map, person_map, person_research.expect("No person_research data?"));
+    info!("{}", combined);
     trace!("{:?}", &combined);
 
     // dd0ce568-96e7-449b-9a59-9ee857f79a13 (ok in research_1.jsonl)

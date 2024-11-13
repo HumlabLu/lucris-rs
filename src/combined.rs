@@ -5,6 +5,7 @@ use uuid::Uuid;
 use crate::ResearchClean;
 use crate::PersonClean;
 use crate::errors::CombinedError;
+use std::fmt;
 
 // Container for the different data files.
 //
@@ -19,6 +20,19 @@ pub struct Combined {
     pub research: HashMap<String, ResearchClean>,
     pub persons: HashMap<String, PersonClean>,
     pub person_research: HashMap<String, Vec<String>>,
+}
+
+impl fmt::Display for Combined {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // Returns `fmt::Result` which indicates whether the
+        // operation succeeded or failed. Note that `write!` uses syntax which
+        // is very similar to `println!`.
+        write!(f, "Combined: {}/{}/{}",
+            self.research.len(),
+            self.persons.len(),
+            self.person_research.len()
+        )
+    }
 }
 
 impl Combined {
