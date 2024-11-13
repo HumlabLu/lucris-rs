@@ -393,13 +393,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         _ => ()
     }
 
-    let all_persons_uuids = combined.persons.keys();
+    // Output name, research title & abstract.
     for (person_uuid, person) in &combined.persons {
         //println!("\n{}", person.name);
         match combined.get_research_for_person_uuid(&person_uuid) {
             Ok(res) => {
                 for r in res {
-                    println!("{} {}", person.name, r);
+                    println!("{}, {}, {}",
+                        person.get_name(),
+                        r.get_title(),
+                        r.get_abstract()
+                    );
                 }
             },
             _ => ()

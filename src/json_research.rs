@@ -146,6 +146,17 @@ impl fmt::Display for ResearchClean {
     }
 }
 
+// Getters
+impl ResearchClean {
+    pub fn get_title(&self) -> &str {
+        &self.title
+    }
+
+    pub fn get_abstract(&self) -> &str {
+        &self.abstract_text
+    }
+}
+
 // This one takes a locale string and extracts the information for the specified locale.
 impl ResearchClean {
     pub fn try_from_with_locale(value: &ResearchJson, locale: &str) -> Result<Self, CleanError> {

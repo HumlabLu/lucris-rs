@@ -48,7 +48,7 @@ pub struct PersonJson {
 #[derive(Debug, Serialize, Clone)]
 pub struct PersonClean {
     uuid: String,
-    pub name: String,
+    name: String,
     profile_info: String,
     titles: Vec<String>,
     keywords: Vec<String>
@@ -92,6 +92,13 @@ impl TryFrom<&PersonJson> for PersonClean {
             titles: titles,
             keywords: keywords,
         })
+    }
+}
+
+// Getters.
+impl PersonClean {
+    pub fn get_name(&self) -> &str {
+        &self.name
     }
 }
 
