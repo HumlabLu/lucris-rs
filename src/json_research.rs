@@ -841,7 +841,7 @@ pub fn read_research_jsonl(file_path: &str) -> Result<(Vec<ResearchJson>, HashMa
                     let mut map = person_research.lock().unwrap();
                     let uuid = json.uuid.clone().unwrap();
                     let persons = json.get_internal_person_names();
-                    println!("{:?}", persons);
+                    trace!("{:?}", persons);
                     for (first_name, last_name, person_uuid) in persons {
                         map.entry(person_uuid.to_string()).or_insert_with(Vec::new).push(uuid.clone());
                     }
@@ -870,7 +870,7 @@ pub fn read_research_jsonl(file_path: &str) -> Result<(Vec<ResearchJson>, HashMa
            .expect("Multiple references to person_research")
            .into_inner()
            .expect("Mutex was poisoned");
-    println!("{:?}", extracted_pr);
+    trace!("{:?}", extracted_pr);
 
     // Extract the data from Arc<Mutex<...>> and return it.
     let extracted_data = Arc::try_unwrap(data).unwrap().into_inner().unwrap();

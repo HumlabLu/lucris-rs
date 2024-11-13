@@ -273,7 +273,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         trace!("{}", v);
     }
 
-    for v in research_map.values() {
+    /*for v in research_map.values() {
         println!("research: {}", v);
         for p in &v.persons {
             let uuid = &p.uuid;
@@ -281,40 +281,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("-> person in research: {}", value);
             }
         }
-    }
-
-    // No te that the person_reseach is the Option<...> returned from read_research_jsonl(...)
-    // without processing.
-    let combined = Combined::new(research_map, person_map, person_research.expect("No person_research data?"));
-    trace!("{:?}", &combined);
-
-    // dd0ce568-96e7-449b-9a59-9ee857f79a13 (ok in research_1.jsonl)
-    // 147e206b-b9d5-49a6-bc83-ddec9ff21af1 (ok in research_10.jasonl)
-    // dd0ce568-96e7-449b-9a59-9ee857f79a13 (err in research_10.jasonl)
-    //
-    /*
-    match combined.get_research_from_uuid_ref("dd0ce568-96e7-449b-9a59-9ee857f79a13") {
-        Ok((research, persons)) => {
-            println!("Research: {:?}", research);
-            for person in persons {
-                println!("{} / {}", research, person);
-            }
-        }
-        Err(e) => eprintln!("Error: {:?}", e),
-    }
-    */
-
-    //combined.output_test();
-
-    println!("\ncombined.get_research_for_person_uuid(...)");
-    match combined.get_research_for_person_uuid("61781b1a-c069-4971-bb76-b18ed231a453") {
-        Ok(res) => {
-            for r in res {
-                println!("-> {}", r);
-            }
-        },
-        _ => ()
-    }
+    }*/
 
     // Go through the research_map, extracts the person-uuids and look them up in the
     // person_map. Print/store/save/...
@@ -349,10 +316,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(concepts_filename) = cli.concepts {
         info!("Reading concepts file {:?}.", concepts_filename);
         match read_concept_jsonl(&concepts_filename) {
-            Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
                 concepts_data = Some(data);
+                info!("Concepts data contains {} elements.",
+                    concepts_data
+                        .as_ref() // Converts Option<T> to Option<&T>.
+                        .expect("No concepts data")
+                        .len()
+                );
             },
+            Err(e) => eprintln!("Error reading ConceptJSON: {:?}", e),
         }
     }
     trace!("\n{:?}", concepts_data);
@@ -365,10 +338,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(orgunits_filename) = cli.orgunits {
         info!("Reading organisational-units file {:?}.", orgunits_filename);
         match read_orgunits_jsonl(&orgunits_filename) {
-            Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
                 orgunits_data = Some(data);
+                info!("Orgunits data contains {} elements.",
+                    orgunits_data
+                        .as_ref() // Converts Option<T> to Option<&T>.
+                        .expect("No orgunits data")
+                        .len()
+                );
             },
+            Err(e) => eprintln!("Error reading OrgunitsJSON: {:?}", e),
         }
     }
     trace!("\n{:?}", orgunits_data);
@@ -376,6 +355,41 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ------------------------------------------------------------------------
 
     // TODO: How to connect everything?
+    // Use Combined.
+    // Note that the person_reseach is the Option<...> returned from read_research_jsonl(...)
+    // without processing.
+    // If we don't read the research data, this will fail!
+    info!("Creating Combined.");
+    let combined = Combined::new(research_map, person_map, person_research.expect("No person_research data?"));
+    trace!("{:?}", &combined);
+
+    // dd0ce568-96e7-449b-9a59-9ee857f79a13 (ok in research_1.jsonl)
+    // 147e206b-b9d5-49a6-bc83-ddec9ff21af1 (ok in research_10.jasonl)
+    // dd0ce568-96e7-449b-9a59-9ee857f79a13 (err in research_10.jasonl)
+    //
+    /*
+    match combined.get_research_from_uuid_ref("dd0ce568-96e7-449b-9a59-9ee857f79a13") {
+        Ok((research, persons)) => {
+            println!("Research: {:?}", research);
+            for person in persons {
+                println!("{} / {}", research, person);
+            }
+        }
+        Err(e) => eprintln!("Error: {:?}", e),
+    }
+    */
+
+    combined.output_test();
+
+    println!("\ncombined.get_research_for_person_uuid(...)");
+    match combined.get_research_for_person_uuid("61781b1a-c069-4971-bb76-b18ed231a453") {
+        Ok(res) => {
+            for r in res {
+                println!("-> {}", r);
+            }
+        },
+        _ => ()
+    }
 
     // ------------------------------------------------------------------------
 
