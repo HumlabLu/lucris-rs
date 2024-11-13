@@ -147,6 +147,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // All the uuids are uniq (should be...). We could make a map
     // with uuids->data to connect it to the other data.
+    info!("Convert ReseachJSON to ResearchClean.");
     if let Some(data) = research_data {
         for entry in &data {
             if let Some(uuid) = entry.get_uuid() {
@@ -380,9 +381,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     */
 
-    combined.output_test();
+    //combined.output_test();
 
-    println!("\ncombined.get_research_for_person_uuid(...)");
+    println!("combined.get_research_for_person_uuid(...)");
     match combined.get_research_for_person_uuid("61781b1a-c069-4971-bb76-b18ed231a453") {
         Ok(res) => {
             for r in res {
