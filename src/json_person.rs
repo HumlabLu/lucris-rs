@@ -771,6 +771,7 @@ impl PersonJson {
 
 // ----
 
+// This always returns, but the result could be an empty vector.
 pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);

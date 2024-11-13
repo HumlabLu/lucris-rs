@@ -114,7 +114,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut umap = UuidMap::new();
 
     // Parse the research data, structures are pushed
-    // into a vector.
+    // into a vector. Reads the research.jsonl and creates the
+    // person->[research, ...] vector.
     let mut research_data: Option<Vec<ResearchJson>> = None;
     let mut person_research: Option<HashMap<String, Vec<String>>> = None;
 
@@ -122,19 +123,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         info!("Reading research file {:?}.", research_filename);
         match read_research_jsonl(&research_filename) {
             Err(e) => eprintln!("Error reading JSON: {}", e),
-            Ok((data, data1)) => {
-                research_data = Some(data);
-                person_research = Some(data1);
+            Ok((res_data, pers_data)) => {
+                research_data = Some(res_data);
+                info!("Research data contains {} elements.",
+                    research_data
+                        .as_ref() // Converts Option<T> to Option<&T>.
+                        .expect("No research data")
+                        .len()
+                );
+                person_research = Some(pers_data);
+                info!("Person-ressearch contains {} elements.",
+                    person_research
+                        .as_ref()
+                        .expect("No person-research data")
+                        .len()
+                );
             },
-        }
-    }
-
-    // .as_ref() produces &T inside Option<T>.
-    if let Some(ref data) = research_data {
-        // This dumps the authors, titles and abstracts
-        // to stdout.
-        if &cli.log_level == "trace" {
-            //dump_titles(research_data.as_ref().unwrap(), &cli.locale);
         }
     }
 
@@ -165,7 +169,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("ABSTRACT: {}", abstract_text);
                 */
 
-                // TEST
+                // Convert the ResearchJson to ResearchClean, keeping only the
+                // relevant fields.
                 match ResearchClean::try_from_with_locale(entry, &cli.locale) {
                     Ok(research_des) => {
                         let json_output = serde_json::to_string(&research_des).unwrap();
@@ -176,8 +181,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         panic!("Failed to convert ResearchJson: {:?}", e);
                     }
                 }
-                // TEST
-
             } else {
                 error!("Research JSON does not contain uuid.");
             }
@@ -188,34 +191,35 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .map(|x| ResearchJsonDes::try_from_with_locale(x, &cli.locale).unwrap())
             .collect();
         */
-
-        let mut foo = Vec::new();
-        for x in data.iter() {
-            let res = ResearchClean::try_from_with_locale_umap(x, &cli.locale, &mut umap).unwrap();
-            foo.push(res);
-        }
-
     } else {
         debug!("No research data available.");
     }
 
     info!("Mappings {}.", &umap.count());
 
-    for (k, v) in &research_map {
+    for v in research_map.values() {
         trace!("{}", v);
     }
 
     // ------------------------------------------------------------------------
 
-    // Parse the persons JSON. Each struct is pushed into
+    // Parse the persons JSON file. Each struct is pushed into
     // a vector.
     let mut persons_data: Option<Vec<PersonJson>> = None;
     if let Some(persons_filename) = cli.persons {
         info!("Reading persons file {:?}.", persons_filename);
         match read_persons_jsonl(&persons_filename) {
-            Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
                 persons_data = Some(data);
+                info!("Person data contains {} elements.",
+                    persons_data
+                        .as_ref() // Converts Option<T> to Option<&T>.
+                        .expect("No persons data")
+                        .len()
+                );
+            },
+            Err(e) => {
+                panic!("Failed to read PersonJson: {:?}", e)
             },
         }
     }
@@ -244,7 +248,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 trace!("{:?}", info_texts);
                 //println!("{:?}",info_texts);
 
-                // TEST
+                // Convert to PersonClean structures.
                 match PersonClean::try_from_with_locale_umap(entry, &cli.locale, &mut umap) {
                     Ok(person_des) => {
                         let json_output = serde_json::to_string(&person_des).unwrap();
@@ -255,13 +259,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         panic!("Failed to convert PersonJson: {:?}", e);
                     }
                 }
-                // TEST
             } else {
                 error!("Research JSON does not contain uuid.");
             }
-
         }
-
     } else {
         debug!("No persons data available.");
     }
@@ -303,7 +304,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     */
 
-    combined.output_test();
+    //combined.output_test();
 
     println!("\ncombined.get_research_for_person_uuid(...)");
     match combined.get_research_for_person_uuid("61781b1a-c069-4971-bb76-b18ed231a453") {
@@ -326,10 +327,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(fingerprints_filename) = cli.fingerprints {
         info!("Reading fingerprint file {:?}.", fingerprints_filename);
         match read_fingerprint_jsonl(&fingerprints_filename) {
-            Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok(data) => {
                 fingerprints_data = Some(data);
+                info!("Fingerprint data contains {} elements.",
+                    fingerprints_data
+                        .as_ref() // Converts Option<T> to Option<&T>.
+                        .expect("No fingerprints data")
+                        .len()
+                );
             },
+            Err(e) => eprintln!("Error reading FingerprintJSON: {:?}", e),
         }
     }
     trace!("\n{:?}", fingerprints_data);
