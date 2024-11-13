@@ -172,7 +172,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 // Convert the ResearchJson to ResearchClean, keeping only the
                 // relevant fields.
-                match ResearchClean::try_from_with_locale(entry, &cli.locale) {
+                match ResearchClean::try_from_with_locale_umap(entry, &cli.locale, &mut umap) {
                     Ok(research_des) => {
                         let json_output = serde_json::to_string(&research_des).unwrap();
                         trace!("{}", json_output);
