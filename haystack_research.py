@@ -1,4 +1,5 @@
 # PJB: Use the VENV in Development/HayStack
+# PJB: Path to python can be set in .vscode/settings.json!
 #
 # -----------------------------------------------------------------------------
 # We could extract names (and other meta data) from the query
@@ -54,7 +55,7 @@ if False:
     pipeline.connect("cleaner", "splitter")
     pipeline.connect("splitter", "writer")
 
-    file_names = ["research_docs.txt"] # Generate using lucris-rs.
+    file_names = ["research_docs.txt"] # Generate using lucris-rs (out of date.)
     pipeline.run({"converter": {"sources": file_names}})
 
     document_store.save_to_disk(store_filename)

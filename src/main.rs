@@ -4,11 +4,11 @@
 // Output format...
 // ---------------------------------------------------------------------------
 //
-use clap::{Parser};
+use clap::Parser;
 mod json_person;
 use json_person::{read_persons_jsonl, PersonJson, PersonClean};
 mod json_research;
-use json_research::{ResearchJson, ResearchClean, read_research_jsonl, dump_titles};
+use json_research::{ResearchJson, ResearchClean, read_research_jsonl};
 mod json_fingerprint;
 use json_fingerprint::{read_fingerprint_jsonl, FingerprintJson};
 mod json_concepts;
@@ -20,7 +20,6 @@ use combined::Combined;
 mod formatting;
 use formatting::{extract_text_with_formatting, extract_texts_with_formatting};
 use std::collections::HashMap;
-use uuid::Uuid;
 use log::{debug, error, info, trace, warn, LevelFilter};
 use flexi_logger::{FileSpec, Logger, WriteMode, AdaptiveFormat, Duplicate, LogSpecification};
 use std::str::FromStr;
