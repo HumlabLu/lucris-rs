@@ -121,12 +121,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(research_filename) = cli.research {
         info!("Reading research file {:?}.", research_filename);
         match read_research_jsonl(&research_filename) {
-            Err(e) => eprintln!("Error reading JSON: {}", e),
             Ok((res_data, pers_data)) => {
                 research_data = Some(res_data);
                 info!("Research data contains {} elements.",
                     research_data
-                        .as_ref() // Converts Option<T> to Option<&T>.
+                        .as_ref() // Converts &Option<T> to Option<&T>.
                         .expect("No research data")
                         .len()
                 );
@@ -138,6 +137,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .len()
                 );
             },
+            Err(e) => eprintln!("Error reading JSON: {}", e),
         }
     }
 
@@ -146,7 +146,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // All the uuids are uniq (should be...). We could make a map
     // with uuids->data to connect it to the other data.
-    info!("Convert ReseachJSON to ResearchClean.");
+    info!("Convert ResearchJSON to ResearchClean.");
     if let Some(data) = research_data {
         for entry in &data {
             if let Some(uuid) = entry.get_uuid() {
