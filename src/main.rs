@@ -382,6 +382,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     //combined.output_test();
 
+    /*
     println!("combined.get_research_for_person_uuid(...)");
     match combined.get_research_for_person_uuid("61781b1a-c069-4971-bb76-b18ed231a453") {
         Ok(res) => {
@@ -391,14 +392,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
         _ => ()
     }
+    */
 
-    // Output name, research title & abstract.
+    // Output name, research title & abstract (nta format for haystack_research.py).
+    // What we want is maybe a HayStack compatible (JSON) string.
+    //   doc = Document(content=page.content, meta={"title": page.title, "url": page.url})
     for (person_uuid, person) in &combined.persons {
         //println!("\n{}", person.get_name());
         match combined.get_research_for_person_uuid(&person_uuid) {
             Ok(res) => {
                 for r in res {
-                    println!("{}, {}, {}",
+                    /*println!("{}, {}, {}",
+                        person.get_name(),
+                        r.get_title(),
+                        r.get_abstract()
+                    );*/
+                    println!("NAME:{}\nTITLE:{}\nABSTRACT:{}",
                         person.get_name(),
                         r.get_title(),
                         r.get_abstract()

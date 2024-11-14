@@ -12,6 +12,7 @@ use std::fmt;
 use crate::uuid_map::{UuidMap};
 use std::collections::HashMap;
 
+/// JSON as it is read from the AIML cleaned data.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct ResearchJson {
     #[serde(rename = "abstract")]
@@ -94,7 +95,7 @@ pub struct ResearchJson {
     pub workflow: Option<Workflow>,
 }
 
-// Simplified struct for output. Keep only relevant fields.
+/// Simplified struct for output. Keep only relevant fields.
 #[derive(Debug, Serialize, Clone)]
 pub struct ResearchClean {
     uuid: String,
@@ -104,13 +105,14 @@ pub struct ResearchClean {
     pub persons: Vec<PersonRef>, // Or PersonClean?
 }
 
+/// Whether a researcher is internal (we have info in persons.jsonl) or external.
 #[derive(Debug, Serialize, Clone)]
 enum PersonInEx {
     Internal,
     External,
 }
 
-// Pointer to the data in persons.
+/// Pointer to the data in persons.jsonl.
 #[derive(Debug, Serialize, Clone)]
 pub struct PersonRef {
     idx: u32,
