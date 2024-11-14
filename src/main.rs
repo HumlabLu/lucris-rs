@@ -306,7 +306,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Err(e) => eprintln!("Error reading FingerprintJSON: {:?}", e),
         }
     }
-    trace!("\n{:?}", fingerprints_data);
+    trace!("{:?}", fingerprints_data);
 
     // ------------------------------------------------------------------------
 
@@ -328,7 +328,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Err(e) => eprintln!("Error reading ConceptJSON: {:?}", e),
         }
     }
-    trace!("\n{:?}", concepts_data);
+    trace!("{:?}", concepts_data);
 
     // ------------------------------------------------------------------------
 
@@ -350,7 +350,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Err(e) => eprintln!("Error reading OrgunitsJSON: {:?}", e),
         }
     }
-    trace!("\n{:?}", orgunits_data);
+    trace!("{:?}", orgunits_data);
 
     // ------------------------------------------------------------------------
 
@@ -394,7 +394,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Output name, research title & abstract.
     for (person_uuid, person) in &combined.persons {
-        //println!("\n{}", person.name);
+        //println!("\n{}", person.get_name());
         match combined.get_research_for_person_uuid(&person_uuid) {
             Ok(res) => {
                 for r in res {
