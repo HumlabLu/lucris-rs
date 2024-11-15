@@ -71,7 +71,7 @@ if False:
 
 # We could have defaults for the other values as well.
 def get_new_meta() -> dict:
-    # return {"persons":[]}
+    # return {"persons":[]} # initialise empty list
     return {}
     
 
@@ -155,7 +155,7 @@ def read_research_nta(a_file) -> [Document]:
                 if len(bits) == 2:
                     # abstract can be empty... mirror title?
                     abstract = bits[1].strip()
-                    print(current_meta)
+                    #print(current_meta)
                     if len(abstract) < 2: #some arbitrary small value
                         try:
                             abstract = current_meta["title"] # We assume we have read it... FIXME
@@ -247,8 +247,8 @@ retriever = InMemoryBM25Retriever(document_store=document_store_new)
 query = args.query
 print(f"Query: {query}")
 
-retrieve_top_k = 9
-rank_top_k = 3
+retrieve_top_k = 19
+rank_top_k = 8
 
 # Filter of meta-data?
 res = retriever.run(
@@ -259,7 +259,7 @@ res = retriever.run(
 print("Retriever")
 for i, r in enumerate(res["documents"]):
     print(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
-    print(r)
+    #print(r)
 print()
 print("=" * 78)
 
@@ -312,15 +312,19 @@ if args.reranker:
 template = """
 Given the following context, answer the question.
 Do not make up facts. Do not use lists. When referring to research
-mention the researchers names from the meta-data.
+mention the researchers names from the context. The name of the researcher will be given
+first, followed by an abstract of the relevant research.
 
 Context:
 {% for document in documents %}
-    Researcher: {{ document.meta.researcher_name }} Research: {{ document.content }}
+    Researcher: {{ document.meta.researcher_name }}. Research: {{ document.content }}
 {% endfor %}
 
 Question: {{question}}
 """
+
+#   and: "{{ document.content if document.content is not none else 'NONE' }}"
+#  {{ document.content if document.content.length() > 10 else 'NONE' }}
 
 prompt_builder = PromptBuilder(template=template)
 generator = OllamaGenerator(
@@ -329,8 +333,8 @@ generator = OllamaGenerator(
     url = "http://localhost:11434",
     generation_kwargs={
         "num_predict": 2000,
-        "temperature": 1.5, # Higher is more "creative".
-        'num_ctx': 8096,
+        "temperature": 0.5, # Higher is more "creative".
+        'num_ctx': 12028,
         'repeat_last_n': -1,
     }
 )
