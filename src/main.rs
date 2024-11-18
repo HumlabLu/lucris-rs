@@ -399,7 +399,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //   doc = Document(content=page.content, meta={"title": page.title, "url": page.url})
     for (person_uuid, person) in &combined.persons {
         //println!("\n{}", person.get_name());
-        match combined.get_research_for_person_uuid(&person_uuid) {
+        match combined.get_research_for_person_uuid(person_uuid) {
             Ok(res) => {
                 for r in res {
                     /*println!("{}, {}, {}",
