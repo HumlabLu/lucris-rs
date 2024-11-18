@@ -182,21 +182,18 @@ retriever_type = "embeddings"
 # Filter of meta-data?
 if retriever_type == "embeddings":
     retriever = InMemoryEmbeddingRetriever(document_store_new)
-    doc_embedder = SentenceTransformersDocumentEmbedder(
-        model="sentence-transformers/all-MiniLM-L6-v2", # Dim depends on model.
-        meta_fields_to_embed=["title", "researcher_name"]
-    )
-    doc_embedder.warm_up()
+    #doc_embedder = SentenceTransformersDocumentEmbedder(
+    #    model="sentence-transformers/all-MiniLM-L6-v2", # Dim depends on model.
+    #    meta_fields_to_embed=["title", "researcher_name"]
+    #)
+    #doc_embedder.warm_up()
     text_embedder = SentenceTransformersTextEmbedder(model="sentence-transformers/all-MiniLM-L6-v2")
     #text_embedder = SentenceTransformersTextEmbedder()
-    #docs_with_embeddings = doc_embedder.run(docs)
     query_pipeline = Pipeline() 
     query_pipeline.add_component("text_embedder", text_embedder)
     result = query_pipeline.run({"text_embedder": {"text": query}})
-    #print(result)
     q_embedding = result['text_embedder']['embedding']
-    print(len(q_embedding))
-    #print(q_embedding)
+
     res = retriever.run(
         query_embedding=q_embedding,
         top_k=retrieve_top_k,
@@ -281,11 +278,11 @@ Question: {{question}}
 
 prompt_builder = PromptBuilder(template=template)
 generator = OllamaGenerator(
-    model="llama3.1",
+    model=args.model, #"llama3.1",
     #model="gemma2",
     url = "http://localhost:11434",
     generation_kwargs={
-        "num_predict": 2000,
+        "num_predict": 4000,
         "temperature": 0.5, # Higher is more "creative".
         'num_ctx': 12028,
         'repeat_last_n': -1,
