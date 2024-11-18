@@ -29,12 +29,14 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--model", help="Model for text generation.", default="llama3.1")
-parser.add_argument("-e", "--extractionmodel", help="Model for text exxtraction.", default="mistral")
+parser.add_argument("-e", "--extractionmodel", help="Model for text extraction.", default="mistral")
 parser.add_argument("-E", "--embeddings", action='store_true', help="Use embeddings.", default=False)
 parser.add_argument("-q", "--query", help="query.", default=None)
 parser.add_argument("-r", "--research", help="Research file.", default=None) #"research_docs.txt"
 parser.add_argument("-R", "--reranker", action='store_true', help="Run re-ranker.", default=False)
 parser.add_argument("-p", "--showprompt", action='store_true', help="Show LLM prompts.", default=False)
+parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=19)
+parser.add_argument("--rank_k", type=int, help="Ranker top_k.", default=8)
 args = parser.parse_args()
 
 store_filename = "docs_research.store"
@@ -179,8 +181,8 @@ print(f"Number of documents: {document_store_new.count_documents()}.")
 query = args.query
 print(f"Query: {query}")
 
-retrieve_top_k = 19
-rank_top_k = 8
+retrieve_top_k = args.top_k # Use args directly.
+rank_top_k = args.rank_k
 
 # Filter of meta-data?
 if args.embeddings == True:
