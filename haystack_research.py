@@ -30,6 +30,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--model", help="Model for text generation.", default="llama3.1")
 parser.add_argument("-e", "--extractionmodel", help="Model for text exxtraction.", default="mistral")
+parser.add_argument("-E", "--embeddings", action='store_true', help="Use embeddings.", default=False)
 parser.add_argument("-q", "--query", help="query.", default=None)
 parser.add_argument("-r", "--research", help="Research file.", default=None) #"research_docs.txt"
 parser.add_argument("-R", "--reranker", action='store_true', help="Run re-ranker.", default=False)
@@ -61,8 +62,8 @@ def read_research_nta(a_file) -> [Document]:
         for line in f:
             line = line.strip()
             if line.startswith("NAME:"):
-                bits = line.split(":")
-                if len(bits) == 2:
+                bits = line.split(":", 1)
+                if len(bits) > 0:
                     name = bits[1]
                     #print("NAME", name)
                     # If we have current contents, we save it first.
@@ -73,15 +74,15 @@ def read_research_nta(a_file) -> [Document]:
                     current_meta = get_new_meta()
                     current_meta["researcher_name"] = name.strip()
                     current_content = None
-            if line.startswith("TITLE:"):
-                bits = line.split(":")
-                if len(bits) == 2:
+            elif line.startswith("TITLE:"):
+                bits = line.split(":", 1)
+                if len(bits) > 0:
                     title = bits[1]
                     #print("TITLE", title)
                     current_meta["title"] = title.strip()
-            if line.startswith("ABSTRACT:"):
-                bits = line.split(":")
-                if len(bits) == 2:
+            elif line.startswith("ABSTRACT:"):
+                bits = line.split(":", 1)
+                if len(bits) > 0:
                     # abstract can be empty... mirror title?
                     abstract = bits[1].strip()
                     #print(current_meta)
@@ -91,6 +92,7 @@ def read_research_nta(a_file) -> [Document]:
                         except KeyError:
                             abstract = "no abstract"
                     current_content = abstract
+                    current_meta["abstract"] = abstract
     # Left overs.
     if current_content and current_meta:
         doc = Document(content=current_content, meta=current_meta)
@@ -148,7 +150,9 @@ if args.research:
         document_store=document_store,
         policy=DuplicatePolicy.SKIP
     )
-    document_writer.run(documents=docs_with_embeddings["documents"])
+    document_writer.run(
+        documents=docs_with_embeddings["documents"]
+    )
     document_store.save_to_disk(store_filename)
 
 # -----------------------------------------------------------------------------
@@ -177,10 +181,9 @@ print(f"Query: {query}")
 
 retrieve_top_k = 19
 rank_top_k = 8
-retriever_type = "embeddings"
 
 # Filter of meta-data?
-if retriever_type == "embeddings":
+if args.embeddings == True:
     retriever = InMemoryEmbeddingRetriever(document_store_new)
     #doc_embedder = SentenceTransformersDocumentEmbedder(
     #    model="sentence-transformers/all-MiniLM-L6-v2", # Dim depends on model.
@@ -208,8 +211,8 @@ else:
     )
 print("Retrieved")
 for i, r in enumerate(res["documents"]):
-    print(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
     #print(r)
+    print(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
 print()
 print("=" * 78)
 
@@ -253,9 +256,9 @@ if args.reranker:
         documents=res["documents"],
         top_k=rank_top_k
     ) 
+    print()
     for i, r in enumerate(res["documents"]):
-        print()
-        print(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
+        print(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
     print()
     print("=" * 78)
 
