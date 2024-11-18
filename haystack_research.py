@@ -377,4 +377,41 @@ Yes, several researchers and research projects have studied cats. In the provide
 
 It is worth noting that there are other research projects and studies on cats that are not mentioned in the provided context, such as studies on cat behavior, cat cognition, and cat welfare, among others.
 ------------------------------------------------------------------------------
+
+(VENV) pberck@Peters-MacBook-Pro-2 lucris-rs % time python haystack_research.py  -q "Summarise the research on cats (meowsic) at Lund University."
+/Users/pberck/Development/HayStack/VENV/lib/python3.12/site-packages/haystack/core/errors.py:34: DeprecationWarning: PipelineMaxLoops is deprecated and will be remove in version '2.7.0'; use PipelineMaxComponentRuns instead.
+  warnings.warn(
+Loading...
+Number of documents: 313288.
+Query: Summarise the research on cats (meowsic) at Lund University.
+Retrieved
+00 42.5716 Susanne Schötz <br/>The cat (Felis catus, Linneaus 1758) has lived around or with humans for
+01 42.5716 Joost van de Weijer <br/>The cat (Felis catus, Linneaus 1758) has lived around or with humans for
+02 40.6141 Per Ståhle Ongoing research at Lund University, Invited talk given at University of Parma
+03 40.5852 Mats Bohgard Research on Nanotechnology and Human Health at Lund University, Sweden
+04 40.1402 Jenny Julén Votinius The elder law research environment at Lund University
+05 39.9785 Roland Akselsson Two Research Programmes on Disaster Abatement at Lund University Centre for Ri
+06 39.9358 Johan Frid Swe-Clarin research collaborations at the Humanities Lab, Lund University
+07 39.7820 Despina Christoforidou Informed Provocation - Industrial Design Research at Lund University
+08 39.7820 Calle Lidgard Informed Provocation - Industrial Design Research at Lund University
+09 39.7820 Anders Warell Informed Provocation - Industrial Design Research at Lund University
+10 39.5441 Alison Gerber Research notes &amp; miscellany from a research group focused on the intersect
+11 39.5441 Olof Sundin Research notes &amp; miscellany from a research group focused on the intersect
+12 39.2931 Knut Deppert Nanoscience and Nanotechnology in education and research in Sweden and at Lund
+13 39.2931 Lars Samuelson Nanoscience and Nanotechnology in education and research in Sweden and at Lund
+14 39.1909 Rustamjon Urinboyev This research report is a compilation of essays written by guest researchers f
+15 39.1344 Jesica López <br/>Agenda 2030 Graduate School blog<br/>Lund University Agenda 2030 Graduate
+16 39.1344 Torsten Krause <br/>Agenda 2030 Graduate School blog<br/>Lund University Agenda 2030 Graduate
+17 39.1165 Sune Svanberg <p>Food safety and unnecessary prescription of antibiotics are real concerns w
+18 39.1165 Katarina Svanberg <p>Food safety and unnecessary prescription of antibiotics are real concerns w
+
+==============================================================================
+
+Summarise the research on cats (meowsic) at Lund University.
+
+------------------------------------------------------------------------------
+Susanne Schötz and Joost van de Weijer are members of the research project "Meowsic" at Lund University, which investigates the prosodic characteristics of cat vocalisations as well as the communication between human and cat. The project has two main steps: categorising cat vocalisations and investigating how humans perceive the vocal signals of domestic cats.
+------------------------------------------------------------------------------
+
+python haystack_research.py -q   53.67s user 5.30s system 91% cpu 1:04.69 total
 '''
