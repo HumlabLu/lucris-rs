@@ -38,28 +38,6 @@ args = parser.parse_args()
 
 store_filename = "docs_research.store"
 
-# Create a on-disk database if True.
-if False:
-    document_store = InMemoryDocumentStore()
-
-    pipeline = Pipeline()
-    pipeline.add_component("converter", TextFileToDocument())
-    pipeline.add_component("cleaner", DocumentCleaner(ascii_only=True,
-                                                      remove_empty_lines=True,
-                                                      remove_extra_whitespaces=True,
-                                                      remove_repeated_substrings=True)
-                           )
-    pipeline.add_component("splitter", DocumentSplitter(split_by="sentence", split_length=3))
-    pipeline.add_component("writer", DocumentWriter(document_store=document_store))
-    pipeline.connect("converter", "cleaner")
-    pipeline.connect("cleaner", "splitter")
-    pipeline.connect("splitter", "writer")
-
-    file_names = ["research_docs.txt"] # Generate using lucris-rs (out of date.)
-    pipeline.run({"converter": {"sources": file_names}})
-
-    document_store.save_to_disk(store_filename)
-    
 # -----------------------------------------------------------------------------
 
 #RESEARCH: a06df509-b7e0-474a-b84a-3376a72f9e56
@@ -73,55 +51,6 @@ if False:
 def get_new_meta() -> dict:
     # return {"persons":[]} # initialise empty list
     return {}
-    
-
-# Document(id=a364dddc7b9dfdefbbc7584920912d6c7dfe8c30c646cf7c586d4906525f2cf6, content: 'We ...', meta: {'uuid': 'f05eb79e-ac84-4d33-b6b1-55d650621132', 'title': 'A self-consistent ...'})
-def read_research(a_file) -> [Document]:
-    current_content = None
-    current_meta = get_new_meta()
-    documents = []
-    with open(a_file, "r") as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith("RESEARCH:"):
-                bits = line.split(":")
-                if len(bits) == 2:
-                    uuid = bits[1]
-                    print("RESEARCH", uuid)
-                    # If we have current contents, we save it first.
-                    if current_content and current_meta:
-                        doc = Document(content=current_content, meta=current_meta)
-                        documents.append(doc)
-                        print("ADDED", current_meta)
-                    current_meta = get_new_meta()
-                    current_meta["uuid"] = uuid.strip()
-                    current_content = None
-            if line.startswith("PERSON"):
-                bits = line.split(":")
-                if len(bits) == 2:
-                    person = bits[1].strip()
-                    # get the number from PERSONn
-                    number = bits[0][6:] # bits[0] == "PERSON"
-                    person = person.split() # You got to love untyped languages...
-                    person_uuid = person[-1]
-                    person_name = " ".join(person[:-1])
-                    print("PERSON", number, person_name, person_uuid)
-                    current_meta["persons"].append(person_name) # Note assumes "persons" is present.
-            if line.startswith("TITLE:"):
-                bits = line.split(":")
-                if len(bits) == 2:
-                    title = bits[1]
-                    current_meta["title"] = title.strip()
-            if line.startswith("ABSTRACT:"):
-                bits = line.split(":")
-                if len(bits) == 2:
-                    current_content = bits[1].strip()
-    # Left overs.
-    if current_content and current_meta:
-        doc = Document(content=current_content, meta=current_meta)
-        documents.append(doc)
-        print("ADDED", current_meta)
-    return documents
 
 # name, title abstract format.
 def read_research_nta(a_file) -> [Document]:
@@ -258,7 +187,8 @@ if retriever_type == "embeddings":
         meta_fields_to_embed=["title", "researcher_name"]
     )
     doc_embedder.warm_up()
-    text_embedder = SentenceTransformersTextEmbedder()
+    text_embedder = SentenceTransformersTextEmbedder(model="sentence-transformers/all-MiniLM-L6-v2")
+    #text_embedder = SentenceTransformersTextEmbedder()
     #docs_with_embeddings = doc_embedder.run(docs)
     query_pipeline = Pipeline() 
     query_pipeline.add_component("text_embedder", text_embedder)
