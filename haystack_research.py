@@ -242,21 +242,44 @@ if not args.query:
 print("Loading...")
 document_store_new = InMemoryDocumentStore().load_from_disk(store_filename)
 print(f"Number of documents: {document_store_new.count_documents()}.")
-retriever = InMemoryBM25Retriever(document_store=document_store_new)
-#retriever = InMemoryEmbeddingRetriever(document_store_new)
+#print(retriever)
 query = args.query
 print(f"Query: {query}")
 
 retrieve_top_k = 19
 rank_top_k = 8
+retriever_type = "embeddings"
 
 # Filter of meta-data?
-res = retriever.run(
-    query=query,
-    top_k=retrieve_top_k,
-    #scale_score=True
-)
-print("Retriever")
+if retriever_type == "embeddings":
+    retriever = InMemoryEmbeddingRetriever(document_store_new)
+    doc_embedder = SentenceTransformersDocumentEmbedder(
+        model="sentence-transformers/all-MiniLM-L6-v2", # Dim depends on model.
+        meta_fields_to_embed=["title", "researcher_name"]
+    )
+    doc_embedder.warm_up()
+    text_embedder = SentenceTransformersTextEmbedder()
+    #docs_with_embeddings = doc_embedder.run(docs)
+    query_pipeline = Pipeline() 
+    query_pipeline.add_component("text_embedder", text_embedder)
+    result = query_pipeline.run({"text_embedder": {"text": query}})
+    #print(result)
+    q_embedding = result['text_embedder']['embedding']
+    print(len(q_embedding))
+    #print(q_embedding)
+    res = retriever.run(
+        query_embedding=q_embedding,
+        top_k=retrieve_top_k,
+        #scale_score=True
+    )
+else:
+    retriever = InMemoryBM25Retriever(document_store=document_store_new)
+    res = retriever.run(
+        query=query,
+        top_k=retrieve_top_k,
+        #scale_score=True
+    )
+print("Retrieved")
 for i, r in enumerate(res["documents"]):
     print(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
     #print(r)
