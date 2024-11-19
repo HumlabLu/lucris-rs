@@ -26,6 +26,24 @@ from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack.components.embedders import SentenceTransformersTextEmbedder
 from haystack.components.builders import PromptBuilder
 import argparse
+import logging
+
+# Create a logger
+logger = logging.getLogger('foo')
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler = logging.FileHandler('haystack.log')
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(formatter)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(message)s', "%Y-%m-%d %H:%M:%S")
+console_handler.setFormatter(formatter)
+
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-m", "--model", help="Model for text generation.", default="llama3.1")
@@ -40,6 +58,8 @@ parser.add_argument("--rank_k", type=int, help="Ranker top_k.", default=8)
 args = parser.parse_args()
 
 store_filename = "docs_research.store"
+
+logger.debug(args)
 
 # -----------------------------------------------------------------------------
 
@@ -174,12 +194,12 @@ if not args.query:
     
 # -----------------------------------------------------------------------------
 
-print("Loading...")
+logger.info("Loading document store...")
 document_store_new = InMemoryDocumentStore().load_from_disk(store_filename)
-print(f"Number of documents: {document_store_new.count_documents()}.")
-#print(retriever)
+logger.info(f"Number of documents: {document_store_new.count_documents()}.")
+#logger.info(retriever)
 query = args.query
-print(f"Query: {query}")
+logger.info(f"Query: {query}")
 
 retrieve_top_k = args.top_k # Use args directly.
 rank_top_k = args.rank_k
@@ -211,28 +231,28 @@ else:
         top_k=retrieve_top_k,
         #scale_score=True
     )
-print("Retrieved")
+logger.info("Retrieved documents")
 for i, r in enumerate(res["documents"]):
-    #print(r)
-    print(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
-print()
-print("=" * 78)
+    #logger.info(r)
+    logger.info(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
+logger.info("")
+logger.info("=" * 78)
 
 if False:
-    print("Running LostInTheMiddleRanker()")
+    logger.info("Running LostInTheMiddleRanker()")
     ranker = LostInTheMiddleRanker()
     res = ranker.run(
         documents=res["documents"],
         top_k=rank_top_k
     )
     for i, r in enumerate(res["documents"]):
-        print()
-        print(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
-    print()
-    print("=" * 78)
+        logger.info()
+        logger.info(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
+    logger.info()
+    logger.info("=" * 78)
 
 if False:
-    print("Running TransformersSimilarityRanker()")
+    logger.info("Running TransformersSimilarityRanker()")
     ranker = TransformersSimilarityRanker(model="BAAI/bge-reranker-base")
     ranker.warm_up()
     res = ranker.run(
@@ -241,10 +261,10 @@ if False:
         top_k=rank_top_k
     ) 
     for i, r in enumerate(res["documents"]):
-        print()
-        print(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
-    print()
-    print("=" * 78)
+        logger.info()
+        logger.info(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
+    logger.info()
+    logger.info("=" * 78)
 
 if args.reranker:
     ranker = SentenceTransformersDiversityRanker(
@@ -258,17 +278,17 @@ if args.reranker:
         documents=res["documents"],
         top_k=rank_top_k
     ) 
-    print()
+    logger.info()
     for i, r in enumerate(res["documents"]):
-        print(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
-    print()
-    print("=" * 78)
+        logger.info(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
+    logger.info()
+    logger.info("=" * 78)
 
 template = """
-Given the following context, answer the question.
+Given the following context, answer the question at the end.
 Do not make up facts. Do not use lists. When referring to research
 mention the researchers names from the context. The name of the researcher will be given
-first, followed by an abstract of the relevant research.
+first, followed by an abstract of the relevant research. The question will follow the context.
 
 Context:
 {% for document in documents %}
@@ -299,9 +319,7 @@ basic_rag_pipeline.add_component("prompt_builder", prompt_builder)
 basic_rag_pipeline.add_component("llm", generator)
 basic_rag_pipeline.connect("prompt_builder", "llm")
 
-print() 
-print(query)
-print()
+logger.info(query)
 response = basic_rag_pipeline.run(
     {
         "prompt_builder": {"question": query,
@@ -310,16 +328,15 @@ response = basic_rag_pipeline.run(
     },
     include_outputs_from={"prompt_builder"},
 )
-print("-" * 78)
-print(response["llm"]["replies"][0])
-print("-" * 78)
-print()
+logger.info(f"Prompt length: {len(response["prompt_builder"]["prompt"])}")
+logger.info("-" * 78)
+logger.info(response["llm"]["replies"][0])
+logger.info("-" * 78)
 
 if args.showprompt:
-    print()
-    print("Prompt builder:")
-    print(response["prompt_builder"]["prompt"])
-    print("=" * 78)
+    logger.info("Prompt builder prompt:")
+    logger.info(response["prompt_builder"]["prompt"])
+    logger.info("=" * 78)
 
 
 '''
