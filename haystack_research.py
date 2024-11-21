@@ -185,6 +185,7 @@ if args.research:
     print("Doc count:", len(docs))
     print(docs[0])
 
+    # We only have abstracts, splitting doesn't really make sense.
     document_splitter = DocumentSplitter(
         split_by="word", 
         split_length=512, 

@@ -6,9 +6,9 @@
 //
 use clap::Parser;
 mod json_person;
-use json_person::{read_persons_jsonl, PersonJson, PersonClean};
+use json_person::{read_persons_jsonl, PersonClean, PersonJson};
 mod json_research;
-use json_research::{ResearchJson, ResearchClean, read_research_jsonl};
+use json_research::{read_research_jsonl, ResearchClean, ResearchJson};
 mod json_fingerprint;
 use json_fingerprint::{read_fingerprint_jsonl, FingerprintJson};
 mod json_concepts;
@@ -18,23 +18,27 @@ use json_orgunits::{read_orgunits_jsonl, OrgUnitJson};
 mod combined;
 use combined::Combined;
 mod formatting;
-use formatting::{extract_text_with_formatting, extract_texts_with_formatting};
-use std::collections::HashMap;
-use log::{debug, error, info, trace, warn, LevelFilter};
-use flexi_logger::{FileSpec, Logger, WriteMode, AdaptiveFormat, Duplicate, LogSpecification};
-use std::str::FromStr;
+use flexi_logger::{AdaptiveFormat, Duplicate, FileSpec, LogSpecification, Logger, WriteMode};
 use flexi_logger::{DeferredNow, Record};
+use formatting::{extract_text_with_formatting, extract_texts_with_formatting};
+use log::{debug, error, info, trace, warn, LevelFilter};
+use std::collections::HashMap;
 use std::io::Write;
 use std::path::Path;
+use std::str::FromStr;
 mod errors;
 mod uuid_map;
-use uuid_map::{UuidMap};
+use uuid_map::UuidMap;
 
 #[derive(Parser)]
 #[command(version, about, long_about = "Reading data.")]
 struct Cli {
     /// Research info jasonl file
-    #[arg(short, long, help = "The file containing the cleaned research-outputs.")]
+    #[arg(
+        short,
+        long,
+        help = "The file containing the cleaned research-outputs."
+    )]
     research: Option<String>,
 
     /// Persons info jasonl file
@@ -50,7 +54,11 @@ struct Cli {
     concepts: Option<String>,
 
     /// OrgUnit info jasonl file
-    #[arg(short, long, help = "The file containing the cleaned organisational-units.")]
+    #[arg(
+        short,
+        long,
+        help = "The file containing the cleaned organisational-units."
+    )]
     orgunits: Option<String>,
 
     /// Sets the locale for the extracted texts.
@@ -63,7 +71,11 @@ struct Cli {
     log_level: String,
 }
 
-fn log_format(w: &mut dyn Write, now: &mut DeferredNow, record: &Record) -> Result<(), std::io::Error> {
+fn log_format(
+    w: &mut dyn Write,
+    now: &mut DeferredNow,
+    record: &Record,
+) -> Result<(), std::io::Error> {
     let file_path = record.file().unwrap_or("<unknown>");
     let file_name = Path::new(file_path)
         .file_name()
@@ -98,7 +110,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             FileSpec::default()
                 .suppress_timestamp()
                 .basename("lucris")
-                .suffix("log")
+                .suffix("log"),
         )
         .append()
         .duplicate_to_stderr(Duplicate::All)
@@ -123,20 +135,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match read_research_jsonl(&research_filename) {
             Ok((res_data, pers_data)) => {
                 research_data = Some(res_data);
-                info!("Research data contains {} elements.",
+                info!(
+                    "Research data contains {} elements.",
                     research_data
                         .as_ref() // Converts &Option<T> to Option<&T>.
                         .expect("No research data")
                         .len()
                 );
                 person_research = Some(pers_data);
-                info!("Person-research contains {} elements.",
+                info!(
+                    "Person-research contains {} elements.",
                     person_research
                         .as_ref()
                         .expect("No person-research data")
                         .len()
                 );
-            },
+            }
             Err(e) => eprintln!("Error reading JSON: {}", e),
         }
     }
@@ -186,11 +200,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         } // for entry
 
-        /*
-        let foo:Vec<ResearchJsonDes> = data.iter()
-            .map(|x| ResearchJsonDes::try_from_with_locale(x, &cli.locale).unwrap())
-            .collect();
-        */
+    /*
+    let foo:Vec<ResearchJsonDes> = data.iter()
+        .map(|x| ResearchJsonDes::try_from_with_locale(x, &cli.locale).unwrap())
+        .collect();
+    */
     } else {
         debug!("No research data available.");
     }
@@ -211,16 +225,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match read_persons_jsonl(&persons_filename) {
             Ok(data) => {
                 persons_data = Some(data);
-                info!("Person data contains {} elements.",
+                info!(
+                    "Person data contains {} elements.",
                     persons_data
                         .as_ref() // Converts Option<T> to Option<&T>.
                         .expect("No persons data")
                         .len()
                 );
-            },
+            }
             Err(e) => {
                 panic!("Failed to read PersonJson: {:?}", e)
-            },
+            }
         }
     }
 
@@ -296,13 +311,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match read_fingerprint_jsonl(&fingerprints_filename) {
             Ok(data) => {
                 fingerprints_data = Some(data);
-                info!("Fingerprint data contains {} elements.",
+                info!(
+                    "Fingerprint data contains {} elements.",
                     fingerprints_data
                         .as_ref() // Converts Option<T> to Option<&T>.
                         .expect("No fingerprints data")
                         .len()
                 );
-            },
+            }
             Err(e) => eprintln!("Error reading FingerprintJSON: {:?}", e),
         }
     }
@@ -318,13 +334,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match read_concept_jsonl(&concepts_filename) {
             Ok(data) => {
                 concepts_data = Some(data);
-                info!("Concepts data contains {} elements.",
+                info!(
+                    "Concepts data contains {} elements.",
                     concepts_data
                         .as_ref() // Converts Option<T> to Option<&T>.
                         .expect("No concepts data")
                         .len()
                 );
-            },
+            }
             Err(e) => eprintln!("Error reading ConceptJSON: {:?}", e),
         }
     }
@@ -340,13 +357,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         match read_orgunits_jsonl(&orgunits_filename) {
             Ok(data) => {
                 orgunits_data = Some(data);
-                info!("Orgunits data contains {} elements.",
+                info!(
+                    "Orgunits data contains {} elements.",
                     orgunits_data
                         .as_ref() // Converts Option<T> to Option<&T>.
                         .expect("No orgunits data")
                         .len()
                 );
-            },
+            }
             Err(e) => eprintln!("Error reading OrgunitsJSON: {:?}", e),
         }
     }
@@ -360,7 +378,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // without processing.
     // If we don't read the research data, this will fail!
     info!("Creating Combined.");
-    let combined = Combined::new(research_map, person_map, person_research.expect("No person_research data?"));
+    let combined = Combined::new(
+        research_map,
+        person_map,
+        person_research.expect("No person_research data?"),
+    );
     info!("{}", combined);
     trace!("{:?}", &combined);
 
@@ -407,14 +429,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         r.get_title(),
                         r.get_abstract()
                     );*/
-                    println!("NAME:{}\nTITLE:{}\nABSTRACT:{}",
+                    println!(
+                        "NAME:{}\nTITLE:{}\nABSTRACT:{}",
                         person.get_name(),
                         r.get_title(),
                         r.get_abstract()
                     );
                 }
-            },
-            _ => ()
+            }
+            _ => (),
         }
     }
 
