@@ -8,11 +8,14 @@ keywords = ["LUCRIS"]
 publish = false
 #repository  = "https://github.com/HumlabLu/lucris-rs"
 #readme      = "README.md"
-license     = "GNU AGPLv3"
-categories  = ["LUCRIS"]
+license = "GNU AGPLv3"
+categories = ["LUCRIS"]
 
 [profile.dev]
 opt-level = 3
+
+[lints.clippy]
+redundant_field_names = "allow"
 
 [dependencies]
 clap = { version = "4.5.19", features = ["derive"] }
