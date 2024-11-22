@@ -27,7 +27,7 @@ impl UuidMap {
     }
 
     pub fn add_uuid(&mut self, uuid: &str) -> String {
-        if self.uuids.contains_key(uuid) == true {
+        if self.uuids.contains_key(uuid) {
             eprintln!("Repeating research uuid: {}", uuid);
         }
         let safe_uuid = Uuid::new_v4();
@@ -47,4 +47,3 @@ impl UuidMap {
         self.uuids.len()
     }
 }
-
