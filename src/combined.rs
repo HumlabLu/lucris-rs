@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-use crate::ResearchClean;
-use crate::PersonClean;
 use crate::errors::CombinedError;
+use crate::PersonClean;
+use crate::ResearchClean;
+use serde::{Deserialize, Serialize};
 use std::fmt;
+use uuid::Uuid;
 
 // Container for the different data files.
 //
@@ -27,7 +27,9 @@ impl fmt::Display for Combined {
         // Returns `fmt::Result` which indicates whether the
         // operation succeeded or failed. Note that `write!` uses syntax which
         // is very similar to `println!`.
-        write!(f, "Combined: {}/{}/{}",
+        write!(
+            f,
+            "Combined: {}/{}/{}",
             self.research.len(),
             self.persons.len(),
             self.person_research.len()
@@ -36,9 +38,11 @@ impl fmt::Display for Combined {
 }
 
 impl Combined {
-    pub fn new(research: HashMap<String, ResearchClean>,
+    pub fn new(
+        research: HashMap<String, ResearchClean>,
         persons: HashMap<String, PersonClean>,
-        person_research: HashMap<String, Vec<String>>) -> Self {
+        person_research: HashMap<String, Vec<String>>,
+    ) -> Self {
         Self {
             research,
             persons,
@@ -50,27 +54,33 @@ impl Combined {
     // ResearchClean has a Vec for persons, but it is only uuids
     // and names, the person_json contains much more info.
     // Since this is one uuid, we could return a (ResearchClean, Vec<PersonClean>).
-    pub fn get_research_from_uuid(&self, uuid: &str) -> Result<(ResearchClean, Vec<PersonClean>), CombinedError> {
-            let mut persons = Vec::new();
+    pub fn get_research_from_uuid(
+        &self,
+        uuid: &str,
+    ) -> Result<(ResearchClean, Vec<PersonClean>), CombinedError> {
+        let mut persons = Vec::new();
 
-            // Directly attempt to get the research entry
-            let research = self.research.get(uuid).ok_or(CombinedError::NoSuchUUID)?;
-            println!("-> {:?}", research);
+        // Directly attempt to get the research entry
+        let research = self.research.get(uuid).ok_or(CombinedError::NoSuchUUID)?;
+        println!("-> {:?}", research);
 
-            // Iterate over the persons associated with the research
-            for p in &research.persons {
-                let person_uuid = &p.uuid;
-                if let Some(person) = self.persons.get(person_uuid) {
-                    println!("--> person in research: {:?}", person);
-                    persons.push(person.clone());
-                }
+        // Iterate over the persons associated with the research
+        for p in &research.persons {
+            let person_uuid = &p.uuid;
+            if let Some(person) = self.persons.get(person_uuid) {
+                println!("--> person in research: {:?}", person);
+                persons.push(person.clone());
             }
-
-            // Clone the research before returning
-            Ok((research.clone(), persons))
         }
 
-    pub fn get_research_from_uuid_ref(&self, uuid: &str) -> Result<(&ResearchClean, Vec<&PersonClean>), CombinedError> {
+        // Clone the research before returning
+        Ok((research.clone(), persons))
+    }
+
+    pub fn get_research_from_uuid_ref(
+        &self,
+        uuid: &str,
+    ) -> Result<(&ResearchClean, Vec<&PersonClean>), CombinedError> {
         let mut persons = Vec::new();
 
         let research = self.research.get(uuid).ok_or(CombinedError::NoSuchUUID)?;
@@ -91,8 +101,7 @@ impl Combined {
     // return an empty vector.
     pub fn get_all_research_uuids(&self) -> Vec<&String> {
         let mut uuids = Vec::new();
-        uuids = self.research.keys()
-            .collect();
+        uuids = self.research.keys().collect();
         uuids
     }
 
@@ -105,7 +114,8 @@ impl Combined {
             println!("-------- {}", uuid);
             match self.get_research_from_uuid_ref(uuid) {
                 Ok((research, persons)) => {
-                    for person in persons { // Print title/name for each person.
+                    for person in persons {
+                        // Print title/name for each person.
                         println!("{} / {}", research, person);
                     }
                 }
@@ -116,15 +126,18 @@ impl Combined {
 
     // Get all ResearchClean articles where uuid is one of the authors.
     // (Probably only internal.)
-    pub fn get_research_for_person_uuid(&self, uuid: &str) -> Result<Vec<&ResearchClean>, CombinedError> {
+    pub fn get_research_for_person_uuid(
+        &self,
+        uuid: &str,
+    ) -> Result<Vec<&ResearchClean>, CombinedError> {
         let mut research = vec![];
-        let research_uuids = self.person_research.get(uuid).ok_or(CombinedError::NoSuchUUID)?;
+        let research_uuids = self
+            .person_research
+            .get(uuid)
+            .ok_or(CombinedError::NoSuchUUID)?;
         for r in research_uuids {
-            match self.research.get(r) {
-               Some(res) => {
-                   research.push(res);
-               },
-               None => (),
+            if let Some(res) = self.research.get(r) {
+                research.push(res);
             }
         }
 
