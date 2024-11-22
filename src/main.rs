@@ -428,6 +428,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 r.get_title(),
                 r.get_abstract()
                 );*/
+                // TODO there is a get_internal_person_names() too.
+                // Better to iterate over research instead of persons.
                 println!(
                     "NAME:{}\nTITLE:{}\nABSTRACT:{}",
                     person.get_name(),
@@ -436,6 +438,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 );
             }
         }
+    }
+
+    for (_uuid, r) in combined.research {
+        print!("NAMES:");
+        let names: Vec<_> = r.persons.iter().map(|p| p.get_name()).collect();
+        let names: Vec<_> = r
+            .persons
+            .iter()
+            .filter(|p| p.is_internal()) // Filter by the `inex` variable
+            .map(|p| p.get_name())
+            .collect();
+        println!("{}", names.join(","));
+        println!("TITLE:{}", r.get_title());
+        println!("ABSTRACT:{}", r.get_abstract());
     }
 
     // ------------------------------------------------------------------------

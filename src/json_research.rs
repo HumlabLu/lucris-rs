@@ -1,16 +1,16 @@
 #![allow(non_snake_case)]
-use serde::{Deserialize, Serialize};
-use std::fs::File as FSFile;
-use std::io::BufReader;
-use std::io::BufRead;
+use crate::errors::CleanError;
+use crate::uuid_map::UuidMap;
+use log::{debug, error, info, trace, warn};
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
-use std::sync::{Arc, Mutex};
-use log::{debug, error, info, trace, warn};
-use crate::errors::{CleanError};
-use std::fmt;
-use crate::uuid_map::{UuidMap};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fmt;
+use std::fs::File as FSFile;
+use std::io::BufRead;
+use std::io::BufReader;
+use std::sync::{Arc, Mutex};
 
 /// JSON as it is read from the AIML cleaned data.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -106,7 +106,7 @@ pub struct ResearchClean {
 }
 
 /// Whether a researcher is internal (we have info in persons.jsonl) or external.
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, PartialEq)]
 enum PersonInEx {
     Internal,
     External,
@@ -130,16 +130,29 @@ impl fmt::Display for PersonRef {
     }
 }
 
+impl PersonRef {
+    pub fn get_name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn is_internal(&self) -> bool {
+        self.inex == PersonInEx::Internal
+    }
+}
+
 impl fmt::Display for ResearchClean {
-       fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.title)?;
-        let counts = self.persons // Count number of internal/external authors.
+        let counts = self
+            .persons // Count number of internal/external authors.
             .iter()
             .map(|p| match p.inex {
                 PersonInEx::Internal => (1, 0),
                 PersonInEx::External => (0, 1),
             })
-            .fold((0, 0), |acc, (in_count, ex_count)| (acc.0 + in_count, acc.1 + ex_count));
+            .fold((0, 0), |acc, (in_count, ex_count)| {
+                (acc.0 + in_count, acc.1 + ex_count)
+            });
         write!(f, " [{}/{}]", counts.0, counts.1)?;
         /*for p in &self.persons {
             write!(f, "/{}", p)?;
@@ -165,7 +178,7 @@ impl ResearchClean {
         let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
         let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
 
-        let mut persons:Vec<PersonRef> = vec![];
+        let mut persons: Vec<PersonRef> = vec![];
 
         let person_names = value.get_internal_person_names(); // People responsible for the research.
         let mut c = 0;
@@ -202,13 +215,17 @@ impl ResearchClean {
         })
     }
 
-    pub fn try_from_with_locale_umap(value: &ResearchJson, locale: &str, umap: &mut UuidMap) -> Result<Self, CleanError> {
+    pub fn try_from_with_locale_umap(
+        value: &ResearchJson,
+        locale: &str,
+        umap: &mut UuidMap,
+    ) -> Result<Self, CleanError> {
         let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
         let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
 
         let safe_uuid = umap.get_uuid_as_str(&uuid);
 
-        let mut persons:Vec<PersonRef> = vec![];
+        let mut persons: Vec<PersonRef> = vec![];
 
         let person_names = value.get_internal_person_names(); // People responsible for the research.
         let mut c = 0;
@@ -246,7 +263,6 @@ impl ResearchClean {
             persons: persons,
         })
     }
-
 }
 
 // End simplified.
@@ -263,8 +279,7 @@ pub struct LocaleValue {
     pub value: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-#[derive(Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct FormattedValue {
     pub formatted: bool,
     pub value: String,
@@ -727,7 +742,10 @@ impl ResearchJson {
     }
 
     pub fn get_abstract_text_for_locale(&self, locale: &str) -> Option<&str> {
-        self.abstract_field.as_ref()?.text.iter()
+        self.abstract_field
+            .as_ref()?
+            .text
+            .iter()
             .find_map(|locale_value| {
                 if locale_value.locale.as_deref() == Some(locale) {
                     locale_value.value.as_deref()
@@ -821,7 +839,8 @@ pub fn dump_titles(research_data: &Vec<ResearchJson>, locale: &str) {
             println!("No abstract\n");
         }
     }
-    println!("counter, abstract_counter: {}, {} (missing {})",
+    println!(
+        "counter, abstract_counter: {}, {} (missing {})",
         counter,
         abstract_counter,
         counter - abstract_counter
@@ -830,17 +849,20 @@ pub fn dump_titles(research_data: &Vec<ResearchJson>, locale: &str) {
 
 // ----------------------------------------------------------------------------
 
-pub fn read_research_jsonl(file_path: &str) -> Result<(Vec<ResearchJson>, HashMap<String, Vec<String>>), Box<dyn std::error::Error>> {
+pub fn read_research_jsonl(
+    file_path: &str,
+) -> Result<(Vec<ResearchJson>, HashMap<String, Vec<String>>), Box<dyn std::error::Error>> {
     let file = FSFile::open(file_path)?;
     let reader = BufReader::new(file);
     let data = Arc::new(Mutex::new(vec![]));
     let failed_count = Arc::new(Mutex::new(0));
-    let person_research: Arc<Mutex<HashMap<String, Vec<String>>>> = Arc::new(Mutex::new(HashMap::new()));
+    let person_research: Arc<Mutex<HashMap<String, Vec<String>>>> =
+        Arc::new(Mutex::new(HashMap::new()));
 
     reader
         .lines()
         .filter_map(|line: Result<String, _>| line.ok())
-        .par_bridge()   // parallelise
+        .par_bridge() // parallelise
         // expect to check if it works, for prod use ok().
         //.filter_map(|line: String| serde_json::from_str(&line).expect("Err")) // filter out bad lines
         //.filter_map(|line: String| serde_json::from_str(&line).ok()) // filter out bad lines
@@ -856,14 +878,15 @@ pub fn read_research_jsonl(file_path: &str) -> Result<(Vec<ResearchJson>, HashMa
                     let persons = json.get_internal_person_names();
                     trace!("{:?}", persons);
                     for (first_name, last_name, person_uuid) in persons {
-                        map.entry(person_uuid.to_string()).or_insert_with(Vec::new).push(uuid.clone());
+                        map.entry(person_uuid.to_string())
+                            .or_insert_with(Vec::new)
+                            .push(uuid.clone());
                     }
-
 
                     // Add it to the data vector.
                     let mut data = data.lock().unwrap();
                     data.push(json);
-                },
+                }
                 Err(e) => {
                     error!("{}", e);
                     //error!("{}", line);
@@ -880,9 +903,9 @@ pub fn read_research_jsonl(file_path: &str) -> Result<(Vec<ResearchJson>, HashMa
     }
 
     let extracted_pr = Arc::try_unwrap(person_research)
-           .expect("Multiple references to person_research")
-           .into_inner()
-           .expect("Mutex was poisoned");
+        .expect("Multiple references to person_research")
+        .into_inner()
+        .expect("Mutex was poisoned");
     trace!("{:?}", extracted_pr);
 
     // Extract the data from Arc<Mutex<...>> and return it.
@@ -894,8 +917,8 @@ pub fn read_research_jsonl(file_path: &str) -> Result<(Vec<ResearchJson>, HashMa
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::{Path, PathBuf};
     use std::fs;
+    use std::path::{Path, PathBuf};
 
     fn make_test_path(file_name: &str) -> PathBuf {
         let project_root = env!("CARGO_MANIFEST_DIR");
@@ -950,9 +973,12 @@ mod tests {
         }
         "#;
         let research: ResearchJson = serde_json::from_str(data).expect("Err");
-        let research_des:ResearchClean = ResearchClean::try_from_with_locale(&research, "en_GB").expect("Err");
+        let research_des: ResearchClean =
+            ResearchClean::try_from_with_locale(&research, "en_GB").expect("Err");
         let research_des_jstr = serde_json::to_string(&research_des).unwrap();
-        assert_eq!(research_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","title":"A nice title.","abstract":"","persons":[]}"#);
+        assert_eq!(
+            research_des_jstr,
+            r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","title":"A nice title.","abstract":"","persons":[]}"#
+        );
     }
-
 }
