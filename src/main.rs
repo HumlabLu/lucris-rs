@@ -440,9 +440,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    for (_uuid, r) in combined.research {
+    for r in combined.research.values() {
         print!("NAMES:");
-        let names: Vec<_> = r.persons.iter().map(|p| p.get_name()).collect();
         let names: Vec<_> = r
             .persons
             .iter()
