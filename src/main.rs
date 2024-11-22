@@ -421,23 +421,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //   doc = Document(content=page.content, meta={"title": page.title, "url": page.url})
     for (person_uuid, person) in &combined.persons {
         //println!("\n{}", person.get_name());
-        match combined.get_research_for_person_uuid(person_uuid) {
-            Ok(res) => {
-                for r in res {
-                    /*println!("{}, {}, {}",
-                        person.get_name(),
-                        r.get_title(),
-                        r.get_abstract()
-                    );*/
-                    println!(
-                        "NAME:{}\nTITLE:{}\nABSTRACT:{}",
-                        person.get_name(),
-                        r.get_title(),
-                        r.get_abstract()
-                    );
-                }
+        if let Ok(res) = combined.get_research_for_person_uuid(person_uuid) {
+            for r in res {
+                /*println!("{}, {}, {}",
+                person.get_name(),
+                r.get_title(),
+                r.get_abstract()
+                );*/
+                println!(
+                    "NAME:{}\nTITLE:{}\nABSTRACT:{}",
+                    person.get_name(),
+                    r.get_title(),
+                    r.get_abstract()
+                );
             }
-            _ => (),
         }
     }
 
