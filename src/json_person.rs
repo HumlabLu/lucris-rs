@@ -193,8 +193,8 @@ impl PersonClean {
             uuid: uuid.to_string(),
             name: full_name,
             profile_info: profile_info_text.to_string(),
-            titles: titles,
-            keywords: keywords,
+            titles,
+            keywords,
         })
     }
 }
@@ -811,7 +811,7 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
 
     reader
         .lines()
-        .filter_map(|line: Result<String, _>| line.ok())
+        .map_while(Result::ok)
         .par_bridge() // parallelise
         // expect to check if it works, for prod use ok().
         //.filter_map(|line: String| serde_json::from_str(&line).expect("Err")) // filter out bad lines
@@ -861,7 +861,7 @@ mod tests {
     fn empty_person() {
         let data = r#"{}"#;
         let person: PersonJson = serde_json::from_str(data).expect("Err");
-        assert!(person.pureId == None);
+        assert!(person.pureId.is_none());
     }
 
     #[test]
