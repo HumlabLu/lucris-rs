@@ -1,16 +1,16 @@
 #![allow(non_snake_case)]
-use serde::{Deserialize, Serialize};
-use std::fs::File;
-use std::io::BufReader;
-use std::io::BufRead;
+use crate::errors::CleanError;
+use crate::uuid_map::UuidMap;
+use log::{debug, error, info, trace, warn};
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
-use std::sync::{Arc, Mutex};
-use log::{debug, error, info, trace, warn};
+use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
-use crate::errors::{CleanError};
 use std::fmt;
-use crate::uuid_map::{UuidMap};
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
+use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PersonJson {
@@ -51,7 +51,7 @@ pub struct PersonClean {
     name: String,
     profile_info: String,
     titles: Vec<String>,
-    keywords: Vec<String>
+    keywords: Vec<String>,
 }
 
 // We may need a mapping from (safe-)uuid to PersonClean?
@@ -77,8 +77,14 @@ impl TryFrom<&PersonJson> for PersonClean {
         let name_struct = value.name.as_ref().ok_or(CleanError::MissingNameField)?;
 
         // Extract 'firstName' and 'lastName' as references, combine.
-        let first_name = name_struct.firstName.as_ref().ok_or(CleanError::MissingFirstName)?;
-        let last_name = name_struct.lastName.as_ref().ok_or(CleanError::MissingLastName)?;
+        let first_name = name_struct
+            .firstName
+            .as_ref()
+            .ok_or(CleanError::MissingFirstName)?;
+        let last_name = name_struct
+            .lastName
+            .as_ref()
+            .ok_or(CleanError::MissingLastName)?;
         let full_name = format!("{} {}", first_name, last_name);
 
         let titles = value.get_titles_for_locale("en_GB");
@@ -89,8 +95,8 @@ impl TryFrom<&PersonJson> for PersonClean {
             uuid: uuid.to_string(),
             name: full_name,
             profile_info: "".to_string(), // Take a default en_GB locale?
-            titles: titles,
-            keywords: keywords,
+            titles,
+            keywords,
         })
     }
 }
@@ -112,8 +118,14 @@ impl PersonClean {
         let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
 
         let name_struct = value.name.as_ref().ok_or(CleanError::MissingNameField)?;
-        let first_name = name_struct.firstName.as_ref().ok_or(CleanError::MissingFirstName)?;
-        let last_name = name_struct.lastName.as_ref().ok_or(CleanError::MissingLastName)?;
+        let first_name = name_struct
+            .firstName
+            .as_ref()
+            .ok_or(CleanError::MissingFirstName)?;
+        let last_name = name_struct
+            .lastName
+            .as_ref()
+            .ok_or(CleanError::MissingLastName)?;
         let full_name = format!("{} {}", first_name, last_name);
 
         // Extract profile informations using locale? The function returns a vec,
@@ -140,13 +152,23 @@ impl PersonClean {
         })
     }
 
-    pub fn try_from_with_locale_umap(value: &PersonJson, locale: &str, umap: &mut UuidMap) -> Result<Self, CleanError> {
+    pub fn try_from_with_locale_umap(
+        value: &PersonJson,
+        locale: &str,
+        umap: &mut UuidMap,
+    ) -> Result<Self, CleanError> {
         let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
         let safe_uuid = umap.get_uuid_as_str(&uuid);
 
         let name_struct = value.name.as_ref().ok_or(CleanError::MissingNameField)?;
-        let first_name = name_struct.firstName.as_ref().ok_or(CleanError::MissingFirstName)?;
-        let last_name = name_struct.lastName.as_ref().ok_or(CleanError::MissingLastName)?;
+        let first_name = name_struct
+            .firstName
+            .as_ref()
+            .ok_or(CleanError::MissingFirstName)?;
+        let last_name = name_struct
+            .lastName
+            .as_ref()
+            .ok_or(CleanError::MissingLastName)?;
         let full_name = format!("{} {}", first_name, last_name);
 
         // Extract profile informations using locale? The function returns a vec,
@@ -631,8 +653,8 @@ impl PersonJson {
     #[allow(dead_code)]
     pub fn get_first_and_last_name(&self) -> Option<(&str, &str)> {
         Some((
-        self.name.as_ref()?.firstName.as_deref()?,
-        self.name.as_ref()?.lastName.as_deref()?,
+            self.name.as_ref()?.firstName.as_deref()?,
+            self.name.as_ref()?.lastName.as_deref()?,
         ))
     }
 
@@ -676,40 +698,42 @@ impl PersonJson {
     }
 
     pub fn get_title_for_locale(&self, locale: &str) -> Option<String> {
-            self.titles.as_ref()?.iter()
-                .filter_map(|title| title.value.as_ref())
-                .filter_map(|formatted_text| formatted_text.text.as_ref())
-                .flat_map(|texts| texts.iter())
-                .find_map(|locale_text| {
-                    if locale_text.locale.as_deref() == Some(locale) {
-                        locale_text.value.clone()
-                    } else {
-                        None
-                    }
-                })
+        self.titles
+            .as_ref()?
+            .iter()
+            .filter_map(|title| title.value.as_ref())
+            .filter_map(|formatted_text| formatted_text.text.as_ref())
+            .flat_map(|texts| texts.iter())
+            .find_map(|locale_text| {
+                if locale_text.locale.as_deref() == Some(locale) {
+                    locale_text.value.clone()
+                } else {
+                    None
+                }
+            })
     }
 
     pub fn get_titles_for_locale(&self, locale: &str) -> Vec<String> {
-            let mut titles = Vec::new();
+        let mut titles = Vec::new();
 
-            if let Some(titles_vec) = &self.titles {
-                for title in titles_vec {
-                    if let Some(formatted_text) = &title.value {
-                        if let Some(locale_texts) = &formatted_text.text {
-                            for locale_text in locale_texts {
-                                if locale_text.locale.as_deref() == Some(locale) {
-                                    if let Some(value) = &locale_text.value {
-                                        titles.push(value.clone());
-                                    }
+        if let Some(titles_vec) = &self.titles {
+            for title in titles_vec {
+                if let Some(formatted_text) = &title.value {
+                    if let Some(locale_texts) = &formatted_text.text {
+                        for locale_text in locale_texts {
+                            if locale_text.locale.as_deref() == Some(locale) {
+                                if let Some(value) = &locale_text.value {
+                                    titles.push(value.clone());
                                 }
                             }
                         }
                     }
                 }
             }
-
-            titles
         }
+
+        titles
+    }
 
     pub fn get_keywords_for_locale(&self, locale: &str) -> Vec<String> {
         let mut keywords = Vec::new();
@@ -720,23 +744,22 @@ impl PersonJson {
                     for container in containers {
                         // Process freeKeywords
                         if let Some(free_keywords_list) = &container.freeKeywords {
-                                for free_keyword in free_keywords_list {
-                                    if free_keyword.locale.as_deref() == Some(locale) {
-                                        if let Some(free_keywords) = &free_keyword.freeKeywords {
-                                            keywords.extend(free_keywords.clone());
-                                        }
+                            for free_keyword in free_keywords_list {
+                                if free_keyword.locale.as_deref() == Some(locale) {
+                                    if let Some(free_keywords) = &free_keyword.freeKeywords {
+                                        keywords.extend(free_keywords.clone());
                                     }
                                 }
                             }
-                            // Process structuredKeyword
-                            if let Some(structured_keyword) = &container.structuredKeyword {
-                                if let Some(term) = &structured_keyword.term {
-                                    if let Some(texts) = &term.text {
-                                        for locale_text in texts {
-                                            if locale_text.locale.as_deref() == Some(locale) {
-                                                if let Some(value) = &locale_text.value {
-                                                    keywords.push(value.clone());
-                                                }
+                        }
+                        // Process structuredKeyword
+                        if let Some(structured_keyword) = &container.structuredKeyword {
+                            if let Some(term) = &structured_keyword.term {
+                                if let Some(texts) = &term.text {
+                                    for locale_text in texts {
+                                        if locale_text.locale.as_deref() == Some(locale) {
+                                            if let Some(value) = &locale_text.value {
+                                                keywords.push(value.clone());
                                             }
                                         }
                                     }
@@ -746,6 +769,7 @@ impl PersonJson {
                     }
                 }
             }
+        }
         keywords
     }
 
@@ -788,7 +812,7 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
     reader
         .lines()
         .filter_map(|line: Result<String, _>| line.ok())
-        .par_bridge()   // parallelise
+        .par_bridge() // parallelise
         // expect to check if it works, for prod use ok().
         //.filter_map(|line: String| serde_json::from_str(&line).expect("Err")) // filter out bad lines
         //.filter_map(|line: String| serde_json::from_str(&line).ok()) // filter out bad lines
@@ -800,7 +824,7 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
                     // Add it to the data vector.
                     let mut data = data.lock().unwrap();
                     data.push(json);
-                },
+                }
                 Err(e) => {
                     error!("{}", e);
                     //panic!("{}", line);
@@ -856,7 +880,10 @@ mod tests {
         let person: PersonJson = serde_json::from_str(data).expect("Err");
         assert_eq!(person.pureId, Some(282828));
         assert_eq!(person.externallyManaged, Some(true));
-        assert_eq!(person.uuid.as_deref(), Some("01234567-0123-0123-0123-0123456789ABC"));
+        assert_eq!(
+            person.uuid.as_deref(),
+            Some("01234567-0123-0123-0123-0123456789ABC")
+        );
         if let Some(name) = person.name {
             assert_eq!(name.firstName.as_deref(), Some("Petrus"));
             assert_eq!(name.lastName.as_deref(), Some("Berck"));
@@ -879,10 +906,13 @@ mod tests {
         }
         "#;
         let person: PersonJson = serde_json::from_str(data).expect("Err");
-        let person_des:PersonClean = PersonClean::try_from(&person).expect("Err");
+        let person_des: PersonClean = PersonClean::try_from(&person).expect("Err");
         let person_des_jstr = serde_json::to_string(&person_des).unwrap();
         println!("{}", person_des_jstr);
-        assert_eq!(person_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":"","titles":[],"keywords":[]}"#);
+        assert_eq!(
+            person_des_jstr,
+            r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":"","titles":[],"keywords":[]}"#
+        );
     }
 
     #[test]
@@ -948,7 +978,10 @@ mod tests {
         let person: PersonJson = serde_json::from_str(data).expect("Err");
         let person_des = PersonClean::try_from_with_locale(&person, "en_GB").expect("Err");
         let person_des_jstr = serde_json::to_string(&person_des).unwrap();
-        assert_eq!(person_des_jstr, r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":"Research Engineer, Lund University Humanities Lab","titles":[],"keywords":[]}"#);
+        assert_eq!(
+            person_des_jstr,
+            r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":"Research Engineer, Lund University Humanities Lab","titles":[],"keywords":[]}"#
+        );
     }
 
     #[test]
@@ -969,8 +1002,12 @@ mod tests {
         let person: PersonJson = serde_json::from_str(data).expect("Err");
         assert_eq!(person.fte, Some(1.0));
         if let Some(info) = person.info {
-            assert_eq!(info.createdDate.as_deref(), Some("1966-03-05T05:45:00.128+0100"));
-            let expected = "https://portal.research.lu.se/en/persons/01234567-0123-0123-0123-0123456789ABC";
+            assert_eq!(
+                info.createdDate.as_deref(),
+                Some("1966-03-05T05:45:00.128+0100")
+            );
+            let expected =
+                "https://portal.research.lu.se/en/persons/01234567-0123-0123-0123-0123456789ABC";
             assert_eq!(info.portalUrl.as_deref(), Some(expected));
             let expected = vec!["petrus-berck".to_string()];
             assert_eq!(info.prettyURLIdentifiers, Some(expected));
@@ -978,5 +1015,4 @@ mod tests {
             panic!("Could not parse info struct.");
         }
     }
-
 }
