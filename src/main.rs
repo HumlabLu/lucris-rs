@@ -419,36 +419,35 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Output name, research title & abstract (nta format for haystack_research.py).
     // What we want is maybe a HayStack compatible (JSON) string.
     //   doc = Document(content=page.content, meta={"title": page.title, "url": page.url})
-    for (person_uuid, person) in &combined.persons {
-        //println!("\n{}", person.get_name());
-        if let Ok(res) = combined.get_research_for_person_uuid(person_uuid) {
-            for r in res {
-                /*println!("{}, {}, {}",
-                person.get_name(),
-                r.get_title(),
-                r.get_abstract()
-                );*/
-                // TODO there is a get_internal_person_names() too.
-                // Better to iterate over research instead of persons.
-                println!(
-                    "NAME:{}\nTITLE:{}\nABSTRACT:{}",
-                    person.get_name(),
-                    r.get_title(),
-                    r.get_abstract()
-                );
-            }
-        }
-    }
+    // for (person_uuid, person) in &combined.persons {
+    //     //println!("\n{}", person.get_name());
+    //     if let Ok(res) = combined.get_research_for_person_uuid(person_uuid) {
+    //         for r in res {
+    //             /*println!("{}, {}, {}",
+    //             person.get_name(),
+    //             r.get_title(),
+    //             r.get_abstract()
+    //             );*/
+    //             // TODO there is a get_internal_person_names() too.
+    //             // Better to iterate over research instead of persons.
+    //             println!(
+    //                 "NAME:{}\nTITLE:{}\nABSTRACT:{}",
+    //                 person.get_name(),
+    //                 r.get_title(),
+    //                 r.get_abstract()
+    //             );
+    //         }
+    //     }
+    // }
 
     for r in combined.research.values() {
-        print!("NAMES:");
         let names: Vec<_> = r
             .persons
             .iter()
-            .filter(|p| p.is_internal()) // Filter by the `inex` variable
+            //.filter(|p| p.is_internal()) // Filter by the `inex` variable
             .map(|p| p.get_name())
             .collect();
-        println!("{}", names.join(","));
+        println!("NAMES:{}", names.join(","));
         println!("TITLE:{}", r.get_title());
         println!("ABSTRACT:{}", r.get_abstract());
     }

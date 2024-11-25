@@ -86,7 +86,7 @@ def read_research_nta(a_file) -> [Document]:
     with open(a_file, "r") as f:
         for line in f:
             line = line.strip()
-            if line.startswith("NAME:"):
+            if line.startswith("NAME"):  # Matches NAME: and NAMES:
                 bits = line.split(":", 1)
                 if len(bits) > 0:
                     name = bits[1]
@@ -173,7 +173,7 @@ if False and args.research:
     document_store = InMemoryDocumentStore()
     document_writer = DocumentWriter(
         document_store=document_store,
-        policy=DuplicatePolicy.SKIP
+        policy=DuplicatePolicy.OVERWRITE
     )
     document_writer.run(
         documents=docs_with_embeddings["documents"]
