@@ -221,9 +221,9 @@ impl ResearchClean {
         umap: &mut UuidMap,
     ) -> Result<Self, CleanError> {
         let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
-        let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
-
         let safe_uuid = umap.get_uuid_as_str(&uuid);
+
+        let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
 
         let mut persons: Vec<PersonRef> = vec![];
 
@@ -234,7 +234,7 @@ impl ResearchClean {
             // Often more than one.
             let person = PersonRef {
                 idx: c,
-                uuid: uuid.to_string(),
+                uuid: safe_uuid,
                 name: format!("{} {}", first_name, last_name),
                 inex: PersonInEx::Internal,
             };
@@ -257,7 +257,7 @@ impl ResearchClean {
 
         // We have come this far, return the new struct.
         Ok(ResearchClean {
-            uuid: uuid.to_string(),
+            uuid: safe_uuid,
             title: abstract_title.to_string(),
             abstract_text: abstract_text.to_string(),
             persons: persons,
@@ -914,6 +914,8 @@ pub fn read_research_jsonl(
     Ok((extracted_data, extracted_pr))
 }
 
+// ===========================================================================
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -961,7 +963,7 @@ mod tests {
     fn test_research_des_ok() {
         let data = r#"
         {
-          "uuid": "01234567-0123-0123-0123-0123456789ABC",
+          "uuid": "01234567-0123-0123-0123-0123456789AB",
           "title": {
             "formatted": true,
             "value": "A nice title."
@@ -978,7 +980,37 @@ mod tests {
         let research_des_jstr = serde_json::to_string(&research_des).unwrap();
         assert_eq!(
             research_des_jstr,
-            r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","title":"A nice title.","abstract":"","persons":[]}"#
+            r#"{"uuid":"01234567-0123-0123-0123-0123456789AB","title":"A nice title.","abstract":"","persons":[]}"#
         );
+    }
+
+    #[test]
+    fn test_research_des_umap_ok() {
+        let data = r#"
+        {
+          "uuid": "01234567-0123-0123-0123-0123456789AB",
+          "title": {
+            "formatted": true,
+            "value": "A nice title."
+          },
+          "name": {
+            "firstName": "Quinten",
+            "lastName": "Berck"
+          }
+        }
+        "#;
+        let mut umap = UuidMap::new();
+        // Create and save the safe_uuid so we can compare it later.
+        let safe_uuid = umap.add_uuid("01234567-0123-0123-0123-0123456789AB");
+        let answer = format!(
+            r#"{{"uuid":"{}","title":"A nice title.","abstract":"","persons":[]}}"#,
+            safe_uuid
+        );
+        let research: ResearchJson = serde_json::from_str(data).expect("Err");
+        let research_des: ResearchClean =
+            ResearchClean::try_from_with_locale_umap(&research, "en_GB", &mut umap).expect("Err");
+        let research_des_jstr = serde_json::to_string(&research_des).unwrap();
+        println!("-- {}", research_des_jstr);
+        assert_eq!(research_des_jstr, answer);
     }
 }
