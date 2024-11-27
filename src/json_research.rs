@@ -861,7 +861,7 @@ pub fn read_research_jsonl(
 
     reader
         .lines()
-        .filter_map(|line: Result<String, _>| line.ok())
+        .map_while(Result::ok)
         .par_bridge() // parallelise
         // expect to check if it works, for prod use ok().
         //.filter_map(|line: String| serde_json::from_str(&line).expect("Err")) // filter out bad lines
@@ -877,7 +877,7 @@ pub fn read_research_jsonl(
                     let uuid = json.uuid.clone().unwrap();
                     let persons = json.get_internal_person_names();
                     trace!("{:?}", persons);
-                    for (first_name, last_name, person_uuid) in persons {
+                    for (_first_name, _last_name, person_uuid) in persons {
                         map.entry(person_uuid.to_string())
                             .or_insert_with(Vec::new)
                             .push(uuid.clone());
@@ -919,7 +919,6 @@ pub fn read_research_jsonl(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::fs;
     use std::path::{Path, PathBuf};
 
     fn make_test_path(file_name: &str) -> PathBuf {
@@ -936,7 +935,7 @@ mod tests {
         let data_path = make_test_path("research_one.jsonl");
         println!("{:?}", data_path);
         let foo = read_research_jsonl(data_path.to_str().expect("Test data not found!"));
-        let (foo, bar) = foo.unwrap();
+        let (foo, _bar) = foo.unwrap();
         let foo = &foo[0];
         assert_eq!(foo.get_uuid(), Some("1d136ffd-6d08-444a-9c50-76c0e5aec513"));
     }
@@ -945,7 +944,7 @@ mod tests {
     fn test_read_research_one_err() {
         let data_path = make_test_path("research_one_err.jsonl");
         println!("{:?}", data_path);
-        let (foo, bar) = read_research_jsonl(data_path.to_str().expect("Test data not found!"))
+        let (foo, _bar) = read_research_jsonl(data_path.to_str().expect("Test data not found!"))
             .expect("Failed to read research JSONL data");
         assert_eq!(foo, []);
     }
