@@ -13,6 +13,8 @@ use uuid::Uuid;
 // research data, how to we do this? A new struct with uuid -> ResearchJson?
 // This can also be done in a "real" database (select from persons where ...).
 
+/// Struct that holds the Hashmap converting original String uuids
+/// to the "safe" Uuids.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct UuidMap {
     uuids: HashMap<String, Uuid>,
@@ -26,6 +28,8 @@ impl UuidMap {
         }
     }
 
+    /// Adds a new String uuid and returns a new safe_uuid
+    /// as String.
     pub fn add_uuid(&mut self, uuid: &str) -> String {
         if self.uuids.contains_key(uuid) {
             eprintln!("Repeating research uuid: {}", uuid);
@@ -35,7 +39,8 @@ impl UuidMap {
         safe_uuid.to_string()
     }
 
-    // Looks it up and returns the safe-uuid. Adds it if not present.
+    /// Tries to look-up the uuid and return it. If the uuid is
+    /// not present in the hashmap, it will be added.
     pub fn get_uuid_as_str(&mut self, uuid: &str) -> String {
         if let Some(value) = self.uuids.get(uuid) {
             return value.to_string();
