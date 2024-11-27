@@ -189,7 +189,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     Ok(research_des) => {
                         let json_output = serde_json::to_string(&research_des).unwrap();
                         trace!("{}", json_output);
-                        research_map.insert(uuid.to_string(), research_des);
+                        let safe_uuid = umap.get_uuid_as_str(uuid);
+                        research_map.insert(safe_uuid, research_des);
                     }
                     Err(e) => {
                         panic!("Failed to convert ResearchJson: {:?}", e);
@@ -441,6 +442,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // }
 
     for r in combined.research.values() {
+        trace!("{:?}", r);
         let names: Vec<_> = r
             .persons
             .iter()

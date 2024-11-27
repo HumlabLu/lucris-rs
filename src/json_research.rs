@@ -211,7 +211,7 @@ impl ResearchClean {
             uuid: uuid.to_string(),
             title: abstract_title.to_string(),
             abstract_text: abstract_text.to_string(),
-            persons: persons,
+            persons,
         })
     }
 
