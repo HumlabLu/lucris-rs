@@ -221,16 +221,13 @@ impl ResearchClean {
         umap: &mut UuidMap,
     ) -> Result<Self, CleanError> {
         let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
-        let safe_uuid = umap.get_uuid_as_str(&uuid);
 
         let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
-
         let mut persons: Vec<PersonRef> = vec![];
-
         let person_names = value.get_internal_person_names(); // People responsible for the research.
         let mut c = 0;
         for (first_name, last_name, uuid) in person_names.iter() {
-            let safe_uuid = umap.get_uuid_as_str(&uuid);
+            let safe_uuid = umap.get_uuid_as_str(uuid);
             // Often more than one.
             let person = PersonRef {
                 idx: c,
@@ -244,7 +241,7 @@ impl ResearchClean {
 
         let external_person_names = value.get_external_person_names();
         for (full_name, uuid) in external_person_names.iter() {
-            let safe_uuid = umap.get_uuid_as_str(&uuid);
+            let safe_uuid = umap.get_uuid_as_str(uuid);
             let person = PersonRef {
                 idx: c,
                 uuid: uuid.to_string(),
@@ -255,12 +252,14 @@ impl ResearchClean {
             c += 1;
         }
 
+        let safe_uuid = umap.get_uuid_as_str(uuid);
+
         // We have come this far, return the new struct.
         Ok(ResearchClean {
             uuid: safe_uuid,
             title: abstract_title.to_string(),
             abstract_text: abstract_text.to_string(),
-            persons: persons,
+            persons,
         })
     }
 }
@@ -771,7 +770,7 @@ impl ResearchJson {
                     })
                     .collect()
             })
-            .unwrap_or_else(Vec::new)
+            .unwrap_or_default()
     }
 
     // Get the name(s) and UUID of the externalPersons from the personAssociations data.
@@ -794,7 +793,7 @@ impl ResearchJson {
                     })
                     .collect()
             })
-            .unwrap_or_else(Vec::new)
+            .unwrap_or_default()
     }
 
     // We return an empty string if the info is not present. Could change to
@@ -813,7 +812,7 @@ impl ResearchJson {
 
 // Mostly for testing purposes, dumps the uuid, title and abstract
 // from the research JSON.
-pub fn dump_titles(research_data: &Vec<ResearchJson>, locale: &str) {
+pub fn _dump_titles(research_data: &Vec<ResearchJson>, locale: &str) {
     let mut abstract_counter = 0;
     let mut counter = 0;
     for entry in research_data {
@@ -1009,7 +1008,7 @@ mod tests {
         let research_des: ResearchClean =
             ResearchClean::try_from_with_locale_umap(&research, "en_GB", &mut umap).expect("Err");
         let research_des_jstr = serde_json::to_string(&research_des).unwrap();
-        println!("-- {}", research_des_jstr);
+        println!("{}", research_des_jstr);
         assert_eq!(research_des_jstr, answer);
     }
 }
