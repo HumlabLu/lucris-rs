@@ -822,9 +822,6 @@ pub fn read_research_jsonl(
         .lines()
         .map_while(Result::ok)
         .par_bridge() // parallelise
-        // expect to check if it works, for prod use ok().
-        //.filter_map(|line: String| serde_json::from_str(&line).expect("Err")) // filter out bad lines
-        //.filter_map(|line: String| serde_json::from_str(&line).ok()) // filter out bad lines
         .for_each(|line: String| {
             match serde_json::from_str::<ResearchJson>(&line) {
                 Ok(json) => {
@@ -842,6 +839,8 @@ pub fn read_research_jsonl(
                             .or_default()
                             .push(uuid.clone());
                     }
+
+                    // Also the external persons?
 
                     // Add it to the data vector.
                     let mut data = data.lock().unwrap();
@@ -862,6 +861,8 @@ pub fn read_research_jsonl(
         warn!("Failed to parse {} lines.", *failed_count.lock().unwrap());
     }
 
+    // person_research is a hash which looks like:
+    // {"862b1711-47e3-45ed-9330-a2071033c219": ["dd0ce568-96e7-449b-9a59-9ee857f79a13"], "61781b1a-c069-4971-bb76-b18ed231a453": ["dd0ce568-96e7-449b-9a59-9ee857f79a13"]}
     let extracted_pr = Arc::try_unwrap(person_research)
         .expect("Multiple references to person_research")
         .into_inner()

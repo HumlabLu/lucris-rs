@@ -36,8 +36,8 @@ impl UuidMap {
         }
         let safe_uuid = Uuid::new_v4();
         self.uuids.insert(uuid.to_string(), safe_uuid);
-        //safe_uuid.to_string()
-        uuid.to_string() //// JUST FOR TESTING; KEEP SAME UUID
+        safe_uuid.to_string()
+        //uuid.to_string() //// JUST FOR TESTING; KEEP SAME UUID
     }
 
     /// Tries to look-up the uuid and return it. If the uuid is
@@ -45,6 +45,7 @@ impl UuidMap {
     pub fn get_uuid_as_str(&mut self, uuid: &str) -> String {
         if let Some(value) = self.uuids.get(uuid) {
             return value.to_string();
+            //return uuid.to_string(); //// JUST FOR TESTING; KEEP SAME UUID
         }
         self.add_uuid(uuid)
     }
