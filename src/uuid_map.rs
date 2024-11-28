@@ -36,7 +36,8 @@ impl UuidMap {
         }
         let safe_uuid = Uuid::new_v4();
         self.uuids.insert(uuid.to_string(), safe_uuid);
-        safe_uuid.to_string()
+        //safe_uuid.to_string()
+        uuid.to_string() //// JUST FOR TESTING; KEEP SAME UUID
     }
 
     /// Tries to look-up the uuid and return it. If the uuid is

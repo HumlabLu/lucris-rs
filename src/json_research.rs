@@ -174,47 +174,6 @@ impl ResearchClean {
 
 // This one takes a locale string and extracts the information for the specified locale.
 impl ResearchClean {
-    pub fn try_from_with_locale(value: &ResearchJson, locale: &str) -> Result<Self, CleanError> {
-        let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
-        let (abstract_title, abstract_text) = value.get_title_abstract(locale); // returns &str, &str
-
-        let mut persons: Vec<PersonRef> = vec![];
-
-        let person_names = value.get_internal_person_names(); // People responsible for the research.
-        let mut c = 0;
-        for (first_name, last_name, uuid) in person_names.iter() {
-            // Often more than one.
-            let person = PersonRef {
-                idx: c,
-                uuid: uuid.to_string(),
-                name: format!("{} {}", first_name, last_name),
-                inex: PersonInEx::Internal,
-            };
-            persons.push(person);
-            c += 1;
-        }
-
-        let external_person_names = value.get_external_person_names();
-        for (full_name, uuid) in external_person_names.iter() {
-            let person = PersonRef {
-                idx: c,
-                uuid: uuid.to_string(),
-                name: full_name.to_string(),
-                inex: PersonInEx::External,
-            };
-            persons.push(person);
-            c += 1;
-        }
-
-        // We have come this far, return the new struct.
-        Ok(ResearchClean {
-            uuid: uuid.to_string(),
-            title: abstract_title.to_string(),
-            abstract_text: abstract_text.to_string(),
-            persons,
-        })
-    }
-
     pub fn try_from_with_locale_umap(
         value: &ResearchJson,
         locale: &str,
@@ -871,6 +830,7 @@ pub fn read_research_jsonl(
                 Ok(json) => {
                     //trace!("title={:?}", json.title.clone().unwrap().value);
                     debug!("uuid={:?}", json.uuid);
+                    trace!("{:?}", json); // This generates a lot of output...
 
                     // Check persons for research reverse index?
                     let mut map = person_research.lock().unwrap();
@@ -879,7 +839,7 @@ pub fn read_research_jsonl(
                     trace!("{:?}", persons);
                     for (_first_name, _last_name, person_uuid) in persons {
                         map.entry(person_uuid.to_string())
-                            .or_insert_with(Vec::new)
+                            .or_default()
                             .push(uuid.clone());
                     }
 
@@ -956,31 +916,6 @@ mod tests {
     "#;
         let research: ResearchJson = serde_json::from_str(data).expect("Err");
         assert!(research.uuid.as_deref() == Some("1d136ffd-6d08-444a-9c50-76c0e5aec513"));
-    }
-
-    #[test]
-    fn test_research_des_ok() {
-        let data = r#"
-        {
-          "uuid": "01234567-0123-0123-0123-0123456789AB",
-          "title": {
-            "formatted": true,
-            "value": "A nice title."
-          },
-          "name": {
-            "firstName": "Quinten",
-            "lastName": "Berck"
-          }
-        }
-        "#;
-        let research: ResearchJson = serde_json::from_str(data).expect("Err");
-        let research_des: ResearchClean =
-            ResearchClean::try_from_with_locale(&research, "en_GB").expect("Err");
-        let research_des_jstr = serde_json::to_string(&research_des).unwrap();
-        assert_eq!(
-            research_des_jstr,
-            r#"{"uuid":"01234567-0123-0123-0123-0123456789AB","title":"A nice title.","abstract":"","persons":[]}"#
-        );
     }
 
     #[test]

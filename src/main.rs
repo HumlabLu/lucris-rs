@@ -385,7 +385,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         person_research.expect("No person_research data?"),
     );
     info!("{}", combined);
-    trace!("{:?}", &combined);
+    //trace!("{:?}", &combined);
 
     // dd0ce568-96e7-449b-9a59-9ee857f79a13 (ok in research_1.jsonl)
     // 147e206b-b9d5-49a6-bc83-ddec9ff21af1 (ok in research_10.jasonl)
@@ -449,6 +449,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             //.filter(|p| p.is_internal()) // Filter by the `inex` variable
             .map(|p| p.get_name())
             .collect();
+        if names.len() == 0 {
+            panic!("No names! {}", r.get_title());
+        }
         println!("NAMES:{}", names.join(","));
         println!("TITLE:{}", r.get_title());
         println!("ABSTRACT:{}", r.get_abstract());
