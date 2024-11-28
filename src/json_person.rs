@@ -114,51 +114,13 @@ impl PersonClean {
 // Can we map the uuid already here? Probably not, there could be unknown
 // uuids at this point?
 impl PersonClean {
-    pub fn try_from_with_locale(value: &PersonJson, locale: &str) -> Result<Self, CleanError> {
-        let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
-
-        let name_struct = value.name.as_ref().ok_or(CleanError::MissingNameField)?;
-        let first_name = name_struct
-            .firstName
-            .as_ref()
-            .ok_or(CleanError::MissingFirstName)?;
-        let last_name = name_struct
-            .lastName
-            .as_ref()
-            .ok_or(CleanError::MissingLastName)?;
-        let full_name = format!("{} {}", first_name, last_name);
-
-        // Extract profile informations using locale? The function returns a vec,
-        // which can be empty ([]).
-        let profile_info_text = value.get_profile_information_texts_for_locale(locale);
-        let profile_info_text = profile_info_text
-            .first() // First element of the vector (it should only contain one?).
-            .copied() // Dereferences &&str to &str.
-            .unwrap_or("There is no profile_information.");
-
-        let titles = value.get_titles_for_locale(locale);
-        trace!("TITLES {:?}", titles);
-
-        let keywords = value.get_keywords_for_locale(locale);
-        println!("KEYWORDS {:?}", keywords);
-
-        // We have come this far, return the new struct.
-        Ok(PersonClean {
-            uuid: uuid.to_string(),
-            name: full_name,
-            profile_info: profile_info_text.to_string(),
-            titles: titles,
-            keywords: keywords,
-        })
-    }
-
     pub fn try_from_with_locale_umap(
         value: &PersonJson,
         locale: &str,
         umap: &mut UuidMap,
     ) -> Result<Self, CleanError> {
         let uuid = value.uuid.as_ref().ok_or(CleanError::MissingUUID)?;
-        let safe_uuid = umap.get_uuid_as_str(&uuid);
+        let safe_uuid = umap.get_uuid_as_str(uuid);
 
         let name_struct = value.name.as_ref().ok_or(CleanError::MissingNameField)?;
         let first_name = name_struct
@@ -958,7 +920,7 @@ mod tests {
             "firstName": "Quinten",
             "lastName": "Berck"
           },
-          "uuid": "01234567-0123-0123-0123-0123456789ABC",
+          "uuid": "01234567-0123-0123-0123-0123456789AB",
           "profileInformations": [
             {
               "pureId": 37832137,
@@ -975,12 +937,21 @@ mod tests {
           ]
         }
         "#;
+        let mut umap = UuidMap::new();
+        // Create and save the safe_uuid so we can compare it later.
+        let safe_uuid = umap.add_uuid("01234567-0123-0123-0123-0123456789AB");
+        let answer = format!(
+            r#"{{"uuid":"{}","name":"Quinten Berck","profile_info":"Research Engineer, Lund University Humanities Lab","titles":[],"keywords":[]}}"#,
+            safe_uuid
+        );
         let person: PersonJson = serde_json::from_str(data).expect("Err");
-        let person_des = PersonClean::try_from_with_locale(&person, "en_GB").expect("Err");
+        let person_des =
+            PersonClean::try_from_with_locale_umap(&person, "en_GB", &mut umap).expect("Err");
         let person_des_jstr = serde_json::to_string(&person_des).unwrap();
         assert_eq!(
             person_des_jstr,
-            r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":"Research Engineer, Lund University Humanities Lab","titles":[],"keywords":[]}"#
+            // r#"{"uuid":"01234567-0123-0123-0123-0123456789AB","name":"Quinten Berck","profile_info":"Research Engineer, Lund University Humanities Lab","titles":[],"keywords":[]}"#
+            answer
         );
     }
 
