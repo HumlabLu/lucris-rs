@@ -177,7 +177,7 @@ impl PersonClean {
         let profile_info_text = profile_info_text
             .first() // First element of the vector (it should only contain one?).
             .copied() // Dereferences &&str to &str.
-            .unwrap_or("There is no profile_information.");
+            .unwrap_or("There is no profile_information."); // TODO how to handle this?
 
         let titles = value.get_titles_for_locale(locale);
         trace!("TITLES {:?}", titles);
@@ -190,7 +190,7 @@ impl PersonClean {
 
         // We have come this far, return the new struct.
         Ok(PersonClean {
-            uuid: uuid.to_string(),
+            uuid: safe_uuid,
             name: full_name,
             profile_info: profile_info_text.to_string(),
             titles,

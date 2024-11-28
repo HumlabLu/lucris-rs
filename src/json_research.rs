@@ -244,7 +244,7 @@ impl ResearchClean {
             let safe_uuid = umap.get_uuid_as_str(uuid);
             let person = PersonRef {
                 idx: c,
-                uuid: uuid.to_string(),
+                uuid: safe_uuid,
                 name: full_name.to_string(),
                 inex: PersonInEx::External,
             };
@@ -252,6 +252,7 @@ impl ResearchClean {
             c += 1;
         }
 
+        // safe_uuid for the research structure itself.
         let safe_uuid = umap.get_uuid_as_str(uuid);
 
         // We have come this far, return the new struct.
