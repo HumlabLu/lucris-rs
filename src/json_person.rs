@@ -832,7 +832,7 @@ mod tests {
         {
           "pureId": 282828,
           "externallyManaged": true,
-          "uuid": "01234567-0123-0123-0123-0123456789ABC",
+          "uuid": "01234567-0123-0123-0123-0123456789AB",
           "name": {
             "firstName": "Petrus",
             "lastName": "Berck"
@@ -844,7 +844,7 @@ mod tests {
         assert_eq!(person.externallyManaged, Some(true));
         assert_eq!(
             person.uuid.as_deref(),
-            Some("01234567-0123-0123-0123-0123456789ABC")
+            Some("01234567-0123-0123-0123-0123456789AB")
         );
         if let Some(name) = person.name {
             assert_eq!(name.firstName.as_deref(), Some("Petrus"));
@@ -860,7 +860,7 @@ mod tests {
         {
           "pureId": 282828,
           "externallyManaged": true,
-          "uuid": "01234567-0123-0123-0123-0123456789ABC",
+          "uuid": "01234567-0123-0123-0123-0123456789AB",
           "name": {
             "firstName": "Quinten",
             "lastName": "Berck"
@@ -873,7 +873,7 @@ mod tests {
         println!("{}", person_des_jstr);
         assert_eq!(
             person_des_jstr,
-            r#"{"uuid":"01234567-0123-0123-0123-0123456789ABC","name":"Quinten Berck","profile_info":"","titles":[],"keywords":[]}"#
+            r#"{"uuid":"01234567-0123-0123-0123-0123456789AB","name":"Quinten Berck","profile_info":"","titles":[],"keywords":[]}"#
         );
     }
 
@@ -883,7 +883,7 @@ mod tests {
         {
           "pureId": 282828,
           "externallyManaged": true,
-          "uuid": "01234567-0123-0123-0123-0123456789ABC"
+          "uuid": "01234567-0123-0123-0123-0123456789AB"
         }
         "#;
         let person: PersonJson = serde_json::from_str(data).expect("Err");
@@ -948,11 +948,7 @@ mod tests {
         let person_des =
             PersonClean::try_from_with_locale_umap(&person, "en_GB", &mut umap).expect("Err");
         let person_des_jstr = serde_json::to_string(&person_des).unwrap();
-        assert_eq!(
-            person_des_jstr,
-            // r#"{"uuid":"01234567-0123-0123-0123-0123456789AB","name":"Quinten Berck","profile_info":"Research Engineer, Lund University Humanities Lab","titles":[],"keywords":[]}"#
-            answer
-        );
+        assert_eq!(person_des_jstr, answer);
     }
 
     #[test]
@@ -963,7 +959,7 @@ mod tests {
           "info": {
             "createdDate": "1966-03-05T05:45:00.128+0100",
             "modifiedDate": "1966-03-05T05:45:00.128+0100",
-            "portalUrl": "https://portal.research.lu.se/en/persons/01234567-0123-0123-0123-0123456789ABC",
+            "portalUrl": "https://portal.research.lu.se/en/persons/01234567-0123-0123-0123-0123456789AB",
             "prettyURLIdentifiers": [
               "petrus-berck"
             ]
@@ -978,7 +974,7 @@ mod tests {
                 Some("1966-03-05T05:45:00.128+0100")
             );
             let expected =
-                "https://portal.research.lu.se/en/persons/01234567-0123-0123-0123-0123456789ABC";
+                "https://portal.research.lu.se/en/persons/01234567-0123-0123-0123-0123456789AB";
             assert_eq!(info.portalUrl.as_deref(), Some(expected));
             let expected = vec!["petrus-berck".to_string()];
             assert_eq!(info.prettyURLIdentifiers, Some(expected));
