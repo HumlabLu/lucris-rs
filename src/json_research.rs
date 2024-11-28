@@ -110,6 +110,7 @@ pub struct ResearchClean {
 enum PersonInEx {
     Internal,
     External,
+    Unknown,
 }
 
 /// Pointer to the data in persons.jsonl.
@@ -149,6 +150,7 @@ impl fmt::Display for ResearchClean {
             .map(|p| match p.inex {
                 PersonInEx::Internal => (1, 0),
                 PersonInEx::External => (0, 1),
+                PersonInEx::Unknown => (0, 0),
             })
             .fold((0, 0), |acc, (in_count, ex_count)| {
                 (acc.0 + in_count, acc.1 + ex_count)
@@ -209,6 +211,24 @@ impl ResearchClean {
             };
             persons.push(person);
             c += 1;
+        }
+
+        if persons.is_empty() {
+            // HACK
+            warn!("Empty persons.");
+            for full_name in value.get_names() {
+                // We can generate a "fake" uuid, which will not be present
+                // in the persons data. Not sure if good or bad...
+                let safe_uuid = umap.get_uuid_as_str(&full_name); // Maybe add uuid.
+                let person = PersonRef {
+                    idx: c,
+                    uuid: safe_uuid,
+                    name: full_name,
+                    inex: PersonInEx::Unknown,
+                };
+                persons.push(person);
+                c += 1;
+            }
         }
 
         // safe_uuid for the research structure itself.
@@ -756,6 +776,25 @@ impl ResearchJson {
             .unwrap_or_default()
     }
 
+    // These are present sometimes as contributors to journals w/o uuids etc.
+    pub fn get_names(&self) -> Vec<String> {
+        self.personAssociations
+            .as_ref()
+            .unwrap_or(&Vec::new())
+            .iter()
+            .filter_map(|association| association.name.as_ref())
+            .filter_map(|name| {
+                if let (Some(first), Some(last)) =
+                    (name.firstName.as_deref(), name.lastName.as_deref())
+                {
+                    Some(format!("{} {}", first, last))
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+
     // We return an empty string if the info is not present. Could change to
     // Option<T> but seems overkill at the moment.
     pub fn get_title_abstract(&self, locale: &str) -> (&str, &str) {
@@ -840,7 +879,11 @@ pub fn read_research_jsonl(
                             .push(uuid.clone());
                     }
 
-                    // Also the external persons?
+                    // Also other persons? These are present sometimes as "contributed to journal"
+                    // without uuids and other info.
+                    // Save these in a "backup_names" field?
+                    //let ex_persons = json.get_names();
+                    //println!("{:?}", ex_persons);
 
                     // Add it to the data vector.
                     let mut data = data.lock().unwrap();
@@ -862,7 +905,9 @@ pub fn read_research_jsonl(
     }
 
     // person_research is a hash which looks like:
-    // {"862b1711-47e3-45ed-9330-a2071033c219": ["dd0ce568-96e7-449b-9a59-9ee857f79a13"], "61781b1a-c069-4971-bb76-b18ed231a453": ["dd0ce568-96e7-449b-9a59-9ee857f79a13"]}
+    // {"862b1711-47e3-45ed-9330-a2071033c219": ["dd0ce568-96e7-449b-9a59-9ee857f79a13"],
+    //  "61781b1a-c069-4971-bb76-b18ed231a453": ["dd0ce568-96e7-449b-9a59-9ee857f79a13"]}
+    // Containing a person_id followed by [research_ids, ...]
     let extracted_pr = Arc::try_unwrap(person_research)
         .expect("Multiple references to person_research")
         .into_inner()

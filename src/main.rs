@@ -449,9 +449,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             //.filter(|p| p.is_internal()) // Filter by the `inex` variable
             .map(|p| p.get_name())
             .collect();
-        if names.len() == 0 {
-            panic!("No names! {}", r.get_title());
+        if names.is_empty() {
+            println!("No names! {}", r.get_title());
         }
+        // TODO Check the type of research (journal, etc).
         println!("NAMES:{}", names.join(","));
         println!("TITLE:{}", r.get_title());
         println!("ABSTRACT:{}", r.get_abstract());
