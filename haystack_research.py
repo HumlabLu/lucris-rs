@@ -54,10 +54,9 @@ parser.add_argument("-e", "--extractionmodel", help="Model for text extraction."
 parser.add_argument("-E", "--embeddings", action='store_true', help="Use embeddings.", default=False)
 parser.add_argument("-q", "--query", help="query.", default=None)
 parser.add_argument("-r", "--research", help="Research file.", default=None) #"research_docs.txt"
-parser.add_argument("-R", "--reranker", action='store_true', help="Run re-ranker.", default=False)
 parser.add_argument("-p", "--showprompt", action='store_true', help="Show LLM prompts.", default=False)
 parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=19)
-parser.add_argument("--rank_k", type=int, help="Ranker top_k.", default=8)
+parser.add_argument("--rank_k", type=int, help="Ranker top_k.", default=0)
 args = parser.parse_args()
 
 store_filename = "docs_research.store"
@@ -334,7 +333,7 @@ if False:
         logger.info(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
     logger.info("=" * 78)
 
-if args.reranker:
+if args.rank_top_k > 0:
     ranker = SentenceTransformersDiversityRanker(
         model="sentence-transformers/all-MiniLM-L6-v2",
         #model="cross-encoder/ms-marco-MiniLM-L-6-v2",
