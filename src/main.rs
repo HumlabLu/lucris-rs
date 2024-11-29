@@ -442,6 +442,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // }
 
     for r in combined.research.values() {
+        debug!("research clean uuid={:?}", r.get_uuid());
         trace!("{:?}", r);
         let names: Vec<_> = r
             .persons

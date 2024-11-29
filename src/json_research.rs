@@ -155,7 +155,7 @@ impl fmt::Display for ResearchClean {
             .fold((0, 0, 0), |acc, (in_count, ex_count, uk_count)| {
                 (acc.0 + in_count, acc.1 + ex_count, acc.2 + uk_count)
             });
-        write!(f, " [{}/{}]/{}]", counts.0, counts.1, counts.2)?;
+        write!(f, " [{}/{}/{}]", counts.0, counts.1, counts.2)?;
         /*for p in &self.persons {
             write!(f, "/{}", p)?;
         }*/
@@ -171,6 +171,10 @@ impl ResearchClean {
 
     pub fn get_abstract(&self) -> &str {
         &self.abstract_text
+    }
+
+    pub fn get_uuid(&self) -> &str {
+        &self.uuid
     }
 }
 
@@ -868,7 +872,7 @@ pub fn read_research_jsonl(
             match serde_json::from_str::<ResearchJson>(&line) {
                 Ok(json) => {
                     //trace!("title={:?}", json.title.clone().unwrap().value);
-                    debug!("uuid={:?}", json.uuid);
+                    debug!("research uuid={:?}", json.uuid);
                     trace!("{:?}", json); // This generates a lot of output...
 
                     // Check persons for research reverse index?
@@ -956,6 +960,24 @@ mod tests {
         let (foo, _bar) = read_research_jsonl(data_path.to_str().expect("Test data not found!"))
             .expect("Failed to read research JSONL data");
         assert_eq!(foo, []);
+    }
+
+    // Tests the output of ResearchClean, and as a side-effect
+    // tests a file without "normal" internal/external persons.:w
+    #[test]
+    pub fn test_unknown_persons() {
+        let data_path = make_test_path("journal.jsonl");
+        println!("{:?}", data_path);
+        let (foo, _bar) = read_research_jsonl(data_path.to_str().expect("Test data not found!"))
+            .expect("Failed to read research JSONL data");
+        let mut umap = UuidMap::new();
+        let research_des: ResearchClean =
+            ResearchClean::try_from_with_locale_umap(&foo[0], "en_GB", &mut umap).expect("Err");
+        let output = format!("{}", research_des);
+        assert_eq!(
+            output,
+            "Biodegradation of nonylphenol in a continuous packed-bed bioreactor. [0/0/0]"
+        );
     }
 
     #[test]
