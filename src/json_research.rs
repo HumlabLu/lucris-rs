@@ -148,14 +148,14 @@ impl fmt::Display for ResearchClean {
             .persons // Count number of internal/external authors.
             .iter()
             .map(|p| match p.inex {
-                PersonInEx::Internal => (1, 0),
-                PersonInEx::External => (0, 1),
-                PersonInEx::Unknown => (0, 0),
+                PersonInEx::Internal => (1, 0, 0),
+                PersonInEx::External => (0, 1, 0),
+                PersonInEx::Unknown => (0, 0, 0),
             })
-            .fold((0, 0), |acc, (in_count, ex_count)| {
-                (acc.0 + in_count, acc.1 + ex_count)
+            .fold((0, 0, 0), |acc, (in_count, ex_count, uk_count)| {
+                (acc.0 + in_count, acc.1 + ex_count, acc.2 + uk_count)
             });
-        write!(f, " [{}/{}]", counts.0, counts.1)?;
+        write!(f, " [{}/{}]/{}]", counts.0, counts.1, counts.2)?;
         /*for p in &self.persons {
             write!(f, "/{}", p)?;
         }*/
@@ -213,9 +213,12 @@ impl ResearchClean {
             c += 1;
         }
 
+        // Some journals (?) have a different persons sections, without
+        // uuids. (They do have pure_ids however, but these are unused at the
+        // moment). This extracts those names without uuids.
         if persons.is_empty() {
             // HACK
-            warn!("Empty persons.");
+            warn!("Empty persons in {}.", uuid);
             for full_name in value.get_names() {
                 // We can generate a "fake" uuid, which will not be present
                 // in the persons data. Not sure if good or bad...
