@@ -333,7 +333,7 @@ if False:
         logger.info(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
     logger.info("=" * 78)
 
-if args.rank_top_k > 0:
+if args.rank_k > 0:
     ranker = SentenceTransformersDiversityRanker(
         model="sentence-transformers/all-MiniLM-L6-v2",
         #model="cross-encoder/ms-marco-MiniLM-L-6-v2",
