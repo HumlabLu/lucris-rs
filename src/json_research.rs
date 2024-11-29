@@ -107,7 +107,7 @@ pub struct ResearchClean {
 
 /// Whether a researcher is internal (we have info in persons.jsonl) or external.
 #[derive(Debug, Serialize, Clone, PartialEq)]
-enum PersonInEx {
+enum PersonType {
     Internal,
     External,
     Unknown,
@@ -119,7 +119,7 @@ pub struct PersonRef {
     idx: u32,
     pub uuid: String, // Can be used to lookup in the person_map data.
     name: String,
-    inex: PersonInEx, // Needs a better name...
+    inex: PersonType, // Needs a better name...
 }
 
 impl fmt::Display for PersonRef {
@@ -137,7 +137,7 @@ impl PersonRef {
     }
 
     pub fn is_internal(&self) -> bool {
-        self.inex == PersonInEx::Internal
+        self.inex == PersonType::Internal
     }
 }
 
@@ -148,9 +148,9 @@ impl fmt::Display for ResearchClean {
             .persons // Count number of internal/external authors.
             .iter()
             .map(|p| match p.inex {
-                PersonInEx::Internal => (1, 0, 0),
-                PersonInEx::External => (0, 1, 0),
-                PersonInEx::Unknown => (0, 0, 0),
+                PersonType::Internal => (1, 0, 0),
+                PersonType::External => (0, 1, 0),
+                PersonType::Unknown => (0, 0, 0),
             })
             .fold((0, 0, 0), |acc, (in_count, ex_count, uk_count)| {
                 (acc.0 + in_count, acc.1 + ex_count, acc.2 + uk_count)
@@ -194,7 +194,7 @@ impl ResearchClean {
                 idx: c,
                 uuid: safe_uuid,
                 name: format!("{} {}", first_name, last_name),
-                inex: PersonInEx::Internal,
+                inex: PersonType::Internal,
             };
             persons.push(person);
             c += 1;
@@ -207,7 +207,7 @@ impl ResearchClean {
                 idx: c,
                 uuid: safe_uuid,
                 name: full_name.to_string(),
-                inex: PersonInEx::External,
+                inex: PersonType::External,
             };
             persons.push(person);
             c += 1;
@@ -227,7 +227,7 @@ impl ResearchClean {
                     idx: c,
                     uuid: safe_uuid,
                     name: full_name,
-                    inex: PersonInEx::Unknown,
+                    inex: PersonType::Unknown,
                 };
                 persons.push(person);
                 c += 1;
