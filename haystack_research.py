@@ -355,6 +355,7 @@ Given the following context, answer the question at the end.
 Do not make up facts. Do not use lists. When referring to research
 mention the researchers names from the context. The name of the researcher will be given
 first, followed by an abstract of the relevant research. The question will follow the context.
+Reference the index numbers in the context when replying.
 
 Context:
 {% for document in documents %}
