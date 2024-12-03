@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use crate::errors::CombinedError;
 use crate::PersonClean;
 use crate::ResearchClean;
-use serde::{Deserialize, Serialize};
 use std::fmt;
 use uuid::Uuid;
 
@@ -20,6 +19,7 @@ pub struct Combined {
     pub research: HashMap<String, ResearchClean>,
     pub persons: HashMap<String, PersonClean>,
     pub person_research: HashMap<String, Vec<String>>,
+    pub forbidden: Vec<String>,
 }
 
 impl fmt::Display for Combined {
@@ -42,11 +42,13 @@ impl Combined {
         research: HashMap<String, ResearchClean>,
         persons: HashMap<String, PersonClean>,
         person_research: HashMap<String, Vec<String>>,
+        forbidden: Vec<String>,
     ) -> Self {
         Self {
             research,
             persons,
             person_research,
+            forbidden,
         }
     }
 

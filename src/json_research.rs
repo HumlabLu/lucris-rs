@@ -875,6 +875,9 @@ pub fn read_research_jsonl(
                     debug!("research uuid={:?}", json.uuid);
                     trace!("{:?}", json); // This generates a lot of output...
 
+                    // TODO check for forbidden uuid here? Ignore if it is?
+                    // We might want to do this more dynamically later...
+
                     // Check persons for research reverse index?
                     let mut map = person_research.lock().unwrap();
                     let uuid = json.uuid.clone().unwrap();
