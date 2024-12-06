@@ -124,6 +124,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // The map. This translates uuids to "safe" uuids.
     // them somewhere.
     let mut umap = UuidMap::new();
+    umap.add_forbidden_uuid("61781b1a-c069-4971-bb76-b18ed231a453");
+    umap.add_forbidden_uuid("862b1711-47e3-45ed-9330-a2071033c219");
 
     // Parse the research data, structures are pushed
     // into a vector. Reads the research.jsonl and creates the
@@ -133,7 +135,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if let Some(research_filename) = cli.research {
         info!("Reading research file {:?}.", research_filename);
-        match read_research_jsonl(&research_filename) {
+        match read_research_jsonl(&research_filename, &umap) {
             Ok((res_data, pers_data)) => {
                 research_data = Some(res_data);
                 info!(
@@ -184,6 +186,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("ABSTRACT: {}", abstract_text);
                 */
 
+                // FILTER FORBIDDEN HERE?
+
                 // Convert the ResearchJson to ResearchClean, keeping only the
                 // relevant fields.
                 match ResearchClean::try_from_with_locale_umap(entry, &cli.locale, &mut umap) {
@@ -224,7 +228,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut persons_data: Option<Vec<PersonJson>> = None;
     if let Some(persons_filename) = cli.persons {
         info!("Reading persons file {:?}.", persons_filename);
-        match read_persons_jsonl(&persons_filename) {
+        match read_persons_jsonl(&persons_filename, &umap) {
             Ok(data) => {
                 persons_data = Some(data);
                 info!(

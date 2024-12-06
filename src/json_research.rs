@@ -192,16 +192,20 @@ impl ResearchClean {
         let person_names = value.get_internal_person_names(); // People responsible for the research.
         let mut c = 0;
         for (first_name, last_name, uuid) in person_names.iter() {
-            let safe_uuid = umap.get_uuid_as_str(uuid);
-            // Often more than one.
-            let person = PersonRef {
-                idx: c,
-                uuid: safe_uuid,
-                name: format!("{} {}", first_name, last_name),
-                inex: PersonType::Internal,
-            };
-            persons.push(person);
-            c += 1;
+            if umap.forbidden_contains(uuid) {
+                warn!("Forbidden person uuid in research!");
+            } else {
+                let safe_uuid = umap.get_uuid_as_str(uuid);
+                // Often more than one.
+                let person = PersonRef {
+                    idx: c,
+                    uuid: safe_uuid,
+                    name: format!("{} {}", first_name, last_name),
+                    inex: PersonType::Internal,
+                };
+                persons.push(person);
+                c += 1;
+            }
         }
 
         let external_person_names = value.get_external_person_names();
@@ -856,6 +860,7 @@ pub fn _dump_titles(research_data: &Vec<ResearchJson>, locale: &str) {
 
 pub fn read_research_jsonl(
     file_path: &str,
+    umap: &UuidMap,
 ) -> Result<(Vec<ResearchJson>, HashMap<String, Vec<String>>), Box<dyn std::error::Error>> {
     let file = FSFile::open(file_path)?;
     let reader = BufReader::new(file);
@@ -884,9 +889,13 @@ pub fn read_research_jsonl(
                     let persons = json.get_internal_person_names();
                     trace!("{:?}", persons);
                     for (_first_name, _last_name, person_uuid) in persons {
-                        map.entry(person_uuid.to_string())
-                            .or_default()
-                            .push(uuid.clone());
+                        if umap.forbidden_contains(person_uuid) {
+                            warn!("Forbidden person uuid in research data!");
+                        } else {
+                            map.entry(person_uuid.to_string())
+                                .or_default()
+                                .push(uuid.clone());
+                        }
                     }
 
                     // Also other persons? These are present sometimes as "contributed to journal"

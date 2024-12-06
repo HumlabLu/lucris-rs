@@ -18,6 +18,7 @@ use uuid::Uuid;
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct UuidMap {
     uuids: HashMap<String, Uuid>,
+    forbidden: Vec<String>,
     // reverse mapping?
 }
 
@@ -25,6 +26,7 @@ impl UuidMap {
     pub fn new() -> Self {
         Self {
             uuids: HashMap::new(),
+            forbidden: vec![],
         }
     }
 
@@ -38,6 +40,16 @@ impl UuidMap {
         self.uuids.insert(uuid.to_string(), safe_uuid);
         safe_uuid.to_string()
         //uuid.to_string() //// JUST FOR TESTING; KEEP SAME UUID
+    }
+
+    pub fn add_forbidden_uuid(&mut self, uuid: &str) {
+        if !self.forbidden.iter().any(|x| *x == uuid) {
+            self.forbidden.push(uuid.to_string());
+        }
+    }
+
+    pub fn forbidden_contains(&self, uuid: &str) -> bool {
+        self.forbidden.iter().any(|x| *x == uuid)
     }
 
     /// Tries to look-up the uuid and return it. If the uuid is

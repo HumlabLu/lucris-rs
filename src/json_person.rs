@@ -765,7 +765,10 @@ impl PersonJson {
 // ----
 
 // This always returns, but the result could be an empty vector.
-pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn std::error::Error>> {
+pub fn read_persons_jsonl(
+    file_path: &str,
+    umap: &UuidMap,
+) -> Result<Vec<PersonJson>, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
     let data = Arc::new(Mutex::new(vec![]));
@@ -783,9 +786,16 @@ pub fn read_persons_jsonl(file_path: &str) -> Result<Vec<PersonJson>, Box<dyn st
                 Ok(json) => {
                     debug!("uuid={:?}", json.uuid);
 
-                    // Add it to the data vector.
-                    let mut data = data.lock().unwrap();
-                    data.push(json);
+                    // HACK temp for testing PJB
+                    if let Some(get_uuid) = json.get_uuid() {
+                        if umap.forbidden_contains(get_uuid) {
+                            warn!("Forbidden person uuid in person data!");
+                        }
+                    } else {
+                        // Add it to the data vector.
+                        let mut data = data.lock().unwrap();
+                        data.push(json);
+                    }
                 }
                 Err(e) => {
                     error!("{}", e);
