@@ -85,8 +85,12 @@ impl UuidMap {
             .lines()
             .map_while(Result::ok)
             .for_each(|line: String| {
-                self.add_forbidden_uuid(&line);
-                count += 1;
+                if Uuid::parse_str(&line).is_ok() {
+                    self.add_forbidden_uuid(&line); // If valid, add to forbidden UUID list
+                    count += 1;
+                } else {
+                    // println!("Invalid UUID format: {}", line); // Log warning if not a valid UUID
+                }
             });
         Ok(count)
     }
