@@ -150,7 +150,7 @@ impl fmt::Display for ResearchClean {
             .map(|p| match p.inex {
                 PersonType::Internal => (1, 0, 0),
                 PersonType::External => (0, 1, 0),
-                PersonType::Unknown => (0, 0, 0),
+                PersonType::Unknown => (0, 0, 1),
             })
             .fold((0, 0, 0), |acc, (in_count, ex_count, uk_count)| {
                 (acc.0 + in_count, acc.1 + ex_count, acc.2 + uk_count)
@@ -193,7 +193,7 @@ impl ResearchClean {
         let mut c = 0;
         for (first_name, last_name, uuid) in person_names.iter() {
             if umap.forbidden_contains(uuid) {
-                warn!("Forbidden person uuid in research!");
+                warn!("Forbidden internal person uuid in research!");
             } else {
                 let safe_uuid = umap.get_uuid_as_str(uuid);
                 // Often more than one.
@@ -211,14 +211,18 @@ impl ResearchClean {
         let external_person_names = value.get_external_person_names();
         for (full_name, uuid) in external_person_names.iter() {
             let safe_uuid = umap.get_uuid_as_str(uuid);
-            let person = PersonRef {
-                idx: c,
-                uuid: safe_uuid,
-                name: full_name.to_string(),
-                inex: PersonType::External,
-            };
-            persons.push(person);
-            c += 1;
+            if umap.forbidden_contains(uuid) {
+                warn!("Forbidden external person uuid in research!");
+            } else {
+                let person = PersonRef {
+                    idx: c,
+                    uuid: safe_uuid,
+                    name: full_name.to_string(),
+                    inex: PersonType::External,
+                };
+                persons.push(person);
+                c += 1;
+            }
         }
 
         // Some journals (?) have a different persons sections, without

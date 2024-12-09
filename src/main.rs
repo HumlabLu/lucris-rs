@@ -139,8 +139,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         info!("Read {} forbidden_count UUIDs.", forbidden_count);
         info!("Mappings {}.", umap);
     }
-    umap.add_forbidden_uuid("61781b1a-c069-4971-bb76-b18ed231a453"); // JF
-    umap.add_forbidden_uuid("862b1711-47e3-45ed-9330-a2071033c219"); // VJ
 
     // Parse the research data, structures are pushed
     // into a vector. Reads the research.jsonl and creates the
