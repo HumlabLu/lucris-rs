@@ -1,5 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fmt;
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
 use uuid::Uuid;
 
 // Maybe use: https://docs.rs/short-uuid/latest/short_uuid/
@@ -20,6 +24,12 @@ pub struct UuidMap {
     uuids: HashMap<String, Uuid>,
     forbidden: Vec<String>,
     // reverse mapping?
+}
+
+impl fmt::Display for UuidMap {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}/{}", self.uuids.len(), self.forbidden.len())
+    }
 }
 
 impl UuidMap {
@@ -64,5 +74,20 @@ impl UuidMap {
 
     pub fn count(&self) -> usize {
         self.uuids.len()
+    }
+
+    pub fn read_optouts(&mut self, file_path: &str) -> Result<usize, Box<dyn std::error::Error>> {
+        let file = File::open(file_path)?;
+        let reader = BufReader::new(file);
+        let mut count: usize = 0;
+
+        reader
+            .lines()
+            .map_while(Result::ok)
+            .for_each(|line: String| {
+                self.add_forbidden_uuid(&line);
+                count += 1;
+            });
+        Ok(count)
     }
 }

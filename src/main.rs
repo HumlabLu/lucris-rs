@@ -61,6 +61,14 @@ struct Cli {
     )]
     orgunits: Option<String>,
 
+    /// Opt-out uuids.
+    #[arg(
+        short = 'u',
+        long = "optout",
+        help = "The file containing the opt-out uuids."
+    )]
+    optout: Option<String>,
+
     /// Sets the locale for the extracted texts.
     #[arg(short, long, default_value = "en_GB")]
     locale: String,
@@ -124,8 +132,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // The map. This translates uuids to "safe" uuids.
     // them somewhere.
     let mut umap = UuidMap::new();
-    umap.add_forbidden_uuid("61781b1a-c069-4971-bb76-b18ed231a453");
-    umap.add_forbidden_uuid("862b1711-47e3-45ed-9330-a2071033c219");
+
+    if let Some(optout_filename) = cli.optout {
+        let forbidden_count = umap.read_optouts(&optout_filename)?;
+        info!("Mappings {}.", umap);
+    }
+    umap.add_forbidden_uuid("61781b1a-c069-4971-bb76-b18ed231a453"); // JF
+    umap.add_forbidden_uuid("862b1711-47e3-45ed-9330-a2071033c219"); // VJ
 
     // Parse the research data, structures are pushed
     // into a vector. Reads the research.jsonl and creates the
@@ -215,7 +228,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         debug!("No research data available.");
     }
 
-    info!("Mappings {}.", &umap.count());
+    info!("Mappings {}.", &umap);
 
     for v in research_map.values() {
         trace!("{}", v);
@@ -288,7 +301,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         debug!("No persons data available.");
     }
 
-    info!("Mappings {}.", &umap.count());
+    info!("Mappings {}.", &umap);
 
     for v in person_map.values() {
         trace!("{}", v);
