@@ -134,7 +134,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut umap = UuidMap::new();
 
     if let Some(optout_filename) = cli.optout {
+        info!("Reading optout file {:?}.", optout_filename);
         let forbidden_count = umap.read_optouts(&optout_filename)?;
+        info!("Read {} forbidden_count UUIDs.", forbidden_count);
         info!("Mappings {}.", umap);
     }
     umap.add_forbidden_uuid("61781b1a-c069-4971-bb76-b18ed231a453"); // JF
