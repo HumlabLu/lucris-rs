@@ -193,7 +193,7 @@ impl ResearchClean {
         let mut c = 0;
         for (first_name, last_name, uuid) in person_names.iter() {
             if umap.forbidden_contains(uuid) {
-                warn!("Forbidden internal person uuid in research!");
+                warn!("Opt-out internal person uuid in research!");
             } else {
                 let safe_uuid = umap.get_uuid_as_str(uuid);
                 // Often more than one.
@@ -212,7 +212,7 @@ impl ResearchClean {
         for (full_name, uuid) in external_person_names.iter() {
             let safe_uuid = umap.get_uuid_as_str(uuid);
             if umap.forbidden_contains(uuid) {
-                warn!("Forbidden external person uuid in research!");
+                warn!("Opt-out external person uuid in research!");
             } else {
                 let person = PersonRef {
                     idx: c,
@@ -230,8 +230,10 @@ impl ResearchClean {
         // moment). This extracts those names without uuids.
         if persons.is_empty() {
             // HACK
+            // FIX this will allow opt-out persons because we do not have uuid?
             warn!("Empty persons in {}.", uuid);
-            for full_name in value.get_names() {
+            for full_name in value.get_names_umap(umap) {
+                trace!("full_name: {}", full_name);
                 // We can generate a "fake" uuid, which will not be present
                 // in the persons data. Not sure if good or bad...
                 let safe_uuid = umap.get_uuid_as_str(&full_name); // Maybe add uuid.
@@ -752,6 +754,8 @@ impl ResearchJson {
     // Get the first and last names, plus associated uuid, from the
     // personAssociations data.
     pub fn get_internal_person_names(&self) -> Vec<(&str, &str, &str)> {
+        // umap?
+        //todo!("Fix opt-out check");
         self.personAssociations
             .as_ref()
             .map(|associations| {
@@ -762,6 +766,28 @@ impl ResearchJson {
                         let last_name = association.name.as_ref()?.lastName.as_deref()?;
                         let uuid = association.person.as_ref()?.uuid.as_deref()?;
                         Some((first_name, last_name, uuid))
+                    })
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    pub fn get_internal_person_names_umap(&self, umap: &UuidMap) -> Vec<(&str, &str, &str)> {
+        //todo!("Fix opt-out check");
+        self.personAssociations
+            .as_ref()
+            .map(|associations| {
+                associations
+                    .iter()
+                    .filter_map(|association| {
+                        let first_name = association.name.as_ref()?.firstName.as_deref()?;
+                        let last_name = association.name.as_ref()?.lastName.as_deref()?;
+                        let uuid = association.person.as_ref()?.uuid.as_deref()?;
+                        if umap.forbidden_contains(uuid) {
+                            None
+                        } else {
+                            Some((first_name, last_name, uuid))
+                        }
                     })
                     .collect()
             })
@@ -791,7 +817,37 @@ impl ResearchJson {
             .unwrap_or_default()
     }
 
-    // These are present sometimes as contributors to journals w/o uuids etc.
+    // These are present sometimes as contributors to journals WITHOUT uuids etc.
+    pub fn get_names_umap(&self, umap: &UuidMap) -> Vec<String> {
+        self.personAssociations
+            .as_ref()
+            .unwrap_or(&Vec::new())
+            .iter()
+            .filter_map(|association| {
+                let name = association.name.as_ref()?;
+                trace!("{:?}", name);
+                if let (Some(first), Some(last)) =
+                    (name.firstName.as_deref(), name.lastName.as_deref())
+                {
+                    let uuid = association
+                        .person
+                        .as_ref()
+                        .and_then(|p| p.uuid.as_deref())
+                        .unwrap_or("");
+                    trace!("{}", uuid);
+                    if umap.forbidden_contains(uuid) {
+                        warn!("Opt-out person in data!");
+                        None
+                    } else {
+                        Some(format!("{} {}", first, last))
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+
     pub fn get_names(&self) -> Vec<String> {
         self.personAssociations
             .as_ref()
@@ -799,6 +855,7 @@ impl ResearchJson {
             .iter()
             .filter_map(|association| association.name.as_ref())
             .filter_map(|name| {
+                trace!("{:?}", name);
                 if let (Some(first), Some(last)) =
                     (name.firstName.as_deref(), name.lastName.as_deref())
                 {
@@ -842,6 +899,7 @@ pub fn _dump_titles(research_data: &Vec<ResearchJson>, locale: &str) {
             println!("No title");
         }
         let person_names = entry.get_internal_person_names();
+        // TODO check opt-out
         for (i, (first_name, last_name, uuid)) in person_names.iter().enumerate() {
             println!("Person {}: {} {} {}", i, first_name, last_name, uuid);
         }
@@ -894,7 +952,7 @@ pub fn read_research_jsonl(
                     trace!("{:?}", persons);
                     for (_first_name, _last_name, person_uuid) in persons {
                         if umap.forbidden_contains(person_uuid) {
-                            warn!("Forbidden person uuid in research data!");
+                            warn!("Opt-out person uuid in research data!");
                         } else {
                             map.entry(person_uuid.to_string())
                                 .or_default()
@@ -935,7 +993,7 @@ pub fn read_research_jsonl(
         .expect("Multiple references to person_research")
         .into_inner()
         .expect("Mutex was poisoned");
-    trace!("{:?}", extracted_pr);
+    trace!("extracted_pr: {:?}", extracted_pr);
 
     // Extract the data from Arc<Mutex<...>> and return it.
     let extracted_data = Arc::try_unwrap(data).unwrap().into_inner().unwrap();

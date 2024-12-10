@@ -1,3 +1,4 @@
+use log::warn;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fmt;
@@ -86,10 +87,10 @@ impl UuidMap {
             .map_while(Result::ok)
             .for_each(|line: String| {
                 if Uuid::parse_str(&line).is_ok() {
-                    self.add_forbidden_uuid(&line); // If valid, add to forbidden UUID list
+                    self.add_forbidden_uuid(&line);
                     count += 1;
                 } else {
-                    // println!("Invalid UUID format: {}", line); // Log warning if not a valid UUID
+                    warn!("Invalid opt-out UUID: {}", line);
                 }
             });
         Ok(count)
