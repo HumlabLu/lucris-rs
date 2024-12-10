@@ -228,6 +228,7 @@ impl ResearchClean {
         // Some journals (?) have a different persons sections, without
         // uuids. (They do have pure_ids however, but these are unused at the
         // moment). This extracts those names without uuids.
+        // Also unpublished works?
         if persons.is_empty() {
             // HACK
             // FIX this will allow opt-out persons because we do not have uuid?
@@ -835,7 +836,7 @@ impl ResearchJson {
                         .and_then(|p| p.uuid.as_deref())
                         .or_else(|| association.externalPerson.as_ref()?.uuid.as_deref())
                         .unwrap_or("");
-                    trace!("{}", uuid);
+                    trace!("Uuid {{ {} }}", uuid); // {{ is an escaped {...
                     if umap.forbidden_contains(uuid) {
                         warn!("Opt-out person in data!");
                         None
