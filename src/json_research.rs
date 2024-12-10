@@ -833,6 +833,7 @@ impl ResearchJson {
                         .person
                         .as_ref()
                         .and_then(|p| p.uuid.as_deref())
+                        .or_else(|| association.externalPerson.as_ref()?.uuid.as_deref())
                         .unwrap_or("");
                     trace!("{}", uuid);
                     if umap.forbidden_contains(uuid) {
