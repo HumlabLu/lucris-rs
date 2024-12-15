@@ -135,8 +135,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     if let Some(optout_filename) = cli.optout {
         info!("Reading optout file {:?}.", optout_filename);
-        let forbidden_count = umap.read_optouts(&optout_filename)?;
-        info!("Read {} forbidden_count UUIDs.", forbidden_count);
+        let optout_count = umap.read_optouts(&optout_filename)?;
+        info!("Read {} optout_count UUIDs.", optout_count);
         info!("Mappings {}.", umap);
     }
 
@@ -396,16 +396,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Note that the person_reseach is the Option<...> returned from read_research_jsonl(...)
     // without processing.
     // If we don't read the research data, this will fail!
-    // Should this thing include "forbidden" uuids? We need to keep them somewhere.
+    // Should this thing include "optout" uuids? We need to keep them somewhere.
     // But the uuids have already been translated to "safe"... We can translate them too...
     // umap is an arg to the functions, could be there too?
     info!("Creating Combined.");
-    let forbidden_uuids = vec![];
+    let optout_uuids = vec![];
     let combined = Combined::new(
         research_map,
         person_map,
         person_research.expect("No person_research data?"),
-        forbidden_uuids,
+        optout_uuids,
     );
     info!("{}", combined);
     //trace!("{:?}", &combined);
