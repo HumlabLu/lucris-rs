@@ -23,13 +23,13 @@ use uuid::Uuid;
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct UuidMap {
     uuids: HashMap<String, Uuid>,
-    forbidden: Vec<String>,
+    optout: Vec<String>,
     // reverse mapping?
 }
 
 impl fmt::Display for UuidMap {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}/{}", self.uuids.len(), self.forbidden.len())
+        write!(f, "{}/{}", self.uuids.len(), self.optout.len())
     }
 }
 
@@ -37,7 +37,7 @@ impl UuidMap {
     pub fn new() -> Self {
         Self {
             uuids: HashMap::new(),
-            forbidden: vec![],
+            optout: vec![],
         }
     }
 
@@ -53,14 +53,14 @@ impl UuidMap {
         //uuid.to_string() //// JUST FOR TESTING; KEEP SAME UUID
     }
 
-    pub fn add_forbidden_uuid(&mut self, uuid: &str) {
-        if !self.forbidden.iter().any(|x| *x == uuid) {
-            self.forbidden.push(uuid.to_string());
+    pub fn add_optout_uuid(&mut self, uuid: &str) {
+        if !self.optout.iter().any(|x| *x == uuid) {
+            self.optout.push(uuid.to_string());
         }
     }
 
-    pub fn forbidden_contains(&self, uuid: &str) -> bool {
-        self.forbidden.iter().any(|x| *x == uuid)
+    pub fn optout_contains(&self, uuid: &str) -> bool {
+        self.optout.iter().any(|x| *x == uuid)
     }
 
     /// Tries to look-up the uuid and return it. If the uuid is
@@ -87,7 +87,7 @@ impl UuidMap {
             .map_while(Result::ok)
             .for_each(|line: String| {
                 if Uuid::parse_str(&line).is_ok() {
-                    self.add_forbidden_uuid(&line);
+                    self.add_optout_uuid(&line);
                     count += 1;
                 } else {
                     warn!("Invalid opt-out UUID: {}", line);

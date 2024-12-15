@@ -19,7 +19,7 @@ pub struct Combined {
     pub research: HashMap<String, ResearchClean>,
     pub persons: HashMap<String, PersonClean>,
     pub person_research: HashMap<String, Vec<String>>,
-    pub forbidden: Vec<String>,
+    pub optout: Vec<String>,
 }
 
 impl fmt::Display for Combined {
@@ -42,13 +42,13 @@ impl Combined {
         research: HashMap<String, ResearchClean>,
         persons: HashMap<String, PersonClean>,
         person_research: HashMap<String, Vec<String>>,
-        forbidden: Vec<String>,
+        optout: Vec<String>,
     ) -> Self {
         Self {
             research,
             persons,
             person_research,
-            forbidden,
+            optout,
         }
     }
 

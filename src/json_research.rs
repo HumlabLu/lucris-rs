@@ -192,7 +192,7 @@ impl ResearchClean {
         let person_names = value.get_internal_person_names(); // People responsible for the research.
         let mut c = 0;
         for (first_name, last_name, uuid) in person_names.iter() {
-            if umap.forbidden_contains(uuid) {
+            if umap.optout_contains(uuid) {
                 warn!("Opt-out internal person uuid in research!");
             } else {
                 let safe_uuid = umap.get_uuid_as_str(uuid);
@@ -211,7 +211,7 @@ impl ResearchClean {
         let external_person_names = value.get_external_person_names();
         for (full_name, uuid) in external_person_names.iter() {
             let safe_uuid = umap.get_uuid_as_str(uuid);
-            if umap.forbidden_contains(uuid) {
+            if umap.optout_contains(uuid) {
                 warn!("Opt-out external person uuid in research!");
             } else {
                 let person = PersonRef {
@@ -784,7 +784,7 @@ impl ResearchJson {
                         let first_name = association.name.as_ref()?.firstName.as_deref()?;
                         let last_name = association.name.as_ref()?.lastName.as_deref()?;
                         let uuid = association.person.as_ref()?.uuid.as_deref()?;
-                        if umap.forbidden_contains(uuid) {
+                        if umap.optout_contains(uuid) {
                             None
                         } else {
                             Some((first_name, last_name, uuid))
@@ -837,7 +837,7 @@ impl ResearchJson {
                         .or_else(|| association.externalPerson.as_ref()?.uuid.as_deref())
                         .unwrap_or("");
                     trace!("Uuid {{ {} }}", uuid); // {{ is an escaped {...
-                    if umap.forbidden_contains(uuid) {
+                    if umap.optout_contains(uuid) {
                         warn!("Opt-out person in data!");
                         None
                     } else {
@@ -944,7 +944,7 @@ pub fn read_research_jsonl(
                     debug!("research uuid={:?}", json.uuid);
                     trace!("{:?}", json); // This generates a lot of output...
 
-                    // TODO check for forbidden uuid here? Ignore if it is?
+                    // TODO check for optout uuid here? Ignore if it is?
                     // We might want to do this more dynamically later...
 
                     // Check persons for research reverse index?
@@ -953,7 +953,7 @@ pub fn read_research_jsonl(
                     let persons = json.get_internal_person_names();
                     trace!("{:?}", persons);
                     for (_first_name, _last_name, person_uuid) in persons {
-                        if umap.forbidden_contains(person_uuid) {
+                        if umap.optout_contains(person_uuid) {
                             warn!("Opt-out person uuid in research data!");
                         } else {
                             map.entry(person_uuid.to_string())

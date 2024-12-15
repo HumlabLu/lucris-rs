@@ -788,7 +788,7 @@ pub fn read_persons_jsonl(
 
                     // HACK temp for testing PJB
                     if let Some(get_uuid) = json.get_uuid() {
-                        if umap.forbidden_contains(get_uuid) {
+                        if umap.optout_contains(get_uuid) {
                             warn!("Opt-out person uuid in person data!");
                         }
                     } else {
