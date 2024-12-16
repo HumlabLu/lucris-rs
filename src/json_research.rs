@@ -1022,7 +1022,7 @@ mod tests {
     #[test]
     fn test_read_research_one() {
         let data_path = make_test_path("research_one.jsonl");
-        let mut umap = UuidMap::new();
+        let umap = UuidMap::new();
         println!("{:?}", data_path);
         let foo = read_research_jsonl(data_path.to_str().expect("Test data not found!"), &umap);
         let (foo, _bar) = foo.unwrap();
@@ -1033,7 +1033,7 @@ mod tests {
     #[test]
     fn test_read_research_one_err() {
         let data_path = make_test_path("research_one_err.jsonl");
-        let mut umap = UuidMap::new();
+        let umap = UuidMap::new();
         println!("{:?}", data_path);
         let (foo, _bar) =
             read_research_jsonl(data_path.to_str().expect("Test data not found!"), &umap)
@@ -1046,7 +1046,7 @@ mod tests {
     #[test]
     pub fn test_unknown_persons() {
         let data_path = make_test_path("journal.jsonl");
-        let mut umap = UuidMap::new();
+        let umap = UuidMap::new();
         println!("{:?}", data_path);
         let (foo, _bar) =
             read_research_jsonl(data_path.to_str().expect("Test data not found!"), &umap)
