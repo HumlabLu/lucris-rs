@@ -1022,8 +1022,9 @@ mod tests {
     #[test]
     fn test_read_research_one() {
         let data_path = make_test_path("research_one.jsonl");
+        let mut umap = UuidMap::new();
         println!("{:?}", data_path);
-        let foo = read_research_jsonl(data_path.to_str().expect("Test data not found!"));
+        let foo = read_research_jsonl(data_path.to_str().expect("Test data not found!"), &umap);
         let (foo, _bar) = foo.unwrap();
         let foo = &foo[0];
         assert_eq!(foo.get_uuid(), Some("1d136ffd-6d08-444a-9c50-76c0e5aec513"));
@@ -1032,9 +1033,11 @@ mod tests {
     #[test]
     fn test_read_research_one_err() {
         let data_path = make_test_path("research_one_err.jsonl");
+        let mut umap = UuidMap::new();
         println!("{:?}", data_path);
-        let (foo, _bar) = read_research_jsonl(data_path.to_str().expect("Test data not found!"))
-            .expect("Failed to read research JSONL data");
+        let (foo, _bar) =
+            read_research_jsonl(data_path.to_str().expect("Test data not found!"), &umap)
+                .expect("Failed to read research JSONL data");
         assert_eq!(foo, []);
     }
 
@@ -1043,16 +1046,18 @@ mod tests {
     #[test]
     pub fn test_unknown_persons() {
         let data_path = make_test_path("journal.jsonl");
+        let mut umap = UuidMap::new();
         println!("{:?}", data_path);
-        let (foo, _bar) = read_research_jsonl(data_path.to_str().expect("Test data not found!"))
-            .expect("Failed to read research JSONL data");
+        let (foo, _bar) =
+            read_research_jsonl(data_path.to_str().expect("Test data not found!"), &umap)
+                .expect("Failed to read research JSONL data");
         let mut umap = UuidMap::new();
         let research_des: ResearchClean =
             ResearchClean::try_from_with_locale_umap(&foo[0], "en_GB", &mut umap).expect("Err");
         let output = format!("{}", research_des);
         assert_eq!(
             output,
-            "Biodegradation of nonylphenol in a continuous packed-bed bioreactor. [0/0/0]"
+            "Biodegradation of nonylphenol in a continuous packed-bed bioreactor. [0/0/3]"
         );
     }
 
