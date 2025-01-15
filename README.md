@@ -5,7 +5,7 @@
 Process files for the AI Lund project.
 
 Takes the LUCRIS `jsonl` files and extract information in plain text.
-Allows extraxtion of the Swedish and English texts, and optionally filters out "opt-out" UUIDs.
+Allows extraction of the Swedish and English texts, and optionally filters out "opt-out" UUIDs.
 
 Tries to connect people UUIDs from `persons.jsonl` to research from `research.jsonl`. 
 Also reads the other files (fingerprints, concepts and orgunits), but these are not processed yet.
@@ -34,7 +34,7 @@ Options:
 ## Example
 
 ```text
-cargo run -- -p cleaned/persons.clean.jsonl -r cleaned/research-outputs.clean.jsonl
+lucris-rs -p cleaned/persons.clean.jsonl -r cleaned/research-outputs.clean.jsonl
 
 NAMES:...
 TITLE:...
