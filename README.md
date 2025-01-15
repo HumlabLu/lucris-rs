@@ -2,7 +2,7 @@
 
 ## Intro
 
-Process files for the AI Lund project.
+Terminal tool to process files for the AI Lund project.
 
 Takes the LUCRIS `jsonl` files and extract information in plain text.
 Allows extraction of the Swedish and English texts, and optionally filters out "opt-out" UUIDs.
@@ -39,5 +39,13 @@ lucris-rs -p cleaned/persons.clean.jsonl -r cleaned/research-outputs.clean.jsonl
 NAMES:...
 TITLE:...
 ABSTRACT:...
+```
+## Installation
+
+### cargo
+
+If you have the rust toolchain, you can install from git.
+```shell
+cargo install --git https://github.com/HumlabLu/lucris-rs.git
 ```
 
