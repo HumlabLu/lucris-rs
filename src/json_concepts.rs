@@ -1,12 +1,12 @@
 #![allow(non_snake_case)]
-use serde::{Deserialize, Serialize};
-use std::fs::File;
-use std::io::BufReader;
-use std::io::BufRead;
+use log::{debug, error, info, trace, warn};
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
+use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
 use std::sync::{Arc, Mutex};
-use log::{debug, error, info, trace, warn};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ConceptJson {
@@ -78,8 +78,8 @@ pub fn read_concept_jsonl(file_path: &str) -> Result<Vec<ConceptJson>, Box<dyn s
 
     reader
         .lines()
-        .filter_map(|line: Result<String, _>| line.ok())
-        .par_bridge()   // parallelise
+        .map_while(Result::ok)
+        .par_bridge() // parallelise
         .for_each(|line: String| {
             match serde_json::from_str::<ConceptJson>(&line) {
                 Ok(json) => {
@@ -88,7 +88,7 @@ pub fn read_concept_jsonl(file_path: &str) -> Result<Vec<ConceptJson>, Box<dyn s
                     // Add it to the data vector.
                     let mut data = data.lock().unwrap();
                     data.push(json);
-                },
+                }
                 Err(e) => {
                     error!("{}", e);
                     //panic!("{}", line);

@@ -273,6 +273,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
                     trace!("Name: {} {}", first_name, last_name);
+                    println!("Name: {} {} {}", first_name, last_name, uuid);
                 } else {
                     error!("First or last name not found.");
                 }
@@ -337,6 +338,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .expect("No fingerprints data")
                         .len()
                 );
+                if let Some(fd) = &fingerprints_data {
+                    for fp in fd {
+                        //println!("\n{:?}", fp);
+                    }
+                }
             }
             Err(e) => eprintln!("Error reading FingerprintJSON: {:?}", e),
         }
@@ -360,6 +366,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .expect("No concepts data")
                         .len()
                 );
+                if let Some(cd) = &concepts_data {
+                    for c in cd {
+                        //println!("\n{:?}", c);
+                    }
+                }
             }
             Err(e) => eprintln!("Error reading ConceptJSON: {:?}", e),
         }

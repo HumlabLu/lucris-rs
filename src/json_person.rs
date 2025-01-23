@@ -790,11 +790,11 @@ pub fn read_persons_jsonl(
                     if let Some(get_uuid) = json.get_uuid() {
                         if umap.optout_contains(get_uuid) {
                             warn!("Opt-out person uuid in person data!");
+                        } else {
+                            // Add it to the data vector.
+                            let mut data = data.lock().unwrap();
+                            data.push(json);
                         }
-                    } else {
-                        // Add it to the data vector.
-                        let mut data = data.lock().unwrap();
-                        data.push(json);
                     }
                 }
                 Err(e) => {
