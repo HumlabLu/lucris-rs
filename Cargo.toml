@@ -6,8 +6,8 @@ description = "Process files for the AI Lund project."
 authors = ["Peter Berck <peter.berck@humlab.lu.se>"]
 keywords = ["LUCRIS"]
 publish = false
-#repository  = "https://github.com/HumlabLu/lucris-rs"
-#readme      = "README.md"
+repository = "https://github.com/HumlabLu/lucris-rs"
+readme = "README.md"
 license = "GNU AGPLv3"
 categories = ["LUCRIS"]
 

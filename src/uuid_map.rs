@@ -90,7 +90,7 @@ impl UuidMap {
                     self.add_optout_uuid(&line);
                     count += 1;
                 } else {
-                    warn!("Invalid opt-out UUID: {}", line);
+                    warn!("Skipping invalid opt-out UUID: {}", line);
                 }
             });
         Ok(count)
