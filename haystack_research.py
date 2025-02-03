@@ -153,13 +153,39 @@ def extract_persons(a_text) -> str:
     )
     return output['response']
 
+def classify_query(a_text) -> str:
+    prompt = "Your task is to classify the query.\n"\
+        "The following classes are available:\n"\
+        "ResearchQuestion, for a question about research,\n"\
+        "PersonQuestion, for a question about a researcher.\n"\
+        "Only return the classification.\n"\
+        "Example input: \"TEXT: What is Mr. John Doe working on?\n"\
+        "Example output: PersonQuestion\n"\
+        "Example input: \"TEXT: Who is working with eye-tracking?\n"\
+        "Example output: ResearchQuestion\n"
+    prompt = prompt + "TEXT:" + a_text + ".\n"
+    if args.showprompt:
+        print(prompt)
+    output = ollama.generate(
+        model=args.extractionmodel,
+        options={
+            'temperature': 0.0,
+            'top_k': 10, # ?
+            'num_ctx': 8096,
+            'repeat_last_n': -1,
+        },
+        prompt=prompt
+    )
+    return output['response']
+
+
 # -----------------------------------------------------------------------------
 
 # Specifying a research file reads it and save the resulting
 # documents to disk.
 # Pipeline example: https://docs.haystack.deepset.ai/docs/documentwriter
 if False and args.research:
-    docs = read_research_nta("research_docs_nta.txt")
+    docs = read_research_nta("research_docs_nta1.txt")
     print("Doc count:", len(docs))
     print(docs[0])
 
@@ -180,7 +206,7 @@ if False and args.research:
     document_store.save_to_disk(store_filename)
 
 if args.research:
-    docs = read_research_nta("research_docs_nta.txt")
+    docs = read_research_nta("research_docs_nta1.txt")
     print("Doc count:", len(docs))
     print(docs[0])
 
@@ -228,6 +254,7 @@ if False:
     print(extract_persons(""))
     print(extract_persons("We used site-directed mutagenesis by Van den Bosch and Mr. Smith to do this."))
     sys.exit(0)
+
 # -----------------------------------------------------------------------------
 
 if not args.query:
@@ -307,6 +334,9 @@ for i, r in enumerate(res["documents"]): # add ["document_joiner"] if experiment
 logger.info("")
 logger.info("=" * 78)
 
+print(extract_persons(query))
+print(classify_query(query))
+
 if False:
     logger.info("Running LostInTheMiddleRanker()")
     ranker = LostInTheMiddleRanker()
@@ -374,8 +404,8 @@ generator = OllamaGenerator(
     #model="gemma2",
     url = "http://localhost:11434",
     generation_kwargs={
-        "num_predict": 4000,
-        "temperature": 0.1, # Higher is more "creative".
+        "num_predict": 8000,
+        "temperature": 0.05, # Higher is more "creative".
         'num_ctx': 12028,
         'repeat_last_n': -1,
     }
