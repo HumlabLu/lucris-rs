@@ -273,181 +273,185 @@ logger.info(f"Number of documents: {document_store_new.count_documents()}.")
 query = args.query
 logger.info(f"Query: {query}")
 
-print(extract_persons(query))
-print(classify_query(query))
+while True:
+    print("Enter Q:")
+    query = input()
 
-retrieve_top_k = args.top_k # Use args directly.
-rank_top_k = args.rank_k
+    print(extract_persons(query))
+    print(classify_query(query))
 
-if False: # Experimental
-    text_embedder = SentenceTransformersTextEmbedder(model="sentence-transformers/all-MiniLM-L6-v2")
-    embedding_retriever = InMemoryEmbeddingRetriever(document_store_new)
-    bm25_retriever = InMemoryBM25Retriever(document_store_new)
-    ranker = TransformersSimilarityRanker(model="BAAI/bge-reranker-base")
-    document_joiner = DocumentJoiner()
+    retrieve_top_k = args.top_k # Use args directly.
+    rank_top_k = args.rank_k
 
-    hybrid_retrieval = Pipeline()
-    hybrid_retrieval.add_component("text_embedder", text_embedder)
-    hybrid_retrieval.add_component("embedding_retriever", embedding_retriever)
-    hybrid_retrieval.add_component("bm25_retriever", bm25_retriever)
-    hybrid_retrieval.add_component("document_joiner", document_joiner)
-    #hybrid_retrieval.add_component("ranker", ranker)
+    if False: # Experimental
+        text_embedder = SentenceTransformersTextEmbedder(model="sentence-transformers/all-MiniLM-L6-v2")
+        embedding_retriever = InMemoryEmbeddingRetriever(document_store_new)
+        bm25_retriever = InMemoryBM25Retriever(document_store_new)
+        ranker = TransformersSimilarityRanker(model="BAAI/bge-reranker-base")
+        document_joiner = DocumentJoiner()
 
-    hybrid_retrieval.connect("text_embedder", "embedding_retriever")
-    hybrid_retrieval.connect("bm25_retriever", "document_joiner")
-    hybrid_retrieval.connect("embedding_retriever", "document_joiner")
-    #hybrid_retrieval.connect("document_joiner", "ranker")
+        hybrid_retrieval = Pipeline()
+        hybrid_retrieval.add_component("text_embedder", text_embedder)
+        hybrid_retrieval.add_component("embedding_retriever", embedding_retriever)
+        hybrid_retrieval.add_component("bm25_retriever", bm25_retriever)
+        hybrid_retrieval.add_component("document_joiner", document_joiner)
+        #hybrid_retrieval.add_component("ranker", ranker)
 
-    res = hybrid_retrieval.run(
-        {
-            "text_embedder": {"text": query},
-            "bm25_retriever": {"query": query},
-            #"ranker": {"query": query}
-        }
-    )
-    print(res)
+        hybrid_retrieval.connect("text_embedder", "embedding_retriever")
+        hybrid_retrieval.connect("bm25_retriever", "document_joiner")
+        hybrid_retrieval.connect("embedding_retriever", "document_joiner")
+        #hybrid_retrieval.connect("document_joiner", "ranker")
 
-# Filter of meta-data?
-if args.embeddings == True:
-    retriever = InMemoryEmbeddingRetriever(document_store_new)
-    #doc_embedder = SentenceTransformersDocumentEmbedder(
-    #    model="sentence-transformers/all-MiniLM-L6-v2", # Dim depends on model.
-    #    meta_fields_to_embed=["title", "researcher_name"]
-    #)
-    #doc_embedder.warm_up()
-    text_embedder = SentenceTransformersTextEmbedder(model="sentence-transformers/all-MiniLM-L6-v2")
-    #text_embedder = SentenceTransformersTextEmbedder()
-    query_pipeline = Pipeline() 
-    query_pipeline.add_component("text_embedder", text_embedder)
-    result = query_pipeline.run({"text_embedder": {"text": query}})
-    q_embedding = result['text_embedder']['embedding']
+        res = hybrid_retrieval.run(
+            {
+                "text_embedder": {"text": query},
+                "bm25_retriever": {"query": query},
+                #"ranker": {"query": query}
+            }
+        )
+        print(res)
 
-    res = retriever.run(
-        query_embedding=q_embedding,
-        top_k=retrieve_top_k,
-        #scale_score=True
-    )
-else:
-    retriever = InMemoryBM25Retriever(document_store=document_store_new)
-    res = retriever.run(
-        query=query,
-        top_k=retrieve_top_k,
-        #scale_score=True
-    )
-logger.info("Retrieved documents")
-for i, r in enumerate(res["documents"]): # add ["document_joiner"] if experimental
-    #logger.info(r)
-    logger.info(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
-logger.info("")
-logger.info("=" * 78)
+    # Filter of meta-data?
+    if args.embeddings == True:
+        retriever = InMemoryEmbeddingRetriever(document_store_new)
+        #doc_embedder = SentenceTransformersDocumentEmbedder(
+        #    model="sentence-transformers/all-MiniLM-L6-v2", # Dim depends on model.
+        #    meta_fields_to_embed=["title", "researcher_name"]
+        #)
+        #doc_embedder.warm_up()
+        text_embedder = SentenceTransformersTextEmbedder(model="sentence-transformers/all-MiniLM-L6-v2")
+        #text_embedder = SentenceTransformersTextEmbedder()
+        query_pipeline = Pipeline() 
+        query_pipeline.add_component("text_embedder", text_embedder)
+        result = query_pipeline.run({"text_embedder": {"text": query}})
+        q_embedding = result['text_embedder']['embedding']
 
-
-if False:
-    logger.info("Running LostInTheMiddleRanker()")
-    ranker = LostInTheMiddleRanker()
-    res = ranker.run(
-        documents=res["documents"],
-        top_k=rank_top_k
-    )
-    logger.info("Reranked documents:")
-    for i, r in enumerate(res["documents"]):
-        logger.info(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
-    logger.info("=" * 78)
-
-if False:
-    logger.info("Running TransformersSimilarityRanker()")
-    ranker = TransformersSimilarityRanker(model="BAAI/bge-reranker-base")
-    ranker.warm_up()
-    res = ranker.run(
-        query=query,
-        documents=res["documents"],
-        top_k=rank_top_k
-    )
-    logger.info("Reranked documents:")
-    for i, r in enumerate(res["documents"]):
-        logger.info(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
-    logger.info("=" * 78)
-
-if args.rank_k > 0:
-    ranker = SentenceTransformersDiversityRanker(
-        model="sentence-transformers/all-MiniLM-L6-v2",
-        #model="cross-encoder/ms-marco-MiniLM-L-6-v2",
-        similarity="cosine",
-    )
-    ranker.warm_up()
-    res = ranker.run(
-        query=query,
-        documents=res["documents"],
-        top_k=rank_top_k
-    ) 
-    logger.info("Reranked documents:")
-    for i, r in enumerate(res["documents"]):
+        res = retriever.run(
+            query_embedding=q_embedding,
+            top_k=retrieve_top_k,
+            #scale_score=True
+        )
+    else:
+        retriever = InMemoryBM25Retriever(document_store=document_store_new)
+        res = retriever.run(
+            query=query,
+            top_k=retrieve_top_k,
+            #scale_score=True
+        )
+    logger.info("Retrieved documents")
+    for i, r in enumerate(res["documents"]): # add ["document_joiner"] if experimental
+        #logger.info(r)
         logger.info(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
+    logger.info("")
     logger.info("=" * 78)
+
+
+    if False:
+        logger.info("Running LostInTheMiddleRanker()")
+        ranker = LostInTheMiddleRanker()
+        res = ranker.run(
+            documents=res["documents"],
+            top_k=rank_top_k
+        )
+        logger.info("Reranked documents:")
+        for i, r in enumerate(res["documents"]):
+            logger.info(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
+        logger.info("=" * 78)
+
+    if False:
+        logger.info("Running TransformersSimilarityRanker()")
+        ranker = TransformersSimilarityRanker(model="BAAI/bge-reranker-base")
+        ranker.warm_up()
+        res = ranker.run(
+            query=query,
+            documents=res["documents"],
+            top_k=rank_top_k
+        )
+        logger.info("Reranked documents:")
+        for i, r in enumerate(res["documents"]):
+            logger.info(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
+        logger.info("=" * 78)
+
+    if args.rank_k > 0:
+        ranker = SentenceTransformersDiversityRanker(
+            model="sentence-transformers/all-MiniLM-L6-v2",
+            #model="cross-encoder/ms-marco-MiniLM-L-6-v2",
+            similarity="cosine",
+        )
+        ranker.warm_up()
+        res = ranker.run(
+            query=query,
+            documents=res["documents"],
+            top_k=rank_top_k
+        ) 
+        logger.info("Reranked documents:")
+        for i, r in enumerate(res["documents"]):
+            logger.info(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
+        logger.info("=" * 78)
 
 # Include query classification.
-template = """
-Given the following context, answer the question at the end.
-Do not make up facts. Do not use lists. When referring to research
-mention the researchers names from the context. The name of the researcher will be given
-first, followed by an abstract of the relevant research. The question will follow the context.
-Reference the index numbers in the context when replying.
+    template = """
+    Given the following context, answer the question at the end.
+    Do not make up facts. Do not use lists. When referring to research
+    mention the researchers names from the context. The name of the researcher will be given
+    first, followed by an abstract of the relevant research. The question will follow the context.
+    Reference the index numbers in the context when replying.
 
-Context:
-{% for document in documents %}
-    Researcher: {{ document.meta.researcher_name }}. Research: {{ document.content }}
-{% endfor %}
+    Context:
+    {% for document in documents %}
+        Researcher: {{ document.meta.researcher_name }}. Research: {{ document.content }}
+    {% endfor %}
 
-Question: {{question}}
-"""
+    Question: {{question}}
+    """
 
-#   and: "{{ document.content if document.content is not none else 'NONE' }}"
-#  {{ document.content if document.content.length() > 10 else 'NONE' }}
+    #   and: "{{ document.content if document.content is not none else 'NONE' }}"
+    #  {{ document.content if document.content.length() > 10 else 'NONE' }}
 
-prompt_builder = PromptBuilder(template=template)
-generator = OllamaGenerator(
-    model=args.model, #"llama3.1",
-    #model="gemma2",
-    url = "http://localhost:11434",
-    generation_kwargs={
-        "num_predict": 8000,
-        "temperature": 0.05, # Higher is more "creative".
-        'num_ctx': 12028,
-        'repeat_last_n': -1,
-    }
-)
+    prompt_builder = PromptBuilder(template=template)
+    generator = OllamaGenerator(
+        model=args.model, #"llama3.1",
+        #model="gemma2",
+        url = "http://localhost:11434",
+        generation_kwargs={
+            "num_predict": 8000,
+            "temperature": 0.05, # Higher is more "creative".
+            'num_ctx': 12028,
+            'repeat_last_n': -1,
+        }
+    )
 
-basic_rag_pipeline = Pipeline()
-basic_rag_pipeline.add_component("prompt_builder", prompt_builder)
-basic_rag_pipeline.add_component("llm", generator)
-basic_rag_pipeline.connect("prompt_builder", "llm")
+    basic_rag_pipeline = Pipeline()
+    basic_rag_pipeline.add_component("prompt_builder", prompt_builder)
+    basic_rag_pipeline.add_component("llm", generator)
+    basic_rag_pipeline.connect("prompt_builder", "llm")
 
-#pp = pprint.PrettyPrinter(indent=4)
-#logger.info(pp.pprint(basic_rag_pipeline.inputs()))
+    #pp = pprint.PrettyPrinter(indent=4)
+    #logger.info(pp.pprint(basic_rag_pipeline.inputs()))
 
-logger.info(query)
-response = basic_rag_pipeline.run(
-    {
-        "prompt_builder": {"question": query,
-                           "documents": res["documents"] # add ["document_joiner"] if experimental
-                           },
-    },
-    include_outputs_from={"prompt_builder"},
-)
-logger.debug(f"Context len: {len(response["llm"]["meta"][0]["context"])}")
-logger.info(f"Prompt length: {len(response["prompt_builder"]["prompt"])}")
-logger.info("-" * 78)
-#logger.info(response["llm"]["replies"][0])
-answer = response["llm"]["replies"][0]
-# Remove deepseek's tags.
-answer = re.sub(r'<think>.*?</think>', '', answer, flags=re.DOTALL)
-logger.info(answer)
-logger.info("-" * 78)
+    logger.info(query)
+    response = basic_rag_pipeline.run(
+        {
+            "prompt_builder": {"question": query,
+                            "documents": res["documents"] # add ["document_joiner"] if experimental
+                            },
+        },
+        include_outputs_from={"prompt_builder"},
+    )
+    logger.debug(f"Context len: {len(response["llm"]["meta"][0]["context"])}")
+    logger.info(f"Prompt length: {len(response["prompt_builder"]["prompt"])}")
+    logger.info("-" * 78)
+    #logger.info(response["llm"]["replies"][0])
+    answer = response["llm"]["replies"][0]
+    # Remove deepseek's tags.
+    answer = re.sub(r'<think>.*?</think>', '', answer, flags=re.DOTALL)
+    logger.info(answer)
+    logger.info("-" * 78)
 
-if args.showprompt:
-    logger.info("Prompt builder prompt:")
-    logger.info(response["prompt_builder"]["prompt"])
-    logger.info("=" * 78)
+    if args.showprompt:
+        logger.info("Prompt builder prompt:")
+        logger.info(response["prompt_builder"]["prompt"])
+        logger.info("=" * 78)
 
 
 '''
