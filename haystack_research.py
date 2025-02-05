@@ -261,24 +261,23 @@ if False:
 
 # -----------------------------------------------------------------------------
 
-if not args.query:
-    sys.exit(0)
-    
-# -----------------------------------------------------------------------------
-
 logger.info("Loading document store...")
 document_store_new = InMemoryDocumentStore().load_from_disk(store_filename)
 logger.info(f"Number of documents: {document_store_new.count_documents()}.")
 #logger.info(retriever)
-query = args.query
-logger.info(f"Query: {query}")
+#query = args.query
+#logger.info(f"Query: {query}")
 
 while True:
-    print("Enter Q:")
+    print("\nEnter Query:")
     query = input()
 
-    print(extract_persons(query))
-    print(classify_query(query))
+    if query == "bye":
+        break
+
+    logger.info(query)
+    logger.info(extract_persons(query))
+    logger.info(classify_query(query))
 
     retrieve_top_k = args.top_k # Use args directly.
     rank_top_k = args.rank_k
