@@ -272,8 +272,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 //println!("--> {}", umap.get_uuid_as_str(uuid));
 
                 if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
-                    trace!("Name: {} {}", first_name, last_name);
-                    println!("Name: {} {} {}", first_name, last_name, uuid);
+                    trace!("Name: {} {} {}", first_name, last_name, uuid);
                 } else {
                     error!("First or last name not found.");
                 }
