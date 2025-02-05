@@ -8,6 +8,7 @@
 # -----------------------------------------------------------------------------
 #
 import sys
+import re
 import ollama
 from haystack import Pipeline
 from haystack import Document
@@ -127,6 +128,7 @@ def read_research_nta(a_file) -> [Document]:
 # mistral seems to be better than llama, at least on the test cases.
 def extract_persons(a_text) -> str:
     prompt = "Your task is to extract the names of the people mentioned in the users input after TEXT:\n"\
+        "names start with a capital letter.\n"\
         "Only reply with the json structure.\n"\
         "Do not repeat the input text.\n"\
         "Remove titles like Mr. or Mrs.\n"\
@@ -137,7 +139,9 @@ def extract_persons(a_text) -> str:
         "   \"person\": The name of the person\n"\
         "}]\n"\
         "Example user input: \"TEXT: What is Mr. John Doe working on?\n"\
-        "Example output: [{\"person\": \"John Doe\"}]\n"
+        "Example output: [{\"person\": \"John Doe\"}]\n"\
+        "Example user input: \"TEXT: who is working on second language acquisition?\n"\
+        "Example output: [{}]\n\n"
     prompt = prompt + "TEXT:" + a_text + ".\n"
     if args.showprompt:
         print(prompt)
@@ -252,7 +256,7 @@ if False:
     print(extract_persons("Tell me what John and Nisse Nissesson are researching?"))
     print(extract_persons("I did my shopping at ICAs"))
     print(extract_persons(""))
-    print(extract_persons("We used site-directed mutagenesis by Van den Bosch and Mr. Smith to do this."))
+    print(extract_persons("We used site-directed mutagenesis by Van den Bosch and Smith to do this."))
     sys.exit(0)
 
 # -----------------------------------------------------------------------------
@@ -268,6 +272,9 @@ logger.info(f"Number of documents: {document_store_new.count_documents()}.")
 #logger.info(retriever)
 query = args.query
 logger.info(f"Query: {query}")
+
+print(extract_persons(query))
+print(classify_query(query))
 
 retrieve_top_k = args.top_k # Use args directly.
 rank_top_k = args.rank_k
@@ -334,8 +341,6 @@ for i, r in enumerate(res["documents"]): # add ["document_joiner"] if experiment
 logger.info("")
 logger.info("=" * 78)
 
-print(extract_persons(query))
-print(classify_query(query))
 
 if False:
     logger.info("Running LostInTheMiddleRanker()")
@@ -380,6 +385,7 @@ if args.rank_k > 0:
         logger.info(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
     logger.info("=" * 78)
 
+# Include query classification.
 template = """
 Given the following context, answer the question at the end.
 Do not make up facts. Do not use lists. When referring to research
@@ -431,16 +437,12 @@ response = basic_rag_pipeline.run(
 logger.debug(f"Context len: {len(response["llm"]["meta"][0]["context"])}")
 logger.info(f"Prompt length: {len(response["prompt_builder"]["prompt"])}")
 logger.info("-" * 78)
-logger.info(response["llm"]["replies"][0])
+#logger.info(response["llm"]["replies"][0])
+answer = response["llm"]["replies"][0]
+# Remove deepseek's tags.
+answer = re.sub(r'<think>.*?</think>', '', answer, flags=re.DOTALL)
+logger.info(answer)
 logger.info("-" * 78)
-
-# Test extracting the named researcher (we could use them for further processing).
-# (Not useful, we have them from the meta data, but not all might be in the answer.)
-'''print(
-    extract_persons(
-        response["llm"]["replies"][0]
-    )
-)'''
 
 if args.showprompt:
     logger.info("Prompt builder prompt:")
