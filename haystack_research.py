@@ -218,7 +218,7 @@ if args.research:
     document_splitter = DocumentSplitter(
         split_by="word", 
         split_length=512, 
-        split_overlap=32
+        split_overlap=64
     )
     document_embedder = SentenceTransformersDocumentEmbedder(
         #model="BAAI/bge-small-en-v1.5" #, device=ComponentDevice.from_str("cuda:0")
