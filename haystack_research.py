@@ -56,6 +56,7 @@ parser.add_argument("-E", "--embeddings", action='store_true', help="Use embeddi
 parser.add_argument("-q", "--query", help="query.", default=None)
 parser.add_argument("-r", "--research", help="Research file.", default=None) #"research_docs.txt"
 parser.add_argument("-p", "--showprompt", action='store_true', help="Show LLM prompts.", default=False)
+parser.add_argument("-t", "--temp", type=float, help="Generator temperature.", default=0.1)
 parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=19)
 parser.add_argument("--rank_k", type=int, help="Ranker top_k.", default=0)
 args = parser.parse_args()
@@ -274,7 +275,8 @@ while True:
 
     if query == "bye":
         break
-
+    
+    logger.debug(args)
     logger.info(query)
     logger.info(extract_persons(query))
     logger.info(classify_query(query))
@@ -414,7 +416,7 @@ while True:
         url = "http://localhost:11434",
         generation_kwargs={
             "num_predict": 8000,
-            "temperature": 0.05, # Higher is more "creative".
+            "temperature": args.temp, # Higher is more "creative".
             'num_ctx': 12028,
             'repeat_last_n': -1,
         }
