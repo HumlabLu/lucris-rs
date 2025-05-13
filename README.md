@@ -60,6 +60,8 @@ Run the Rust extractor.
 cargo run --release -- -p persons.clean.jsonl -r research-outputs.clean.jsonl > research_docs.txt
 ```
 
+Create a virtual environment using the `requirements.txt` (which probably contains more than necessary).
+
 Create the HayStack document store.
 
 ```shell
@@ -75,6 +77,8 @@ python haystack_research.py -s docs_research.store -E
 Enter "bye" to quit.
 
 ## Example
+
+Running : `python haystack_research.py -s docs_research.store`
 
 Eample output.
 ```shell
