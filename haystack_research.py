@@ -155,10 +155,10 @@ def handle_query(query, document_store):
     retrieve_top_k = args.top_k # Use args directly.
     rank_top_k = args.rank_k
 
-    if False: # Experimental
+    if True: # Experimental
         text_embedder = SentenceTransformersTextEmbedder(model="sentence-transformers/all-MiniLM-L6-v2")
-        embedding_retriever = InMemoryEmbeddingRetriever(document_store_new)
-        bm25_retriever = InMemoryBM25Retriever(document_store_new)
+        embedding_retriever = InMemoryEmbeddingRetriever(document_store)
+        bm25_retriever = InMemoryBM25Retriever(document_store)
         ranker = TransformersSimilarityRanker(model="BAAI/bge-reranker-base")
         document_joiner = DocumentJoiner()
 
@@ -167,23 +167,32 @@ def handle_query(query, document_store):
         hybrid_retrieval.add_component("embedding_retriever", embedding_retriever)
         hybrid_retrieval.add_component("bm25_retriever", bm25_retriever)
         hybrid_retrieval.add_component("document_joiner", document_joiner)
-        #hybrid_retrieval.add_component("ranker", ranker)
+        hybrid_retrieval.add_component("ranker", ranker)
 
         hybrid_retrieval.connect("text_embedder", "embedding_retriever")
         hybrid_retrieval.connect("bm25_retriever", "document_joiner")
         hybrid_retrieval.connect("embedding_retriever", "document_joiner")
-        #hybrid_retrieval.connect("document_joiner", "ranker")
+        hybrid_retrieval.connect("document_joiner", "ranker")
 
         res = hybrid_retrieval.run(
             {
                 "text_embedder": {"text": query},
-                "bm25_retriever": {"query": query},
-                #"ranker": {"query": query}
+                "embedding_retriever":{"top_k": retrieve_top_k},
+                "bm25_retriever": {"query": query, "top_k": retrieve_top_k},
+                "ranker": {"query": query, "top_k": rank_top_k},
             }
         )
-        print(res)
+        #print(res)
+        #pp = pprint.PrettyPrinter(indent=4, width=120)
+        #pp.pprint(res)
+        for i, r in enumerate(res["ranker"]["documents"]): # add ["document_joiner"] if experimental
+            #logger.info(r)
+            logger.info(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
+        logger.info("")
+        logger.info("=" * 78)
 
     # Filter of meta-data?
+    '''
     if args.embeddings == True:
         retriever = InMemoryEmbeddingRetriever(document_store)
         #doc_embedder = SentenceTransformersDocumentEmbedder(
@@ -216,34 +225,9 @@ def handle_query(query, document_store):
         logger.info(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
     logger.info("")
     logger.info("=" * 78)
+    '''
 
-
-    if False:
-        logger.info("Running LostInTheMiddleRanker()")
-        ranker = LostInTheMiddleRanker()
-        res = ranker.run(
-            documents=res["documents"],
-            top_k=rank_top_k
-        )
-        logger.info("Reranked documents:")
-        for i, r in enumerate(res["documents"]):
-            logger.info(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
-        logger.info("=" * 78)
-
-    if False:
-        logger.info("Running TransformersSimilarityRanker()")
-        ranker = TransformersSimilarityRanker(model="BAAI/bge-reranker-base")
-        ranker.warm_up()
-        res = ranker.run(
-            query=query,
-            documents=res["documents"],
-            top_k=rank_top_k
-        )
-        logger.info("Reranked documents:")
-        for i, r in enumerate(res["documents"]):
-            logger.info(f"{i:02n}", f"{r.score:.4f}", r.content[0:78])
-        logger.info("=" * 78)
-
+    '''
     if args.rank_k > 0:
         ranker = SentenceTransformersDiversityRanker(
             model="sentence-transformers/all-MiniLM-L6-v2",
@@ -260,7 +244,8 @@ def handle_query(query, document_store):
         for i, r in enumerate(res["documents"]):
             logger.info(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
         logger.info("=" * 78)
-
+    '''
+    
     # Include query classification.
     
     template = """
@@ -306,7 +291,8 @@ def handle_query(query, document_store):
     response = basic_rag_pipeline.run(
         {
             "prompt_builder": {"question": query,
-                               "documents": res["documents"] # add ["document_joiner"] if experimental
+                               "documents": res["ranker"]["documents"]
+                               #"documents": res["documents"]
                                },
         },
         include_outputs_from={"prompt_builder"},

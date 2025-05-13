@@ -13,7 +13,7 @@ from haystack import Document
 from haystack.document_stores.in_memory import InMemoryDocumentStore
 
 document_store = InMemoryDocumentStore()
-store_filename = "hybrid_documents.store"
+store_filename = "TEMPdocs_research.store" #"hybrid_documents.store"
 
 if False:
     dataset = load_dataset("anakin87/medrag-pubmed-chunk", split="train")
@@ -65,7 +65,7 @@ hybrid_retrieval.connect("bm25_retriever", "document_joiner")
 hybrid_retrieval.connect("embedding_retriever", "document_joiner")
 hybrid_retrieval.connect("document_joiner", "ranker")
 
-hybrid_retrieval.draw("hybrid-retrieval.png")
+#hybrid_retrieval.draw("hybrid-retrieval.png")
 
 query = "apnea in infants"
 result = hybrid_retrieval.run(
