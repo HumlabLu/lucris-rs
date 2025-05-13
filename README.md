@@ -66,8 +66,10 @@ Create the HayStack document store.
 python haystack_store.py -r research_docs.txt -s docs_research.store
 ```
 
-Run queries like this.
+Run queries like this (using embeddings, which works slightly better).
 
 ```shell
-python haystack_research.py -s docs_research.store
+python haystack_research.py -s docs_research.store -E
 ```
+
+Enter "bye" to quit.
