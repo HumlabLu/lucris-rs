@@ -63,15 +63,13 @@ cargo run --release -- -p persons.clean.jsonl -r research-outputs.clean.jsonl > 
 Create a virtual environment using the `requirements.txt` (which probably contains more than necessary).
 
 Create the HayStack document store.
-
 ```shell
 python haystack_store.py -r research_docs.txt -s docs_research.store
 ```
 
-Run queries like this (using embeddings, which works slightly better).
-
+Run queries like this.
 ```shell
-python haystack_research.py -s docs_research.store -E
+python haystack_research.py -s docs_research.store
 ```
 
 Enter "bye" to quit.
