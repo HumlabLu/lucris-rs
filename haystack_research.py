@@ -191,7 +191,6 @@ def handle_query(query, document_store):
         logger.info("")
         logger.info("=" * 78)
 
-    # Filter of meta-data?
     '''
     if args.embeddings == True:
         retriever = InMemoryEmbeddingRetriever(document_store)

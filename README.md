@@ -99,15 +99,42 @@ Batches: 100%|██████████████████████
 2025-03-05 14:20:59 - Answering: explain eye-tracking research
 2025-03-05 14:21:19 - Prompt length: 11558
 2025-03-05 14:21:19 - ------------------------------------------------------------------------------
-2025-03-05 14:21:19 - Based on the provided context, eye-tracking research is a scientific method that uses technology to track and record eye movements, providing insights into oculomotor and cognitive processes. This research aims to understand how people perceive, process, and respond to visual information, such as reading, scene perception, and task execution.
+2025-03-05 14:21:19 - Based on the provided context, eye-tracking
+research is a scientific method that uses technology to track and
+record eye movements, providing insights into oculomotor and cognitive
+processes. This research aims to understand how people perceive,
+process, and respond to visual information, such as reading, scene
+perception, and task execution.
 
-According to Marcus Nyström, Diederick C Niehorster, Roy S Hessels, and Antje Nuthmann (Researcher: Marcus Nyström, Diederick C Niehorster, Roy S Hessels, Antje Nuthmann), eye-tracking technology has become increasingly prevalent in scientific research, offering unique insights into oculomotor and cognitive processes. The researchers provide examples from various studies, including oculomotor control, reading, scene perception, task execution, visual expertise, and instructional design, to illustrate the connection between theory and eye-tracking data.
+According to Marcus Nyström, Diederick C Niehorster, Roy S Hessels,
+and Antje Nuthmann (Researcher: Marcus Nyström, Diederick C
+Niehorster, Roy S Hessels, Antje Nuthmann), eye-tracking technology
+has become increasingly prevalent in scientific research, offering
+unique insights into oculomotor and cognitive processes. The
+researchers provide examples from various studies, including
+oculomotor control, reading, scene perception, task execution, visual
+expertise, and instructional design, to illustrate the connection
+between theory and eye-tracking data.
 
-Furthermore, Halszka Jarodzka and S. Brand-Gruwel (Researcher: Halszka Jarodzka, S. Brand-Gruwel) propose structuring eye-tracking research in reading into three levels: level 1 research on reading single words or sentences, level 2 research on reading and comprehending a whole text, and level 3 research on reading and processing involving several text documents.
+Furthermore, Halszka Jarodzka and S. Brand-Gruwel (Researcher: Halszka
+Jarodzka, S. Brand-Gruwel) propose structuring eye-tracking research
+in reading into three levels: level 1 research on reading single words
+or sentences, level 2 research on reading and comprehending a whole
+text, and level 3 research on reading and processing involving several
+text documents.
 
-Eye-tracking research has also been applied in various fields, such as language and cognition (Researcher: Jana Holsanova, Roger Johansson, Sven Strömqvist), expertise assessment (Researcher: Philipp Stark, Efe Bozkir, Patricia Goldberg, Gerrit Meixner, Enkelejda Kasneci, Richard Gollner), and multimodality (Researcher: Jana Holsanova).
+Eye-tracking research has also been applied in various fields, such as
+language and cognition (Researcher: Jana Holsanova, Roger Johansson,
+Sven Strömqvist), expertise assessment (Researcher: Philipp Stark, Efe
+Bozkir, Patricia Goldberg, Gerrit Meixner, Enkelejda Kasneci, Richard
+Gollner), and multimodality (Researcher: Jana Holsanova).
 
-In summary, eye-tracking research is a scientific method that uses technology to track and record eye movements, providing insights into oculomotor and cognitive processes. This research has been applied in various fields, including reading, language and cognition, expertise assessment, and multimodality, and has led to a better understanding of how people perceive, process, and respond to visual information.
+In summary, eye-tracking research is a scientific method that uses
+technology to track and record eye movements, providing insights into
+oculomotor and cognitive processes. This research has been applied in
+various fields, including reading, language and cognition, expertise
+assessment, and multimodality, and has led to a better understanding
+of how people perceive, process, and respond to visual information.
 2025-03-05 14:21:19 - ------------------------------------------------------------------------------
 
 Enter Query:
