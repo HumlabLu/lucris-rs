@@ -1,5 +1,4 @@
 # PJB: Use the VENV in Development/HayStack
-# PJB: Path to python can be set in .vscode/settings.json!
 #
 # -----------------------------------------------------------------------------
 # We could extract names (and other meta data) from the query
@@ -54,7 +53,8 @@ parser.add_argument("-m", "--model", help="Model for text generation.", default=
 parser.add_argument("-e", "--extractionmodel", help="Model for text extraction.", default="mistral")
 parser.add_argument("-E", "--embeddings", action='store_true', help="Use embeddings.", default=False)
 parser.add_argument("-q", "--query", help="query.", default=None)
-parser.add_argument("-r", "--research", help="Research file.", default=None) #"research_docs.txt"
+parser.add_argument("-r", "--research", help="Research file.", default=None)
+parser.add_argument("-s", "--storename", help="Document store.", default=None)
 parser.add_argument("-p", "--showprompt", action='store_true', help="Show LLM prompts.", default=False)
 parser.add_argument("-t", "--temp", type=float, help="Generator temperature.", default=0.1)
 parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=19)
@@ -66,65 +66,6 @@ store_filename = "docs_research.store"
 logger.debug(args)
 
 # -----------------------------------------------------------------------------
-
-#RESEARCH: a06df509-b7e0-474a-b84a-3376a72f9e56
-#PERSON0: Karin Johansson e1b388c9-685a-41d6-84cc-b217e14bbff3
-#PERSON1: Nisse Johansson e1b388c9-685a-41d6-84cc-b217e14bbff4
-#TITLE: A randomized study ...
-#ABSTRACT: We compared manual ...
-#RESEARCH: 740c676d-7ab4-4975-a1c6-d4d0d2976092
-
-# We could have defaults for the other values as well.
-def get_new_meta() -> dict:
-    # return {"persons":[]} # initialise empty list
-    return {}
-
-# name, title abstract format.
-def read_research_nta(a_file) -> [Document]:
-    current_content = None
-    current_meta = get_new_meta()
-    documents = []
-    with open(a_file, "r") as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith("NAME"):  # Matches NAME: and NAMES:
-                bits = line.split(":", 1)
-                if len(bits) > 0:
-                    name = bits[1]
-                    #print("NAME", name)
-                    # If we have current contents, we save it first.
-                    if current_content and current_meta:
-                        doc = Document(content=current_content, meta=current_meta)
-                        documents.append(doc)
-                        print("ADDED", current_meta)
-                    current_meta = get_new_meta()
-                    current_meta["researcher_name"] = name.strip()
-                    current_content = None
-            elif line.startswith("TITLE:"):
-                bits = line.split(":", 1)
-                if len(bits) > 0:
-                    title = bits[1]
-                    #print("TITLE", title)
-                    current_meta["title"] = title.strip()
-            elif line.startswith("ABSTRACT:"):
-                bits = line.split(":", 1)
-                if len(bits) > 0:
-                    # abstract can be empty... mirror title?
-                    abstract = bits[1].strip()
-                    #print(current_meta)
-                    if len(abstract) < 2: #some arbitrary small value
-                        try:
-                            abstract = current_meta["title"] # We assume we have read it... FIXME
-                        except KeyError:
-                            abstract = "no abstract"
-                    current_content = abstract
-                    current_meta["abstract"] = abstract
-    # Left overs.
-    if current_content and current_meta:
-        doc = Document(content=current_content, meta=current_meta)
-        documents.append(doc)
-        print("ADDED", current_meta)
-    return documents
 
 # mistral seems to be better than llama, at least on the test cases.
 def extract_persons(a_text) -> str:
@@ -183,72 +124,6 @@ def classify_query(a_text) -> str:
     )
     return output['response']
 
-
-# -----------------------------------------------------------------------------
-
-# Specifying a research file reads it and save the resulting
-# documents to disk.
-# Pipeline example: https://docs.haystack.deepset.ai/docs/documentwriter
-if False and args.research:
-    docs = read_research_nta("research_docs_nta1.txt")
-    print("Doc count:", len(docs))
-    print(docs[0])
-
-    doc_embedder = SentenceTransformersDocumentEmbedder(
-        model="sentence-transformers/all-MiniLM-L6-v2", # Dim depends on model.
-        meta_fields_to_embed=["title", "researcher_name"]
-    )
-    doc_embedder.warm_up()
-    docs_with_embeddings = doc_embedder.run(docs)
-    document_store = InMemoryDocumentStore()
-    document_writer = DocumentWriter(
-        document_store=document_store,
-        policy=DuplicatePolicy.OVERWRITE
-    )
-    document_writer.run(
-        documents=docs_with_embeddings["documents"]
-    )
-    document_store.save_to_disk(store_filename)
-
-if args.research:
-    docs = read_research_nta("research_docs_nta1.txt")
-    print("Doc count:", len(docs))
-    print(docs[0])
-
-    # We only have abstracts, splitting doesn't really make sense.
-    document_splitter = DocumentSplitter(
-        split_by="word", 
-        split_length=512, 
-        split_overlap=64
-    )
-    document_embedder = SentenceTransformersDocumentEmbedder(
-        #model="BAAI/bge-small-en-v1.5" #, device=ComponentDevice.from_str("cuda:0")
-        model="sentence-transformers/all-MiniLM-L6-v2",
-        meta_fields_to_embed=["title", "researcher_name"]
-    )
-    document_store = InMemoryDocumentStore()
-    document_writer = DocumentWriter(
-        document_store=document_store,
-        policy=DuplicatePolicy.SKIP
-    )
-    
-    indexing_pipeline = Pipeline()
-    indexing_pipeline.add_component("document_splitter", document_splitter)
-    indexing_pipeline.add_component("document_embedder", document_embedder)
-    indexing_pipeline.add_component("document_writer", document_writer)
-    
-    # Also write for BM25 index?
-
-    indexing_pipeline.connect("document_splitter", "document_embedder")
-    indexing_pipeline.connect("document_embedder", "document_writer")
-    indexing_pipeline.run(
-        {
-            "document_splitter": {"documents": docs}
-        }
-    )
-
-    document_store.save_to_disk(store_filename)
-
 # -----------------------------------------------------------------------------
 
 # Test name extraction.
@@ -262,19 +137,18 @@ if False:
 
 # -----------------------------------------------------------------------------
 
-logger.info("Loading document store...")
-document_store_new = InMemoryDocumentStore().load_from_disk(store_filename)
-logger.info(f"Number of documents: {document_store_new.count_documents()}.")
-#logger.info(retriever)
-#query = args.query
-#logger.info(f"Query: {query}")
+def load_document_store(filename):
+    logger.info("Loading document store...")
+    document_store = InMemoryDocumentStore().load_from_disk(filename)
+    logger.info(f"Number of documents: {document_store.count_documents()}.")
+    return(document_store)
 
-while True:
-    print("\nEnter Query:")
-    query = input()
+def handle_query(query, document_store):
+    #print("\nEnter Query:")
+    #query = input()
 
     if query == "bye":
-        break
+        return False
     
     logger.debug(args)
     logger.info(query)
@@ -314,7 +188,7 @@ while True:
 
     # Filter of meta-data?
     if args.embeddings == True:
-        retriever = InMemoryEmbeddingRetriever(document_store_new)
+        retriever = InMemoryEmbeddingRetriever(document_store)
         #doc_embedder = SentenceTransformersDocumentEmbedder(
         #    model="sentence-transformers/all-MiniLM-L6-v2", # Dim depends on model.
         #    meta_fields_to_embed=["title", "researcher_name"]
@@ -333,7 +207,7 @@ while True:
             #scale_score=True
         )
     else:
-        retriever = InMemoryBM25Retriever(document_store=document_store_new)
+        retriever = InMemoryBM25Retriever(document_store=document_store)
         res = retriever.run(
             query=query,
             top_k=retrieve_top_k,
@@ -390,7 +264,8 @@ while True:
             logger.info(f"{i:02n} {r.score:.4f} {r.meta["researcher_name"]} {r.content[0:78]}")
         logger.info("=" * 78)
 
-# Include query classification.
+    # Include query classification.
+    
     template = """
     Given the following context, answer the question at the end.
     Do not make up facts. Do not use lists. When referring to research
@@ -430,12 +305,12 @@ while True:
     #pp = pprint.PrettyPrinter(indent=4)
     #logger.info(pp.pprint(basic_rag_pipeline.inputs()))
 
-    logger.info(query)
+    logger.info("Answering: "+query)
     response = basic_rag_pipeline.run(
         {
             "prompt_builder": {"question": query,
-                            "documents": res["documents"] # add ["document_joiner"] if experimental
-                            },
+                               "documents": res["documents"] # add ["document_joiner"] if experimental
+                               },
         },
         include_outputs_from={"prompt_builder"},
     )
@@ -453,100 +328,15 @@ while True:
         logger.info("Prompt builder prompt:")
         logger.info(response["prompt_builder"]["prompt"])
         logger.info("=" * 78)
+    return True
 
+if __name__ == '__main__':
+   document_store = load_document_store(args.storename)
+   go_on = True
+   while go_on:
+       print("\nEnter Query:")
+       query = input()
+       go_on = handle_query(query, document_store)
+   
+   
 
-'''
-(VENV) pberck@Peters-MacBook-Pro-2 lucris-rs % python haystack_research.py  -q "Anyone do research on cats?"
-/Users/pberck/Development/HayStack/VENV/lib/python3.12/site-packages/haystack/core/errors.py:34: DeprecationWarning: PipelineMaxLoops is deprecated and will be remove in version '2.7.0'; use PipelineMaxComponentRuns instead.
-  warnings.warn(
-Loading...
-Number of documents: 112497.
-Query: Anyone do research on cats?
-Retriever
-00 24.7520 Reality TV is popular entertainment. And yet a common way to start a conversat
-01 24.6157 We present the first evidence that cats experience visual illusions and that a
-02 24.5765 Bilateral removal of the cerebral cortex was made in cats neonatally. Spontane
-03 23.7246 Rather than using different therapies in isolation, many cancer patients use d
-04 23.5214 The cat (Felis catus, Linneaus 1758) has lived around or with humans for at le
-05 23.4702 Aim Vegetation dynamics and the competitive interactions involved are assumed
-06 23.4620 This study compared acid-base and biochemical changes and quality of recovery
-07 23.3391 We aim to introduce some new solutions in the studies involving the subjects w
-08 22.8880 This study collected 257 vocalisations from three domestic cats when they were
-
-==============================================================================
-
-Anyone do research on cats?
-
-------------------------------------------------------------------------------
-Yes, numerous researchers have conducted studies on cats. For example, researchers such as E.C. Su and his colleagues have investigated the ability of cats to see illusory motion in a video, specifically the Rotating Snakes illusion (Su et al.). Researchers from the Meowsic project (which stands for Melody in human–cat communication) are studying the prosodic characteristics of cat vocalisations as well as the communication between humans and cats (Fleming et al.). Researchers such as T.E. Hermanson and his colleagues have studied the acid-base and biochemical changes in male cats with experimentally induced urethral obstruction (Hermanson et al.).
-------------------------------------------------------------------------------
-'''
-
-'''
-# With new NTA format on all research.
-Loading...
-Number of documents: 229679.
-Query: Anyone do research on cats?
-Retriever
-00 26.1221 Bilateral removal of the cerebral cortex was made in cats neonatally. Spontane
-01 24.6147 Aim Vegetation dynamics and the competitive interactions involved are assumed
-02 24.6147 Aim Vegetation dynamics and the competitive interactions involved are assumed
-03 24.4449 The Secret Language of Cats
-04 24.3882 In this study, we investigated the prosody of domestic cat meows produced in d
-05 24.3882 In this study, we investigated the prosody of domestic cat meows produced in d
-06 24.3049 "Did anyone here recognize that?"
-07 24.2851 <br/>The cat (Felis catus, Linneaus 1758) has lived around or with humans for
-08 24.2851 <br/>The cat (Felis catus, Linneaus 1758) has lived around or with humans for
-
-==============================================================================
-
-Anyone do research on cats?
-
-------------------------------------------------------------------------------
-Yes, several researchers and research projects have studied cats. In the provided context, there are studies on cats that include:
-
-* A study on cats with neonatal bilateral cerebral cortex removal, which found that despite their brain lesion, the cats were able to adapt and function normally in terms of spontaneous and imposed behavior, visual cue utilization, and learning (no researchers mentioned in this section).
-* A study on tree migration in Europe, which used a post-process migration tool called LPJ-CATS that took into account vegetation dynamics, climate, environment, and local species dynamics such as succession and competition ( researchers not mentioned).
-* A study by the research project Melody in human–cat communication (Meowsic) which aimed to investigate the prosodic characteristics of cat vocalisations as well as the communication between human and cat (no specific researchers mentioned, just the project's name).
-* Another study on cat vocalisation by which the authors found significant effects of context on duration and mean fundamental frequency, but not on fundamental frequency range, and proposed that this prosodic variation reflects the cat's mental or emotional state (researchers not mentioned, likely members of the Meowsic project).
-
-It is worth noting that there are other research projects and studies on cats that are not mentioned in the provided context, such as studies on cat behavior, cat cognition, and cat welfare, among others.
-------------------------------------------------------------------------------
-
-(VENV) pberck@Peters-MacBook-Pro-2 lucris-rs % time python haystack_research.py  -q "Summarise the research on cats (meowsic) at Lund University."
-/Users/pberck/Development/HayStack/VENV/lib/python3.12/site-packages/haystack/core/errors.py:34: DeprecationWarning: PipelineMaxLoops is deprecated and will be remove in version '2.7.0'; use PipelineMaxComponentRuns instead.
-  warnings.warn(
-Loading...
-Number of documents: 313288.
-Query: Summarise the research on cats (meowsic) at Lund University.
-Retrieved
-00 42.5716 Susanne Schötz <br/>The cat (Felis catus, Linneaus 1758) has lived around or with humans for
-01 42.5716 Joost van de Weijer <br/>The cat (Felis catus, Linneaus 1758) has lived around or with humans for
-02 40.6141 Per Ståhle Ongoing research at Lund University, Invited talk given at University of Parma
-03 40.5852 Mats Bohgard Research on Nanotechnology and Human Health at Lund University, Sweden
-04 40.1402 Jenny Julén Votinius The elder law research environment at Lund University
-05 39.9785 Roland Akselsson Two Research Programmes on Disaster Abatement at Lund University Centre for Ri
-06 39.9358 Johan Frid Swe-Clarin research collaborations at the Humanities Lab, Lund University
-07 39.7820 Despina Christoforidou Informed Provocation - Industrial Design Research at Lund University
-08 39.7820 Calle Lidgard Informed Provocation - Industrial Design Research at Lund University
-09 39.7820 Anders Warell Informed Provocation - Industrial Design Research at Lund University
-10 39.5441 Alison Gerber Research notes &amp; miscellany from a research group focused on the intersect
-11 39.5441 Olof Sundin Research notes &amp; miscellany from a research group focused on the intersect
-12 39.2931 Knut Deppert Nanoscience and Nanotechnology in education and research in Sweden and at Lund
-13 39.2931 Lars Samuelson Nanoscience and Nanotechnology in education and research in Sweden and at Lund
-14 39.1909 Rustamjon Urinboyev This research report is a compilation of essays written by guest researchers f
-15 39.1344 Jesica López <br/>Agenda 2030 Graduate School blog<br/>Lund University Agenda 2030 Graduate
-16 39.1344 Torsten Krause <br/>Agenda 2030 Graduate School blog<br/>Lund University Agenda 2030 Graduate
-17 39.1165 Sune Svanberg <p>Food safety and unnecessary prescription of antibiotics are real concerns w
-18 39.1165 Katarina Svanberg <p>Food safety and unnecessary prescription of antibiotics are real concerns w
-
-==============================================================================
-
-Summarise the research on cats (meowsic) at Lund University.
-
-------------------------------------------------------------------------------
-Susanne Schötz and Joost van de Weijer are members of the research project "Meowsic" at Lund University, which investigates the prosodic characteristics of cat vocalisations as well as the communication between human and cat. The project has two main steps: categorising cat vocalisations and investigating how humans perceive the vocal signals of domestic cats.
-------------------------------------------------------------------------------
-
-python haystack_research.py -q   53.67s user 5.30s system 91% cpu 1:04.69 total
-'''
