@@ -10,7 +10,8 @@ Allows extraction of the Swedish and English texts, and optionally filters out "
 Tries to connect people UUIDs from `persons.jsonl` to research from `research.jsonl`. 
 Also reads the other files (fingerprints, concepts and orgunits), but these are not processed yet.
 
-Just dumps plain text to standard-out at the moment.
+Just dumps plain text to standard-out at the moment. Output can be
+used in `haystack_research.py` for LLM querying.
 
 ## Parameters
 
@@ -49,3 +50,12 @@ If you have the rust toolchain, you can install from git.
 cargo install --git https://github.com/HumlabLu/lucris-rs.git
 ```
 
+## Workflow
+
+Run the Go-code first to scrape the LUCRIS website.
+
+Run the Rust extractor.
+
+```shell
+cargo run --release -- -p persons.clean.jsonl -r research-outputs.clean.jsonl > all_text_se.txt
+```
