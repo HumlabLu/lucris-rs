@@ -56,8 +56,8 @@ parser.add_argument("-q", "--query", help="query.", default=None)
 parser.add_argument("-s", "--storename", help="Document store.", default="docs_research.store")
 parser.add_argument("-p", "--showprompt", action='store_true', help="Show LLM prompts.", default=False)
 parser.add_argument("-t", "--temp", type=float, help="Generator temperature.", default=0.1)
-parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=19)
-parser.add_argument("--rank_k", type=int, help="Ranker top_k.", default=0)
+parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=29)
+parser.add_argument("--rank_k", type=int, help="Ranker top_k.", default=19)
 args = parser.parse_args()
 
 logger.debug(args)
@@ -170,10 +170,10 @@ def handle_query(query, document_store):
         hybrid_retrieval.add_component("ranker", ranker)
 
         hybrid_retrieval.connect("text_embedder", "embedding_retriever")
-        hybrid_retrieval.connect("bm25_retriever", "document_joiner")
         hybrid_retrieval.connect("embedding_retriever", "document_joiner")
+        hybrid_retrieval.connect("bm25_retriever", "document_joiner")
         hybrid_retrieval.connect("document_joiner", "ranker")
-
+        
         res = hybrid_retrieval.run(
             {
                 "text_embedder": {"text": query},
