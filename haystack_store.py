@@ -51,7 +51,7 @@ logger.addHandler(console_handler)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-r", "--research", help="Research file.", default=None)
-parser.add_argument("-s", "--storename", help="Document store.", default=None)
+parser.add_argument("-s", "--storename", help="Document store.", default="docs_research.store")
 parser.add_argument("-t", "--test", action='store_true', help="Run a small test.", default=False)
 args = parser.parse_args()
 

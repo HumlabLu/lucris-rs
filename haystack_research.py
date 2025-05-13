@@ -53,15 +53,12 @@ parser.add_argument("-m", "--model", help="Model for text generation.", default=
 parser.add_argument("-e", "--extractionmodel", help="Model for text extraction.", default="mistral")
 parser.add_argument("-E", "--embeddings", action='store_true', help="Use embeddings.", default=False)
 parser.add_argument("-q", "--query", help="query.", default=None)
-parser.add_argument("-r", "--research", help="Research file.", default=None)
-parser.add_argument("-s", "--storename", help="Document store.", default=None)
+parser.add_argument("-s", "--storename", help="Document store.", default="docs_research.store")
 parser.add_argument("-p", "--showprompt", action='store_true', help="Show LLM prompts.", default=False)
 parser.add_argument("-t", "--temp", type=float, help="Generator temperature.", default=0.1)
 parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=19)
 parser.add_argument("--rank_k", type=int, help="Ranker top_k.", default=0)
 args = parser.parse_args()
-
-store_filename = "docs_research.store"
 
 logger.debug(args)
 
