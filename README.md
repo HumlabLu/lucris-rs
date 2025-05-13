@@ -57,5 +57,17 @@ Run the Go-code first to scrape the LUCRIS website.
 Run the Rust extractor.
 
 ```shell
-cargo run --release -- -p persons.clean.jsonl -r research-outputs.clean.jsonl > all_text_se.txt
+cargo run --release -- -p persons.clean.jsonl -r research-outputs.clean.jsonl > research_docs.txt
+```
+
+Create the HayStack document store.
+
+```shell
+python haystack_store.py -r research_docs.txt -s docs_research.store
+```
+
+Run queries like this.
+
+```shell
+python haystack_research.py -s docs_research.store
 ```
