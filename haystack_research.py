@@ -321,5 +321,3 @@ if __name__ == '__main__':
        query = input()
        go_on = handle_query(query, document_store)
    
-   
-
