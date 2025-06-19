@@ -1,0 +1,430 @@
+import sys
+import os
+import gradio as gr
+import random
+import time
+import logging
+from openai import OpenAI, OpenAIError
+import chromadb
+from chromadb.utils import embedding_functions
+import json
+from sentence_transformers import CrossEncoder
+import numpy as np
+from datetime import datetime
+from hybrid import *
+
+'''
+If openai key is set, a OAIMODEL also has to be set, or unset
+for default mini-4o.
+
+export OPENAI_API_KEY='...'
+unset OAIMODEL
+
+For ollama:
+unset OPENAI_API_KEY
+export OAIMODEL=llama3.2:latest
+
+Debug output goes to pufendorf.log. For printed output:
+export DEBUG=1
+'''
+
+# openAI API credits:
+# https://platform.openai.com/settings/organization/billing/overview
+
+logger = logging.getLogger("LUCRIS")
+logger.setLevel(logging.DEBUG)
+
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+file_handler = logging.FileHandler("lucrisbot.log")
+file_handler.setLevel(logging.DEBUG)
+file_handler.setFormatter(formatter)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+formatter = logging.Formatter("%(asctime)s - %(message)s", "%Y-%m-%d %H:%M:%S")
+console_handler.setFormatter(formatter)
+
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+
+# --------
+
+the_model = '''
+'''
+
+# --------
+
+def DBG(a_str):
+    if os.getenv('DEBUG'): # Create a Spaces variable called DEBUG.
+        print(a_str) # kraai
+    else:
+        logger.debug(a_str) # local
+    
+DBG("Starting the Pufendorf bot")
+
+# OpenAI
+try:
+    openai_client = OpenAI(
+        api_key=os.environ.get("OAIKEY"),
+    )
+    DBG("Using OpenAI")
+    model = os.getenv('OAIMODEL')
+    DBG(f"OpenAI model: {model}")
+except OpenAIError:
+    try:
+        openai_client = OpenAI(
+            base_url="http://localhost:11434/v1",
+            api_key="ollama",  # required, but unused
+        )
+        DBG("Using local Ollama.")
+        model = os.getenv('OAIMODEL')
+        DBG(f"Ollama model: {model}")
+    except:
+        DBG("No AI provider available. Exit.")
+        sys.exit(1)
+
+
+# Contact OpenAI "moderator".
+def moderator(message):
+    return False
+    DBG("CALLING MODERATOR")
+    response = openai_client.moderations.create(
+        model="omni-moderation-latest",
+        input=message,
+    )
+    response_dict = response.model_dump()
+    is_flagged = response_dict["results"][0]["flagged"]
+    DBG("MODERATOR")
+    DBG(response_dict)
+    return is_flagged
+
+
+# Retrieve context from the doc store.
+def get_context(message, retriever, cutoff):
+    docs = retrieve(retriever, message)
+    #documents = retrieve(hybrid_retrieval, query, top_k=args.top_k)
+    result = []
+    width = os.get_terminal_size().columns
+    for doc in docs:
+        txt = " ".join(doc.content.split())
+        txt_width = width - 34 - 8 - 3 - 1 # float and ... and LF
+        txt = txt[0:txt_width]+"..."
+        DBG("{:.5f} {}".format(doc.score, txt))
+        if doc.score >= cutoff:
+            result.append(doc) # was doc.content
+    return result
+
+# ----
+
+def format_history(history):
+    for h in history:
+        try:
+            role = h['role']
+            cont = h['content']
+        except TypeError:
+            role = h.role
+            cont = h.content
+        print(role)
+        print("        ", cont)
+
+# https://www.gradio.app/guides/theming-guide
+theme = gr.themes.Monochrome(
+    font=[
+        #gr.themes.GoogleFont('TagesSchrift'),
+        #gr.themes.GoogleFont('ui-sans-serif'),
+        #'system-ui',
+        #'sans-serif'
+    ],
+).set(
+    #background_fill_secondary_dark='*neutral_400',
+    #background_fill_primary_dark='*neutral_800'
+)
+
+with gr.Blocks(theme=theme) as demo_blocks:
+    chatbot = gr.Chatbot(
+        type="messages",
+        label="",
+        resizable=True,
+        #avatar_images=(None, "./pufendorf1.jpg"),
+    )
+    with gr.Row():
+        with gr.Column(scale=9):
+            msg = gr.Textbox(
+                placeholder="Your question",
+                submit_btn="Ask",
+                label="",
+                lines=1,
+                container=False,
+            )
+        with gr.Column(scale=1):
+            clear = gr.Button(
+                "Clear",
+                elem_classes="self-center",
+            )
+    with gr.Row():
+        other = gr.Textbox(
+            "Answer in Swedish",
+            #info="Question to Samuel",
+            label="Extra",
+            container=True,
+            visible=False,
+        )
+        lang = gr.Radio(
+            ["English", "Swedish"],
+            label="Language",
+            info="The bot speaks ...",
+            value="English",
+            interactive=True,
+            visible=False,
+        )
+        val = gr.Slider(0, 28,
+            value = 8,
+            label="Context size",
+            step=1.0
+        )
+        tmp = gr.Slider(0.05, 2,
+            value = 0.1,
+            label="Temperature",
+            step=0.05
+        )
+        cutoff= gr.Slider(0, 1,
+            value = 0.1,
+            label="Context match cut-off",
+            step=0.05
+        )
+    ignore_extras = gr.Checkbox(label="Ignore extras", value=False)
+    
+    selected_lang = "Answer in British English"
+    def get_selected_lang(foo):
+        selected_lang = "Answer in "+foo
+    lang.change(fn=get_selected_lang, inputs=lang)
+    
+    def user(user_message, history: list):
+        # gr.ChatMessage(role="user", content=user_message)
+        # history.append(gr.ChatMessage(role="assistant", content="Hello, how can I help you?"))
+        history.append(gr.ChatMessage(role="user", content=user_message))
+        return "", history #String ends up in textbox, thus empty.
+
+    def newbot(history: list, slider_val, tmp_val, cutoff, ignore_extras):
+        last = history[-1]
+        now = datetime.now() # current date and time
+        date_time = now.strftime("%Y%m%dT%H%M%S")
+        DBG(date_time)
+        DBG(f"CONTEXT SIZE: {slider_val}")
+        user_message = last['content']
+        DBG(last['role'].upper() + ": " + user_message)
+        is_flagged = moderator(user_message)
+        if is_flagged:
+            # remove from history, truncate history?
+            his = gr.ChatMessage(role="assistant", content="Please ask another question!")
+            history.append(his)
+            yield history
+            return
+        
+        ctxkeep = int(slider_val)
+        if ctxkeep > 0:
+            DBG(f"CUT-OFF:{cutoff}")
+            context = get_context(user_message, hybrid_retrieval, cutoff)
+            DBG("FULL CONTEXT")
+            for x in context:
+                DBG(x)
+            # Take the top-3, they have already been reranked in the get_context(...) fn.
+            context = context[0:ctxkeep]
+            if len(context) > 0:
+                DBG("SELECTED CONTEXT")
+                context_str = ""
+                for x in context: # note different after reranking
+                    DBG(x)
+                    context_str += "RESEARCHERS:" + str(x.meta["researcher_name"]) + "\n"
+                    context_str += "ABSTRACT:" + str(x.content) + "\n"
+                prompt = (
+                    f"Context: {context_str}\nQuestion:{user_message}\n"
+                )
+            else:
+                prompt = (
+                    f"Context: Use the chat history and your own knowledge.\nQuestion:{user_message}\n"
+                )
+        else:
+            prompt = (
+                f"Context: Use the chat history and your own knowledge.\nQuestion:{user_message}\n"
+            )
+        system_prompt = """
+            Given the following context, answer the question at the end.
+            Do not make up facts. Do not use lists. When referring to research
+            mention the researchers names from the context. The name of the researcher will be given
+            first, followed by an abstract of the relevant research. The question will follow the context.
+            Reference the index numbers in the context when replying.
+            """
+        DBG("PROMPT")
+        DBG(prompt)
+        DBG("SYSTEM_PROMPT")
+        DBG(system_prompt)
+        _system_prompt = "You are a helpful assistant. "\
+            "Answer the question using the history and context! "\
+            "In the history, you previous answers are referred to as 'assistant'. "\
+            "Use the context as much as possible, but don't mention it, only use the information. "\
+            "If you are asked a factual question, respond to the point with a correct answer. "\
+            "Don't talk about yourself at all. "\
+            "If you use the extra facts, please rephrase them but do not change their meaning. "
+        # ctxkeep zero means no extra knowledge at all.
+        DBG(f"IGNORE EXTRAS:{ignore_extras}")
+        if ignore_extras == False and ctxkeep > 0:
+            system_prompt += the_model 
+        model = os.getenv('OAIMODEL')
+        if not model:
+            # export OAIMODEL=llama3.2:latest
+            model = "gpt-4.1-mini"
+        DBG("MODEL: "+str(model))
+        messages=[
+            {
+                "role": "system",
+                "content": system_prompt,
+            }
+        ]
+        messages += history[:-1] # because the prompt has the context.
+        ## Truncate the messages when too many?
+        messages.append({"role": "user", "content": prompt}) ## should be ChatMessage
+        format_history(messages)
+        #print("=" * 40)
+        #print(messages)
+        #print("=" * 40)
+        DBG(f"TEMP: {tmp_val}")
+        response = openai_client.chat.completions.create(
+            model=model,
+            temperature=tmp_val,
+            stream=True,
+            messages=messages,
+            stream_options={"include_usage": True},
+        )
+        DBG("messages length: "+str(len(messages)))
+        DBG("RESPONSE")
+        partial_message = ""
+        # Test for better gen
+        model = "llama3.1:latest"
+
+        answer = run_rag_pipeline(user_message, context, model, 0.1)
+
+        DBG(answer)
+        partial_message = answer
+        # End test
+        his = gr.ChatMessage(role="assistant", content="")
+        history.append(his)
+        for chunk in response:
+            if chunk.choices and chunk.choices[0].delta.content is not None:
+                partial_message = partial_message + chunk.choices[0].delta.content
+                his = gr.ChatMessage(role="assistant", content=partial_message)
+                history[-1] = his
+                yield history #partial_message
+            if chunk.usage:
+                usage = dict(chunk.usage)
+                DBG("TOKENS:"+str(usage['total_tokens']))
+        DBG(partial_message)
+        
+    def newbot_pipeline(history: list, slider_val, tmp_val, cutoff, ignore_extras):
+        last = history[-1]
+        now = datetime.now() # current date and time
+        date_time = now.strftime("%Y%m%dT%H%M%S")
+        DBG(date_time)
+        DBG(f"CONTEXT SIZE: {slider_val}")
+        user_message = last['content']
+        DBG(last['role'].upper() + ": " + user_message)
+        
+        ctxkeep = int(slider_val)
+        if ctxkeep > 0:
+            DBG(f"CUT-OFF:{cutoff}")
+            context = get_context(user_message, hybrid_retrieval, cutoff)
+            DBG("FULL CONTEXT")
+            for x in context:
+                DBG(x)
+            # Take the top-n, they have already been reranked in the get_context(...) fn.
+            context = context[0:ctxkeep]
+            if len(context) > 0:
+                DBG("SELECTED CONTEXT")
+                for x in context: # note different after reranking
+                    DBG(x)
+        # ctxkeep zero means no extra knowledge at all.
+        DBG(f"IGNORE EXTRAS:{ignore_extras}")
+        model = os.getenv('OAIMODEL')
+        if not model:
+            # export OAIMODEL=llama3.2:latest
+            model = "llama3.1:latest"
+        DBG("MODEL: "+str(model))
+
+        messages=[]
+        messages.append({"role": "user", "content": user_message})
+        DBG(f"TEMP: {tmp_val}")
+
+        template = """
+        Given the following context, answer the question at the end.
+        Do not make up facts. Do not use lists. When referring to research
+        mention the researchers names from the context. The name of the researcher will be given
+        first, followed by an abstract of the relevant research. The question will follow the context.
+        Reference the index numbers in the context when replying.
+
+        Context:
+        {% for document in documents %}
+            Researcher: {{ document.meta.researcher_name }}. Research: {{ document.content }}
+        {% endfor %}
+
+        Question: {{question}}
+        """
+        prompt_builder = PromptBuilder(template=template, required_variables=["question"])
+        prompt = prompt_builder.run(question=user_message, documents=context)
+        prompt = prompt["prompt"]
+        his = gr.ChatMessage(role="assistant", content="")
+        history.append(his)
+    
+        partial = ""
+        def _cb(chunk):
+            nonlocal partial
+            partial += chunk.content
+            return partial
+
+        generator = OllamaGenerator(
+            model=model,
+            url="http://localhost:11434",
+            generation_kwargs={
+                "num_predict": 8000,
+                "temperature": 0.1,
+                "num_ctx": 12028,
+                "repeat_last_n": -1,
+            },
+            streaming_callback=_cb
+        )
+        partial_message = ""
+        for x in generator.run(prompt):
+            partial_message = partial
+            his = gr.ChatMessage(role="assistant", content=partial_message)
+            history[-1] = his
+            yield history #partial_message
+
+        
+    # msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
+    #     newbot, chatbot, chatbot
+    # )
+    msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
+        newbot_pipeline, [chatbot, val, tmp, cutoff, ignore_extras], chatbot
+    )
+    # clear.click(lambda: None, None, chatbot, queue=False)
+    clear.click(lambda: ([], ""), None, [chatbot, msg], queue=False)
+
+if __name__ == "__main__":
+    print("Starting")
+    
+    terminal_width = os.get_terminal_size().columns
+    
+    print("Loading document store...")
+    doc_store = InMemoryDocumentStore().load_from_disk("research_docs_ns.store")
+    print(f"Number of documents: {doc_store.count_documents()}.")
+
+    # Docs are already indexed/embedded in the sotre.
+    hybrid_retrieval = create_hybrid_retriever(doc_store)
+    '''
+    documents = retrieve(hybrid_retrieval, query, top_k=args.top_k)
+    for doc in documents:
+        #print(doc.id, doc.meta["names"], ":", doc.meta["title"])
+        print_res(doc, terminal_width)
+    '''
+
+    DBG("Creating UI.")
+    demo_blocks.launch()
