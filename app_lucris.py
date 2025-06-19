@@ -187,10 +187,10 @@ with gr.Blocks(theme=theme) as demo_blocks:
             label="Temperature",
             step=0.05
         )
-        cutoff= gr.Slider(0, 1,
-            value = 0.1,
+        cutoff = gr.Slider(0, 1,
+            value = 0.0,
             label="Context match cut-off",
-            step=0.05
+            step=0.01
         )
     ignore_extras = gr.Checkbox(label="Ignore extras", value=False)
     
@@ -397,7 +397,8 @@ with gr.Blocks(theme=theme) as demo_blocks:
             his = gr.ChatMessage(role="assistant", content=partial_message)
             history[-1] = his
             yield history #partial_message
-
+        DBG(partial_message)
+        
         
     # msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
     #     newbot, chatbot, chatbot

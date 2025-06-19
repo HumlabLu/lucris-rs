@@ -484,12 +484,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             .map(|p| p.get_name())
             .collect();
         if names.is_empty() {
-            println!("No names! {}", r.get_title());
+            eprintln!("No names! {}", r.get_title());
+        } else {
+            // TODO Check the type of research (journal, etc).
+            println!("NAMES:{}", names.join(","));
+            println!("TITLE:{}", r.get_title());
+            let s = r.get_abstract();
+            /*
+            s.split_whitespace()
+                .collect::<Vec<&str>>()
+                .join(" ");
+            */
+            //println!("ABSTRACT:{}", r.get_abstract());
+            println!("ABSTRACT:{}", s);
         }
-        // TODO Check the type of research (journal, etc).
-        println!("NAMES:{}", names.join(","));
-        println!("TITLE:{}", r.get_title());
-        println!("ABSTRACT:{}", r.get_abstract());
     }
 
     // ------------------------------------------------------------------------
