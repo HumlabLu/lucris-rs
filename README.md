@@ -141,3 +141,15 @@ of how people perceive, process, and respond to visual information.
 
 Enter Query:
 ```
+
+## Web app
+
+The `app_lucris.py` script provides a web interface to a 'chatbot' answering questions about
+the research-data. 'Chatbot' between quotation marks because it only answers single questions
+without looking at the previous questions and answers. 
+
+It is built using the `Gradio` chat bot framework (making it realtively easy to host it on
+HuggingFace).
+
+Screenshot of the web interface.
+![Schat bot screenshot](chatbot00.png?raw=true "Chat bot example")
