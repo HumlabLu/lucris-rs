@@ -148,7 +148,7 @@ The `app_lucris.py` script provides a web interface to a 'chatbot' answering que
 the research-data. 'Chatbot' between quotation marks because it only answers single questions
 without looking at the previous questions and answers. 
 
-It is built using the `Gradio` chat bot framework (making it realtively easy to host it on
+It is built using the `Gradio` chat bot framework (making it relatively easy to host it on
 HuggingFace).
 
 It uses the Ollama framework to run an LLM locally.
