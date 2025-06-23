@@ -11,7 +11,7 @@ import json
 from sentence_transformers import CrossEncoder
 import numpy as np
 from datetime import datetime
-from hybrid import *
+from hybrid import embedding_model, reranker_model, create_hybrid_retriever, retrieve, InMemoryDocumentStore, PromptBuilder, OllamaGenerator
 
 '''
 If openai key is set, a OAIMODEL also has to be set, or unset
@@ -54,7 +54,7 @@ logger.addHandler(console_handler)
 # save the output (copy/paste) later from the web console output.
 # The trick is to define the DEBUG variable in the HF settings.
 def DBG(a_str):
-    if os.getenv('DEBUG'): # Create a Spaces variable called DEBUG.
+    if os.getenv('DEBUG'):
         print(a_str) # kraai
     else:
         logger.debug(a_str) # local
