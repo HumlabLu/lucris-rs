@@ -169,11 +169,11 @@ So the worktflow is as follows:
  - run `hybrid.py` to convert the data set to a data store
  - run `app_lucris.py`
 
-Some parameters (such as the embedding model) are set/hardcoded in `´hybrid.py`.
+Some parameters (such as the embedding model) are set/hardcoded in `hybrid.py`.
 The web app reads the `OAIMODEL` environment variable to choose the model. This can be set
 as follows.
 
-````bash
+```bash
 export OAIMODEL=llama3.2:latest
 python app_lucris.py
 ```
