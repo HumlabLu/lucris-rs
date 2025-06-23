@@ -344,7 +344,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
                 for x in context: # note different after reranking
                     DBG(x)
         else:
-            context = ""
+            context = []
         # ctxkeep zero means no extra knowledge at all.
         DBG(f"IGNORE EXTRAS:{ignore_extras}")
         model = os.getenv('OAIMODEL')
