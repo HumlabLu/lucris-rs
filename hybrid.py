@@ -59,7 +59,8 @@ def read_pdf() -> [Document]:
     result = pipeline.run({"converter": {"sources": file_names}})
     return result['cleaner']['documents']
 
-# Take the Documents, saves them into a database, returns a hybrid retriever.
+# Take the Documents, saves them into a database, returns a hybrid retriever
+# on the database (in memory thingy).
 def prepare_retriever(docs, doc_store, split_length=5, split_overlap=1):
     document_splitter = DocumentSplitter(
                 split_by="sentence",
@@ -106,6 +107,7 @@ def prepare_retriever(docs, doc_store, split_length=5, split_overlap=1):
     return hybrid_retrieval
 
 # Index the documents.
+# This does not split the content, the text is embedded complete.
 def create_index_nosplit(docs, doc_store):
     document_embedder = SentenceTransformersDocumentEmbedder(
         model=embedding_model, #"BAAI/bge-small-en-v1.5", #), device=ComponentDevice.from_str("cuda:0")
@@ -123,6 +125,33 @@ def create_index_nosplit(docs, doc_store):
 
     hybrid_retrieval = create_hybrid_retriever(doc_store)
     return hybrid_retrieval
+
+
+def create_index_split(docs, doc_store, split_length=5, split_overlap=1):
+    document_splitter = DocumentSplitter(
+                split_by="sentence",
+                split_length=split_length,
+                split_overlap=split_overlap
+            )
+    document_embedder = SentenceTransformersDocumentEmbedder(
+        model=embedding_model,
+    )
+    document_writer = DocumentWriter(doc_store,
+                                     policy=DuplicatePolicy.SKIP)
+
+    indexing_pipeline = Pipeline()
+    indexing_pipeline.add_component("document_splitter", document_splitter)
+    indexing_pipeline.add_component("document_embedder", document_embedder)
+    indexing_pipeline.add_component("document_writer", document_writer)
+
+    indexing_pipeline.connect("document_splitter", "document_embedder")
+    indexing_pipeline.connect("document_embedder", "document_writer")
+
+    indexing_pipeline.run({"document_splitter": {"documents": docs}})
+
+    hybrid_retrieval = create_hybrid_retriever(doc_store)
+    return hybrid_retrieval
+
 
 # Just the retriever pipeline on a document store.
 def create_hybrid_retriever(doc_store):
@@ -164,7 +193,7 @@ def _read_dataset(filename) -> [Document]:
     return docs
 
 # Reads the lucris-rs output and creates haystack documents.
-def read_research_nta(a_file) -> [Document]:
+def _read_research_nta(a_file) -> [Document]:
     current_content = None
     current_meta = {}
     documents = []
@@ -383,6 +412,7 @@ if __name__ == '__main__':
         #rs_hybrid_r = prepare_retriever_nosplit(docs, rs_doc_store)
         print("Starting create_index_nosplit()")
         create_index_nosplit(docs, rs_doc_store)
+        #create_index_split(docs, rs_doc_store)
         print("Ready create_index_nosplit()")
         rs_hybrid_r = create_hybrid_retriever(rs_doc_store)
 

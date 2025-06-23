@@ -104,7 +104,7 @@ def moderator(message):
 
 # Retrieve context from the doc store.
 def get_context(message, retriever, cutoff):
-    docs = retrieve(retriever, message)
+    docs = retrieve(retriever, message, 100) # FIXME top_k parameter!
     #documents = retrieve(hybrid_retrieval, query, top_k=args.top_k)
     result = []
     width = os.get_terminal_size().columns
@@ -419,6 +419,7 @@ if __name__ == "__main__":
     
     print("Loading document store...")
     doc_store = InMemoryDocumentStore().load_from_disk("research_docs_ns.store")
+    #doc_store = InMemoryDocumentStore().load_from_disk("research_docs_sp.store")
     print(f"Number of documents: {doc_store.count_documents()}.")
 
     # Docs are already indexed/embedded in the sotre.
