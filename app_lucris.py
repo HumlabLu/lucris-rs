@@ -103,8 +103,8 @@ def moderator(message):
 
 
 # Retrieve context from the doc store.
-def get_context(message, retriever, cutoff):
-    docs = retrieve(retriever, message, 100) # FIXME top_k parameter!
+def get_context(message, retriever, cutoff, top_k=8):
+    docs = retrieve(retriever, message, top_k=top_k) # FIXME top_k parameter!
     #documents = retrieve(hybrid_retrieval, query, top_k=args.top_k)
     result = []
     width = os.get_terminal_size().columns
@@ -227,7 +227,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
         ctxkeep = int(slider_val)
         if ctxkeep > 0:
             DBG(f"CUT-OFF:{cutoff}")
-            context = get_context(user_message, hybrid_retrieval, cutoff)
+            context = get_context(user_message, hybrid_retrieval, cutoff, ctxkeep)
             DBG("FULL CONTEXT")
             for x in context:
                 DBG(x)
