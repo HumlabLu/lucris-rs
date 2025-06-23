@@ -32,13 +32,8 @@ The other stuff is for reading and testing.
 
 # embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
 embedding_model = "sentence-transformers/all-MiniLM-L12-v2"
-# embedding_model = "BAAI/bge-small-en-v1.5"
-# embedding_model = 'sentence-transformers/all-mpnet-base-v2'
 
 # see https://huggingface.co/BAAI/bge-m3
-# embedding_model = "BAAI/bge-m3"
-
-# reranker_model = "BAAI/bge-reranker-v2-m3"
 reranker_model = "BAAI/bge-reranker-base"
 
 parser = argparse.ArgumentParser()
@@ -244,7 +239,7 @@ def print_res(doc, width=0):
         txt = txt[0:txt_width]+"..."
     print("{:.5f}".format(doc.score), txt)
         
-# Run the pre-defined retrievers, returns the eight best documents.
+# Run the pre-defined retrievers, returns the top_k best documents.
 def retrieve(retriever, query, top_k=8):
     result = retriever.run(
         {

@@ -52,6 +52,7 @@ logger.addHandler(console_handler)
 
 # We can't save a logfile in a HF space, printing it allows us to
 # save the output (copy/paste) later from the web console output.
+# The trick is to define the DEBUG variable in the HF settings.
 def DBG(a_str):
     if os.getenv('DEBUG'): # Create a Spaces variable called DEBUG.
         print(a_str) # kraai
