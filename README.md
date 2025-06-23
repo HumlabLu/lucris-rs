@@ -72,7 +72,7 @@ Run queries like this.
 python haystack_research.py -s docs_research.store
 ```
 
-Enter "bye" to quit.
+Enter 'bye' to quit.
 
 ## Example
 

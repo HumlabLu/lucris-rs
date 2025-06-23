@@ -43,8 +43,9 @@ reranker_model = "BAAI/bge-reranker-base"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--create_store", help="Create a new data store.", default=None)
+parser.add_argument("-r", "--read_store", help="Read a data store.", default=None)
 parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=8)
-parser.add_argument("-q", "--query", help="Query DBs.", default="What is lichen?")
+parser.add_argument("-q", "--query", help="Query DBs.", default=None)
 args = parser.parse_args()
 
 
@@ -341,7 +342,7 @@ def run_rag_pipeline_stream(query, docs, model, temp):
     def _cb(chunk):
         nonlocal partial
         partial += chunk.content
-        print(f"[{partial}]")
+        #print(f"[{partial}]")
         return chunk.content #partial
 
     generator = OllamaGenerator(
@@ -364,56 +365,8 @@ if __name__ == '__main__':
     terminal_width = os.get_terminal_size().columns
     query = args.query
     
-    # Create the PDF document store and retriever.
-    if False:
-        print("Loading PDFs")
-        pdf_doc_store = InMemoryDocumentStore()
-        pdf_docs = read_pdf()
-        # dump_docs(pdf_docs)
-        print("Retrieving.")
-        pdf_hybrid_r = prepare_retriever(pdf_docs, pdf_doc_store)
-        documents = retrieve(pdf_hybrid_r, query)
-        # print(documents)
-        for doc in documents:
-            #print(doc.score, doc.content)
-            print_res(doc, terminal_width)
-        
-    # --
-
-    # Create the4 abstracts store and retriever. 
-    if False:
-        print("Loading abstracts.")
-        #dataset = load_from_disk("abstracts_sentences.json")
-        dataset = load_from_disk("abstracts.json")
-        print(dataset)
-        #print(dataset[0])
-
-        docs = []
-        for doc in dataset:
-            docs.append(
-                Document(
-                        content=doc["contents"],
-                        meta={"title": doc["title"], "abstract": doc["contents"]}
-                    )
-            )
-        # dump_docs(docs)
-        #print(docs[0])
-        print("Retrieving.")
-        ds_doc_store = InMemoryDocumentStore()
-        ds_hybrid_r = prepare_retriever(docs, ds_doc_store)
-        documents = retrieve(ds_hybrid_r, query)
-        # print(documents)
-        for doc in documents:
-            #print(doc.score, doc.content)
-            print_res(doc, terminal_width)
-
-    # print(result)
-    # pretty_print_results(result["ranker"])
-
-    # --
-
     if args.create_store:
-        print("Loading research dataset") # Load store instead...
+        print("Loading research dataset")
         dataset = load_from_disk("research_docs.dataset")
         print(dataset)
         docs = []
@@ -446,9 +399,15 @@ if __name__ == '__main__':
         print("Saving document store")
         rs_doc_store.save_to_disk(args.create_store)
 
-
+    if not args.query:
+        sys.exit(0)
+        
     print("Loading document store...")
-    doc_store = InMemoryDocumentStore().load_from_disk("research_docs_ns.store")
+    if not args.read_store and not args.create_store:
+        args.read_store = "research_docs_ns.store"
+    elif not args.read_store and args.create_store:
+        args.read_store = args.create_store
+    doc_store = InMemoryDocumentStore().load_from_disk(args.read_store)
     print(f"Number of documents: {doc_store.count_documents()}.")
 
     # Docs are already indexed/embedded in the sotre.
