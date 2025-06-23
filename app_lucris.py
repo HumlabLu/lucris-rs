@@ -343,6 +343,8 @@ with gr.Blocks(theme=theme) as demo_blocks:
                 DBG("SELECTED CONTEXT")
                 for x in context: # note different after reranking
                     DBG(x)
+        else:
+            context = ""
         # ctxkeep zero means no extra knowledge at all.
         DBG(f"IGNORE EXTRAS:{ignore_extras}")
         model = os.getenv('OAIMODEL')
