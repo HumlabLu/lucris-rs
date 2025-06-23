@@ -7,7 +7,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-f", "--filename", help="Filename.", default="research_docs_nta.txt")
-parser.add_argument("-o", "--outputfilename", help="Output ilename.", default="research_docs.dataset")
+parser.add_argument("-o", "--outputfilename", help="Output filename.", default="research_docs.dataset")
 parser.add_argument("-q", "--query", help="Query DBs.", default="What is lichen?")
 args = parser.parse_args()
 

@@ -151,5 +151,23 @@ without looking at the previous questions and answers.
 It is built using the `Gradio` chat bot framework (making it realtively easy to host it on
 HuggingFace).
 
+It uses the Ollama framework to run an LLM locally.
+
 Screenshot of the web interface.
 ![Schat bot screenshot](chatbot00.png?raw=true "Chat bot example")
+
+### Preparing the web app
+
+The web app reads the same lucris data produced by the `lucris-rs` scripts. The
+`lucris2dataset.py` and `hybrid.py` scripts read and prepare the data for the web app.
+They prepare a HayStack document store for hybrid (embeddings and BM25) retrieval.
+
+So the worktflow is as follows:
+ - run the scraper
+ - run `lucris-rs`´on its output
+ - run `lucris2dataset.py` to create a data set
+ - run `hybrid.py` to convert the data set to a data store
+ - run `app_lucris.py`
+
+
+
