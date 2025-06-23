@@ -49,11 +49,9 @@ logger.addHandler(console_handler)
 
 # --------
 
-the_model = '''
-'''
 
-# --------
-
+# We can't save a logfile in a HF space, printing it allows us to
+# save the output (copy/paste) later from the web console output.
 def DBG(a_str):
     if os.getenv('DEBUG'): # Create a Spaces variable called DEBUG.
         print(a_str) # kraai
@@ -61,6 +59,10 @@ def DBG(a_str):
         logger.debug(a_str) # local
     
 DBG("Starting the Pufendorf bot")
+
+# These are defined in hybrid.py
+DBG(f"Embedding model: {embedding_model}")
+DBG(f"Reranker model: {reranker_model}")
 
 # OpenAI
 try:
@@ -268,8 +270,6 @@ with gr.Blocks(theme=theme) as demo_blocks:
             "If you use the extra facts, please rephrase them but do not change their meaning. "
         # ctxkeep zero means no extra knowledge at all.
         DBG(f"IGNORE EXTRAS:{ignore_extras}")
-        if ignore_extras == False and ctxkeep > 0:
-            system_prompt += the_model 
         model = os.getenv('OAIMODEL')
         if not model:
             # export OAIMODEL=llama3.2:latest
