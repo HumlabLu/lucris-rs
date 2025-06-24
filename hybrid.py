@@ -38,6 +38,7 @@ reranker_model = "BAAI/bge-reranker-base"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-c", "--create_store", help="Create a new data store.", default=None)
+parser.add_argument("-d", "--dataset", help="Dataset filename.", default=None)
 parser.add_argument("-r", "--read_store", help="Read a data store.", default=None)
 parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=8)
 parser.add_argument("-q", "--query", help="Query DBs.", default=None)
@@ -269,11 +270,24 @@ def print_res(doc, width=0):
     print("{:.5f}".format(doc.score), txt)
         
 # Run the pre-defined retrievers, returns the top_k best documents.
+# We can filter the doc store if we find a name in the query.
+# filters = {
+#     "operator": "AND",
+#     "conditions": [
+#         {"field": "meta.type", "operator": "==", "value": "article"},
+#         {"field": "meta.genre", "operator": "in", "value": ["economy", "politics"]},
+#     ],
+# }
+# results = DocumentStore.filter_documents(filters=filters)
 def retrieve(retriever, query, top_k=8):
     result = retriever.run(
         {
             "text_embedder": {"text": query},
-            "bm25_retriever": {"query": query, "top_k": top_k, "scale_score": True},
+            "bm25_retriever": {"query": query, "top_k": top_k, "scale_score": True,
+                # "filters": {"field": "meta.researcher_name",
+                #             "operator": "==",
+                #             "value": "P. Berck"}
+            },
             "embedding_retriever": {"top_k": top_k, "scale_score": True},
             "ranker": {"query": query, "top_k": top_k, "scale_score": True}
         }
@@ -389,9 +403,9 @@ if __name__ == '__main__':
     terminal_width = os.get_terminal_size().columns
     query = args.query
     
-    if args.create_store:
+    if args.create_store and args.dataset:
         print("Loading research dataset")
-        dataset = load_from_disk("research_docs.dataset")
+        dataset = load_from_disk(args.dataset)
         print(dataset)
         docs = []
         for doc in dataset:
@@ -413,16 +427,8 @@ if __name__ == '__main__':
         print("Starting create_index_nosplit()")
         create_index_nosplit(docs, rs_doc_store)
         #create_index_split(docs, rs_doc_store)
-        print("Ready create_index_nosplit()")
-        rs_hybrid_r = create_hybrid_retriever(rs_doc_store)
-
-        documents = retrieve(rs_hybrid_r, query)
-        for doc in documents:
-            #print(doc.id, doc.meta["names"], ":", doc.meta["title"])
-            print_res(doc, terminal_width)
-
-        print("Saving document store")
         rs_doc_store.save_to_disk(args.create_store)
+        print("Ready create_index_nosplit()")
 
     if not args.query:
         sys.exit(0)

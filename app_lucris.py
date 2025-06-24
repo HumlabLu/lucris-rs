@@ -305,12 +305,19 @@ if __name__ == "__main__":
     
     DBG("Loading document store...")
     doc_store = InMemoryDocumentStore().load_from_disk("research_docs_ns.store")
+    #doc_store = InMemoryDocumentStore().load_from_disk("testdata.store")
     #doc_store = InMemoryDocumentStore().load_from_disk("research_docs_sp.store")
     DBG(f"Number of documents: {doc_store.count_documents()}.")
 
     # Docs are already indexed/embedded in the sotre.
     hybrid_retrieval = create_hybrid_retriever(doc_store)
     '''
+    pipeline.add_component(instance=InMemoryBM25Retriever(document_store=document_store), name="retriever")
+    pipeline.run(data={"retriever":
+            {"query": query,
+             "filters": {"field": "meta.version", "operator": ">", "value": 1.21}}})
+
+
     documents = retrieve(hybrid_retrieval, query, top_k=args.top_k)
     for doc in documents:
         #print(doc.id, doc.meta["names"], ":", doc.meta["title"])
