@@ -196,6 +196,11 @@ with gr.Blocks(theme=theme) as demo_blocks:
             label="Context match cut-off",
             step=0.01
         )
+        npredict = gr.Slider(100, 10000,
+            value = 8000,
+            label="Num predict",
+            step=10
+        )
     ignore_extras = gr.Checkbox(label="Ignore extras", value=False, visible=False)
     
     selected_lang = "Answer in British English"
@@ -318,7 +323,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
         DBG(partial_message)
         
     # New bot using the HayStack prompt builder.
-    def newbot_pipeline(history: list, slider_val, tmp_val, cutoff, ignore_extras):
+    def newbot_pipeline(history: list, slider_val, tmp_val, cutoff, ignore_extras, npredict):
         last = history[-1]
         now = datetime.now() # current date and time
         date_time = now.strftime("%Y%m%dT%H%M%S")
@@ -340,7 +345,6 @@ with gr.Blocks(theme=theme) as demo_blocks:
         messages=[]
         #messages += history[:-1] # because the prompt has the context.
         messages.append({"role": "user", "content": user_message})
-        DBG(f"TEMP: {tmp_val}")
 
         template = """
         Given the following context, answer the question at the end.
@@ -351,7 +355,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
 
         Context:
         {% for document in documents %}
-            Researcher: {{ document.meta.researcher_name }}. Research: {{ document.meta.abstract }}
+            Researcher: {{ document.meta.researcher_name }}. Research: {{ document.content }}
         {% endfor %}
 
         Question: {{question}}
@@ -362,6 +366,9 @@ with gr.Blocks(theme=theme) as demo_blocks:
         DBG(prompt)
         his = gr.ChatMessage(role="assistant", content="")
         history.append(his)
+
+        DBG(f"TEMP: {tmp_val}")
+        DBG(f"NUM PREDICT: {npredict}")
     
         partial = ""
         def _cb(chunk):
@@ -373,7 +380,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
             model=gen_model,
             url="http://localhost:11434",
             generation_kwargs={
-                "num_predict": 8000,
+                "num_predict": npredict,
                 "temperature": tmp_val,
                 "num_ctx": 12028,
                 "repeat_last_n": -1,
@@ -393,7 +400,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
     #     newbot, chatbot, chatbot
     # )
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-        newbot_pipeline, [chatbot, val, tmp, cutoff, ignore_extras], chatbot
+        newbot_pipeline, [chatbot, val, tmp, cutoff, ignore_extras, npredict], chatbot
     )
     # clear.click(lambda: None, None, chatbot, queue=False)
     clear.click(lambda: ([], ""), None, [chatbot, msg], queue=False)

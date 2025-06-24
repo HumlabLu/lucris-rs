@@ -42,7 +42,7 @@ with open(args.filename, "r") as f:
                 #print("\t", " ".join(bits))
                 pass
             if in_a:
-                if line.startswith("2025"):
+                if line.startswith("2025"): # Meh
                     print(" ".join(bits))
                 else:
                     print(line)
