@@ -196,7 +196,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
             label="Context match cut-off",
             step=0.01
         )
-        npredict = gr.Slider(100, 10000,
+        npredict = gr.Slider(10, 10000,
             value = 8000,
             label="Num predict",
             step=10
@@ -328,11 +328,11 @@ with gr.Blocks(theme=theme) as demo_blocks:
         now = datetime.now() # current date and time
         date_time = now.strftime("%Y%m%dT%H%M%S")
         DBG(date_time)
-        DBG(f"CONTEXT SIZE: {slider_val}")
         user_message = last['content']
         DBG(last['role'].upper() + ": " + user_message)
         
         ctxkeep = int(slider_val)
+        DBG(f"CONTEXT SIZE: {slider_val}")
         DBG(f"CUT-OFF:{cutoff}")
         context = get_context(user_message, hybrid_retrieval, cutoff, ctxkeep)
         DBG("SELECTED CONTEXT")

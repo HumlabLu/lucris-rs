@@ -26,7 +26,7 @@ with open(args.filename, "r") as f:
             if in_q:
                 if bits[0] == "FULL":
                     in_q = False
-                if bits[0] == "TEMP:":
+                if bits[0] == "NUM":
                     in_a = True
                     in_q = False
                     print("ANSWER")
