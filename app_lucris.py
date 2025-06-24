@@ -351,7 +351,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
 
         Context:
         {% for document in documents %}
-            Researcher: {{ document.meta.researcher_name }}. Research: {{ document.content }}
+            Researcher: {{ document.meta.researcher_name }}. Research: {{ document.meta.abstract }}
         {% endfor %}
 
         Question: {{question}}
@@ -359,6 +359,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
         prompt_builder = PromptBuilder(template=template, required_variables=["question"])
         prompt = prompt_builder.run(question=user_message, documents=context)
         prompt = prompt["prompt"]
+        DBG(prompt)
         his = gr.ChatMessage(role="assistant", content="")
         history.append(his)
     
@@ -373,7 +374,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
             url="http://localhost:11434",
             generation_kwargs={
                 "num_predict": 8000,
-                "temperature": 0.1,
+                "temperature": tmp_val,
                 "num_ctx": 12028,
                 "repeat_last_n": -1,
             },
