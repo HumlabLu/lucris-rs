@@ -65,14 +65,16 @@ DBG("Starting the Pufendorf bot")
 DBG(f"Embedding model: {embedding_model}")
 DBG(f"Reranker model: {reranker_model}")
 
+gen_model = os.getenv('OAIMODEL')
+
 # OpenAI
 try:
     openai_client = OpenAI(
         api_key=os.environ.get("OAIKEY"),
     )
     DBG("Using OpenAI")
-    model = os.getenv('OAIMODEL')
-    DBG(f"OpenAI model: {model}")
+    if not gen_model:
+        gen_model = "gpt-4.1-mini"
 except OpenAIError:
     try:
         openai_client = OpenAI(
@@ -80,12 +82,12 @@ except OpenAIError:
             api_key="ollama",  # required, but unused
         )
         DBG("Using local Ollama.")
-        model = os.getenv('OAIMODEL')
-        DBG(f"Ollama model: {model}")
+        if not gen_model:
+            gen_model = "llama3.2:latest"
     except:
         DBG("No AI provider available. Exit.")
         sys.exit(1)
-
+DBG(f"Generation model: {gen_model}")
 
 # Contact OpenAI "moderator".
 def moderator(message):
@@ -104,8 +106,7 @@ def moderator(message):
 
 # Retrieve context from the doc store.
 def get_context(message, retriever, cutoff, top_k=8):
-    docs = retrieve(retriever, message, top_k=top_k) # FIXME top_k parameter!
-    #documents = retrieve(hybrid_retrieval, query, top_k=args.top_k)
+    docs = retrieve(retriever, message, top_k=top_k)
     result = []
     width = os.get_terminal_size().columns
     for doc in docs:
@@ -195,7 +196,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
             label="Context match cut-off",
             step=0.01
         )
-    ignore_extras = gr.Checkbox(label="Ignore extras", value=False)
+    ignore_extras = gr.Checkbox(label="Ignore extras", value=False, visible=False)
     
     selected_lang = "Answer in British English"
     def get_selected_lang(foo):
@@ -208,7 +209,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
         history.append(gr.ChatMessage(role="user", content=user_message))
         return "", history #String ends up in textbox, thus empty.
 
-    def newbot(history: list, slider_val, tmp_val, cutoff, ignore_extras):
+    def _newbot(history: list, slider_val, tmp_val, cutoff, ignore_extras):
         last = history[-1]
         now = datetime.now() # current date and time
         date_time = now.strftime("%Y%m%dT%H%M%S")
@@ -225,28 +226,23 @@ with gr.Blocks(theme=theme) as demo_blocks:
             return
         
         ctxkeep = int(slider_val)
-        if ctxkeep > 0:
-            DBG(f"CUT-OFF:{cutoff}")
-            context = get_context(user_message, hybrid_retrieval, cutoff, ctxkeep)
-            DBG("FULL CONTEXT")
-            for x in context:
+        DBG(f"CUT-OFF:{cutoff}")
+        context = get_context(user_message, hybrid_retrieval, cutoff, ctxkeep)
+        DBG("FULL CONTEXT")
+        for x in context:
+            DBG(x)
+        # Take the top-3, they have already been reranked in the get_context(...) fn.
+        context = context[0:ctxkeep]
+        if len(context) > 0:
+            DBG("SELECTED CONTEXT")
+            context_str = ""
+            for x in context: # note different after reranking
                 DBG(x)
-            # Take the top-3, they have already been reranked in the get_context(...) fn.
-            context = context[0:ctxkeep]
-            if len(context) > 0:
-                DBG("SELECTED CONTEXT")
-                context_str = ""
-                for x in context: # note different after reranking
-                    DBG(x)
-                    context_str += "RESEARCHERS:" + str(x.meta["researcher_name"]) + "\n"
-                    context_str += "ABSTRACT:" + str(x.content) + "\n"
-                prompt = (
-                    f"Context: {context_str}\nQuestion:{user_message}\n"
-                )
-            else:
-                prompt = (
-                    f"Context: Use the chat history and your own knowledge.\nQuestion:{user_message}\n"
-                )
+                context_str += "RESEARCHERS:" + str(x.meta["researcher_name"]) + "\n"
+                context_str += "ABSTRACT:" + str(x.content) + "\n"
+            prompt = (
+                f"Context: {context_str}\nQuestion:{user_message}\n"
+            )
         else:
             prompt = (
                 f"Context: Use the chat history and your own knowledge.\nQuestion:{user_message}\n"
@@ -321,6 +317,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
                 DBG("TOKENS:"+str(usage['total_tokens']))
         DBG(partial_message)
         
+    # New bot using the HayStack prompt builder.
     def newbot_pipeline(history: list, slider_val, tmp_val, cutoff, ignore_extras):
         last = history[-1]
         now = datetime.now() # current date and time
@@ -331,29 +328,17 @@ with gr.Blocks(theme=theme) as demo_blocks:
         DBG(last['role'].upper() + ": " + user_message)
         
         ctxkeep = int(slider_val)
-        if ctxkeep > 0:
-            DBG(f"CUT-OFF:{cutoff}")
-            context = get_context(user_message, hybrid_retrieval, cutoff)
-            DBG("FULL CONTEXT")
-            for x in context:
-                DBG(x)
-            # Take the top-n, they have already been reranked in the get_context(...) fn.
-            context = context[0:ctxkeep]
-            if len(context) > 0:
-                DBG("SELECTED CONTEXT")
-                for x in context: # note different after reranking
-                    DBG(x)
-        else:
-            context = []
+        DBG(f"CUT-OFF:{cutoff}")
+        context = get_context(user_message, hybrid_retrieval, cutoff, ctxkeep)
+        DBG("SELECTED CONTEXT")
+        for x in context:
+            DBG(x)
         # ctxkeep zero means no extra knowledge at all.
         DBG(f"IGNORE EXTRAS:{ignore_extras}")
-        model = os.getenv('OAIMODEL')
-        if not model:
-            # export OAIMODEL=llama3.2:latest
-            model = "llama3.1:latest"
-        DBG("MODEL: "+str(model))
+        DBG("MODEL: "+str(gen_model))
 
         messages=[]
+        #messages += history[:-1] # because the prompt has the context.
         messages.append({"role": "user", "content": user_message})
         DBG(f"TEMP: {tmp_val}")
 
@@ -384,7 +369,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
             return partial
 
         generator = OllamaGenerator(
-            model=model,
+            model=gen_model,
             url="http://localhost:11434",
             generation_kwargs={
                 "num_predict": 8000,
@@ -417,10 +402,10 @@ if __name__ == "__main__":
     
     terminal_width = os.get_terminal_size().columns
     
-    print("Loading document store...")
+    DBG("Loading document store...")
     doc_store = InMemoryDocumentStore().load_from_disk("research_docs_ns.store")
     #doc_store = InMemoryDocumentStore().load_from_disk("research_docs_sp.store")
-    print(f"Number of documents: {doc_store.count_documents()}.")
+    DBG(f"Number of documents: {doc_store.count_documents()}.")
 
     # Docs are already indexed/embedded in the sotre.
     hybrid_retrieval = create_hybrid_retriever(doc_store)
