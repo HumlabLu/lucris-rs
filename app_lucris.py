@@ -12,6 +12,7 @@ from sentence_transformers import CrossEncoder
 import numpy as np
 from datetime import datetime
 from hybrid import embedding_model, reranker_model, create_hybrid_retriever, retrieve, InMemoryDocumentStore, PromptBuilder, OllamaGenerator
+import argparse
 
 '''
 If openai key is set, a OAIMODEL also has to be set, or unset
@@ -49,6 +50,9 @@ logger.addHandler(console_handler)
 
 # --------
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--datastore", help="Datastore filename.", default="research_docs_ns.store")
+args = parser.parse_args()
 
 # We can't save a logfile in a HF space, printing it allows us to
 # save the output (copy/paste) later from the web console output.
@@ -145,11 +149,13 @@ theme = gr.themes.Monochrome(
 )
 
 with gr.Blocks(theme=theme) as demo_blocks:
+    # gr.Markdown("# Chat with Lucris data")
     chatbot = gr.Chatbot(
         type="messages",
         label="",
         resizable=True,
         #avatar_images=(None, "./pufendorf1.jpg"),
+        placeholder="<strong>Lucris</strong>",
     )
     with gr.Row():
         with gr.Column(scale=9):
@@ -303,8 +309,8 @@ if __name__ == "__main__":
     
     terminal_width = os.get_terminal_size().columns
     
-    DBG("Loading document store...")
-    doc_store = InMemoryDocumentStore().load_from_disk("research_docs_ns.store")
+    DBG(f"Loading document store {args.datastore}...")
+    doc_store = InMemoryDocumentStore().load_from_disk(args.datastore)
     #doc_store = InMemoryDocumentStore().load_from_disk("testdata.store")
     #doc_store = InMemoryDocumentStore().load_from_disk("research_docs_sp.store")
     DBG(f"Number of documents: {doc_store.count_documents()}.")
