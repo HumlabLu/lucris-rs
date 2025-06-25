@@ -11,6 +11,7 @@ from haystack.components.retrievers.in_memory import InMemoryBM25Retriever, InMe
 from haystack.components.embedders import SentenceTransformersTextEmbedder
 from haystack.components.joiners import DocumentJoiner
 from haystack.components.rankers import TransformersSimilarityRanker
+#from haystack.components.rankers import SentenceTransformersSimilarityRanker
 from haystack import Pipeline
 from haystack.document_stores.types import DuplicatePolicy
 from haystack import Pipeline
@@ -109,6 +110,7 @@ def prepare_retriever(docs, doc_store, split_length=5, split_overlap=1):
 
 # Index the documents.
 # This does not split the content, the text is embedded complete.
+# Calls and returns create_hybrid_retriever().
 def create_index_nosplit(docs, doc_store):
     document_embedder = SentenceTransformersDocumentEmbedder(
         model=embedding_model, #"BAAI/bge-small-en-v1.5", #), device=ComponentDevice.from_str("cuda:0")
@@ -127,7 +129,7 @@ def create_index_nosplit(docs, doc_store):
     hybrid_retrieval = create_hybrid_retriever(doc_store)
     return hybrid_retrieval
 
-
+# As above, but splits the contents into sentences.
 def create_index_split(docs, doc_store, split_length=5, split_overlap=1):
     document_splitter = DocumentSplitter(
                 split_by="sentence",
@@ -155,6 +157,7 @@ def create_index_split(docs, doc_store, split_length=5, split_overlap=1):
 
 
 # Just the retriever pipeline on a document store.
+# Creates an embedding and BM25 retriever on the doc_store.
 def create_hybrid_retriever(doc_store):
     text_embedder = SentenceTransformersTextEmbedder(
         model=embedding_model, #"BAAI/bge-small-en-v1.5" #, device=ComponentDevice.from_str("cuda:0")
@@ -163,7 +166,9 @@ def create_hybrid_retriever(doc_store):
     bm25_retriever = InMemoryBM25Retriever(doc_store)
 
     document_joiner = DocumentJoiner()
-    ranker = TransformersSimilarityRanker(model=reranker_model) #"BAAI/bge-reranker-base")
+    ranker = TransformersSimilarityRanker(model=reranker_model)
+    # I am not able to import the SentenceTSR on my mac....?
+    #ranker = SentenceTransformersSimilarityRanker(model=reranker_model)
 
     hybrid_retrieval = Pipeline()
     hybrid_retrieval.add_component("text_embedder", text_embedder)
