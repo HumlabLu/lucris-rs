@@ -10,8 +10,8 @@ from haystack.utils import ComponentDevice
 from haystack.components.retrievers.in_memory import InMemoryBM25Retriever, InMemoryEmbeddingRetriever
 from haystack.components.embedders import SentenceTransformersTextEmbedder
 from haystack.components.joiners import DocumentJoiner
-from haystack.components.rankers import TransformersSimilarityRanker
-#from haystack.components.rankers import SentenceTransformersSimilarityRanker
+#from haystack.components.rankers import TransformersSimilarityRanker
+from haystack.components.rankers import SentenceTransformersSimilarityRanker
 from haystack import Pipeline
 from haystack.document_stores.types import DuplicatePolicy
 from haystack import Pipeline
@@ -166,9 +166,9 @@ def create_hybrid_retriever(doc_store):
     bm25_retriever = InMemoryBM25Retriever(doc_store)
 
     document_joiner = DocumentJoiner()
-    ranker = TransformersSimilarityRanker(model=reranker_model)
-    # I am not able to import the SentenceTSR on my mac....?
-    #ranker = SentenceTransformersSimilarityRanker(model=reranker_model)
+    #ranker = TransformersSimilarityRanker(model=reranker_model)
+    # Needs haystack-ai >= 2.14
+    ranker = SentenceTransformersSimilarityRanker(model=reranker_model)
 
     hybrid_retrieval = Pipeline()
     hybrid_retrieval.add_component("text_embedder", text_embedder)
