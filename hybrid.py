@@ -413,6 +413,8 @@ if __name__ == '__main__':
         dataset = load_from_disk(args.dataset)
         print(dataset)
         docs = []
+        # This expects the name-title-abstract data from lucrisr-rs.
+        # Note the confusing abstract/contents renaming... FIXME
         for doc in dataset:
             docs.append(
                 Document(
@@ -438,26 +440,26 @@ if __name__ == '__main__':
     if not args.query:
         sys.exit(0)
         
-    print("Loading document store...")
     if not args.read_store and not args.create_store:
         args.read_store = "research_docs_ns.store"
     elif not args.read_store and args.create_store:
         args.read_store = args.create_store
+    print(f"Loading document store {args.read_store}...")
     doc_store = InMemoryDocumentStore().load_from_disk(args.read_store)
     print(f"Number of documents: {doc_store.count_documents()}.")
 
-    # Docs are already indexed/embedded in the sotre.
+    # Docs are already indexed/embedded in the store.
     hybrid_retrieval = create_hybrid_retriever(doc_store)
     
     documents = retrieve(hybrid_retrieval, query, top_k=args.top_k)
+    print("=" * 80)
     for doc in documents:
         #print(doc.id, doc.meta["names"], ":", doc.meta["title"])
         print_res(doc, terminal_width)
-
+    print("=" * 80)
     model = "llama3.1:latest"
     answer = run_rag_pipeline(query, documents, model, 0.1)
     print(answer)
-
     print("=" * 80)
 
     run_rag_pipeline_stream(query, documents, model, 0.1)
