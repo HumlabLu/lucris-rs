@@ -74,7 +74,43 @@ python haystack_research.py -s docs_research.store
 
 Enter 'bye' to quit.
 
-## Example
+## Web app
+
+The `app_lucris.py` script provides a web interface to a 'chatbot' answering questions about
+the research-data. 'Chatbot' between quotation marks because it only answers single questions
+without looking at the previous questions and answers. 
+
+It is built using the `Gradio` chat bot framework (making it relatively easy to host it on
+HuggingFace).
+
+It uses the Ollama framework to run an LLM locally.
+
+Screenshot of the web interface.
+![Chatbot screen shot](chatbot00.png?raw=true "Chatbot example")
+
+### Preparing the web app
+
+The web app reads the same lucris data produced by the `lucris-rs` scripts. The
+`lucris2dataset.py` and `hybrid.py` scripts read and prepare the data for the web app.
+They prepare a HayStack document store for hybrid (embeddings and BM25) retrieval.
+
+So the worktflow is as follows:
+ - run the scraper
+ - run `lucris-rs` on its output
+ - run `lucris2dataset.py` to create a data set
+ - run `hybrid.py -c research_docs.store -d research_docs.dataset` to convert the data set to a data store
+ - run `app_lucris.py -r research_docs.store`
+
+Some parameters (such as the embedding and reranker models) are set/hardcoded in `hybrid.py`.
+The web app reads the `OAIMODEL` environment variable to choose the model. This can be set
+as follows.
+
+```bash
+export OAIMODEL=llama3.2:latest
+python app_lucris.py
+```
+
+## Command-line Querying Example
 
 Running : `python haystack_research.py -s docs_research.store`
 
@@ -142,45 +178,13 @@ of how people perceive, process, and respond to visual information.
 Enter Query:
 ```
 
-## Web app
+## Screen Shots
 
-The `app_lucris.py` script provides a web interface to a 'chatbot' answering questions about
-the research-data. 'Chatbot' between quotation marks because it only answers single questions
-without looking at the previous questions and answers. 
+### Example 1
 
-It is built using the `Gradio` chat bot framework (making it relatively easy to host it on
-HuggingFace).
+![Chatbot screen shot](chatbot01.png?raw=true "Chatbot example")
 
-It uses the Ollama framework to run an LLM locally.
+### Example 2
 
-Screenshot of the web interface.
-![Schat bot screenshot](chatbot00.png?raw=true "Chat bot example")
-
-### Preparing the web app
-
-The web app reads the same lucris data produced by the `lucris-rs` scripts. The
-`lucris2dataset.py` and `hybrid.py` scripts read and prepare the data for the web app.
-They prepare a HayStack document store for hybrid (embeddings and BM25) retrieval.
-
-So the worktflow is as follows:
- - run the scraper
- - run `lucris-rs`´on its output
- - run `lucris2dataset.py` to create a data set
- - run `hybrid.py -c research_docs.store -d research_docs.dataset` to convert the data set to a data store
- - run `app_lucris.py -r research_docs.store`
-
-Some parameters (such as the embedding and reranker models) are set/hardcoded in `hybrid.py`.
-The web app reads the `OAIMODEL` environment variable to choose the model. This can be set
-as follows.
-
-```bash
-export OAIMODEL=llama3.2:latest
-python app_lucris.py
-```
-
-## Screen shots
-
-![Schat bot screenshot](chatbot01.png?raw=true "Chat bot example")
-
-![Schat bot screenshot](chatbot02.png?raw=true "Chat bot example")
+![Chatbot screen shot](chatbot02.png?raw=true "Chatbot example")
 
