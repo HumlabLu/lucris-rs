@@ -112,7 +112,7 @@ python app_lucris.py
 
 The web-app shows a drop-down menu with all the models installed on your system, with the one
 defined by `OAIMODEL` selected as default. If the `OAIMODEL` variable is not defined, the first
-available Ollama model is chosen. :w
+available Ollama model is chosen.
 
 
 ## Command-line Querying Example
