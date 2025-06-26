@@ -66,6 +66,14 @@ def DBG(a_str):
     
 DBG("Starting the Pufendorf bot")
 
+'''
+model='llama3.1:latest'
+ modified_at=datetime.datetime(2024, 8, 13, 16, 10, 49, 883243, tzinfo=TzInfo(+02:00))
+ digest='91ab477bec9d27086a119e33c471ae7afbd786cc4fbd8f38d8af0a0b949d53aa'
+ size=4661230977
+ details=ModelDetails(parent_model='', format='gguf', family='llama', families=['llama'], parameter_size='8.0B', quantization_level='Q4_0')
+'''
+
 def get_ollama_models():
     try:
         result = ollama.list()
@@ -74,7 +82,7 @@ def get_ollama_models():
         sys.exit(2)
     model_names = []
     for model in result["models"]:
-        DBG(model.model)
+        DBG(f"Ollama: {model.model} / {model.details.parameter_size} / {model.details.quantization_level}")
         model_names.append(model.model)
     return model_names
 
