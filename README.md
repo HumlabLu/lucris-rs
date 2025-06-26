@@ -166,8 +166,8 @@ So the worktflow is as follows:
  - run the scraper
  - run `lucris-rs`´on its output
  - run `lucris2dataset.py` to create a data set
- - run `hybrid.py` to convert the data set to a data store
- - run `app_lucris.py`
+ - run `hybrid.py -c research_docs.store -d research_docs.dataset` to convert the data set to a data store
+ - run `app_lucris.py -r research_docs.store`
 
 Some parameters (such as the embedding and reranker models) are set/hardcoded in `hybrid.py`.
 The web app reads the `OAIMODEL` environment variable to choose the model. This can be set
@@ -177,4 +177,10 @@ as follows.
 export OAIMODEL=llama3.2:latest
 python app_lucris.py
 ```
+
+## Screen shots
+
+![Schat bot screenshot](chatbot01.png?raw=true "Chat bot example")
+
+![Schat bot screenshot](chatbot02.png?raw=true "Chat bot example")
 
