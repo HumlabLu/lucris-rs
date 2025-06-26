@@ -74,7 +74,7 @@ python haystack_research.py -s docs_research.store
 
 Enter 'bye' to quit.
 
-## Web app
+## Web-app
 
 The `app_lucris.py` script provides a web interface to a 'chatbot' answering questions about
 the research-data. 'Chatbot' between quotation marks because it only answers single questions
@@ -88,9 +88,9 @@ It uses the Ollama framework to run an LLM locally.
 Screenshot of the web interface.
 ![Chatbot screen shot](chatbot00.png?raw=true "Chatbot example")
 
-### Preparing the web app
+### Preparing the web-app
 
-The web app reads the same lucris data produced by the `lucris-rs` scripts. The
+The web-app reads the same lucris data produced by the `lucris-rs` scripts. The
 `lucris2dataset.py` and `hybrid.py` scripts read and prepare the data for the web app.
 They prepare a HayStack document store for hybrid (embeddings and BM25) retrieval.
 
@@ -102,13 +102,18 @@ So the worktflow is as follows:
  - run `app_lucris.py -r research_docs.store`
 
 Some parameters (such as the embedding and reranker models) are set/hardcoded in `hybrid.py`.
-The web app reads the `OAIMODEL` environment variable to choose the model. This can be set
+The web-app reads the `OAIMODEL` environment variable to choose the model. This can be set
 as follows.
 
 ```bash
 export OAIMODEL=llama3.2:latest
 python app_lucris.py
 ```
+
+The web-app shows a drop-down menu with all the models installed on your system, with the one
+defined by `OAIMODEL` selected as default. If the `OAIMODEL` variable is not defined, the first
+available Ollama model is chosen. :w
+
 
 ## Command-line Querying Example
 
