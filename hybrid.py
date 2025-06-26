@@ -418,7 +418,7 @@ if __name__ == '__main__':
         for doc in dataset:
             docs.append(
                 Document(
-                        content=doc["contents"],
+                        content=doc["contents"]+"\nAuthors:"+doc["researcher_name"],
                         meta={
                             "researcher_name": doc["researcher_name"],
                             "title": doc["title"],
@@ -461,7 +461,12 @@ if __name__ == '__main__':
     answer = run_rag_pipeline(query, documents, model, 0.1)
     print(answer)
     print("=" * 80)
-
+    filters= {"field": "meta.researcher_name",
+                 "operator": "==",
+                 "value": "P. Berck"}
+    docs = doc_store.filter_documents(filters)
+    print(docs)
+    print("=" * 80)
     run_rag_pipeline_stream(query, documents, model, 0.1)
     # for answer in run_rag_pipeline_stream(query, documents, model, 0.1):
     #     print(answer)

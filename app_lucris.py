@@ -13,6 +13,7 @@ import numpy as np
 from datetime import datetime
 from hybrid import embedding_model, reranker_model, create_hybrid_retriever, retrieve, InMemoryDocumentStore, PromptBuilder, OllamaGenerator
 import argparse
+import ollama
 
 '''
 If openai key is set, a OAIMODEL also has to be set, or unset
@@ -65,11 +66,26 @@ def DBG(a_str):
     
 DBG("Starting the Pufendorf bot")
 
+def get_ollama_models():
+    try:
+        result = ollama.list()
+    except:
+        DBG("Error, cannot load ollama models.")
+        sys.exit(2)
+    model_names = []
+    for model in result["models"]:
+        DBG(model.model)
+        model_names.append(model.model)
+    return model_names
+
+# ----
+
 # These are defined in hybrid.py
 DBG(f"Embedding model: {embedding_model}")
 DBG(f"Reranker model: {reranker_model}")
 
 gen_model = os.getenv('OAIMODEL')
+model_provider = "ollama"
 
 # OpenAI
 try:
@@ -77,6 +93,7 @@ try:
         api_key=os.environ.get("OAIKEY"),
     )
     DBG("Using OpenAI")
+    model_provider = "openai"
     if not gen_model:
         gen_model = "gpt-4.1-mini"
 except OpenAIError:
@@ -87,10 +104,17 @@ except OpenAIError:
         )
         DBG("Using local Ollama.")
         if not gen_model:
-            gen_model = "llama3.2:latest"
-    except:
+            model_names = get_ollama_models()
+            if len(model_names) > 0:
+                gen_model = model_names[0]
+            else:
+                DBG("No ollama models found?")
+                sys.exit(4)
+    except Exception as e:
+        print(e)
         DBG("No AI provider available. Exit.")
         sys.exit(1)
+DBG(f"Model provider: {model_provider}")
 DBG(f"Generation model: {gen_model}")
 
 # Contact OpenAI "moderator".
@@ -149,6 +173,11 @@ theme = gr.themes.Monochrome(
 )
 
 with gr.Blocks(theme=theme) as demo_blocks:
+    if model_provider == "ollama":
+        model_names = get_ollama_models()
+    else:
+        model_names = [ gen_model ]
+
     # gr.Markdown("# Chat with Lucris data")
     chatbot = gr.Chatbot(
         type="messages",
@@ -192,23 +221,29 @@ with gr.Blocks(theme=theme) as demo_blocks:
             label="Context size",
             step=1.0
         )
-        tmp = gr.Slider(0.05, 2,
-            value = 0.1,
-            label="Temperature",
-            step=0.05
-        )
         cutoff = gr.Slider(0, 1,
             value = 0.0,
             label="Context match cut-off",
             step=0.01
+        )
+    ignore_extras = gr.Checkbox(label="Ignore extras", value=False, visible=False)
+
+    with gr.Row():
+        model_selector = gr.Dropdown(
+            choices=model_names,
+            value=gen_model,
+            label="Choose model"
+        )
+        tmp = gr.Slider(0.05, 2,
+            value = 0.1,
+            label="Temperature",
+            step=0.05
         )
         npredict = gr.Slider(10, 10000,
             value = 8000,
             label="Num predict",
             step=10
         )
-    ignore_extras = gr.Checkbox(label="Ignore extras", value=False, visible=False)
-    
     selected_lang = "Answer in British English"
     def get_selected_lang(foo):
         selected_lang = "Answer in "+foo
@@ -222,7 +257,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
 
        
     # New bot using the HayStack prompt builder.
-    def newbot_pipeline(history: list, slider_val, tmp_val, cutoff, ignore_extras, npredict):
+    def newbot_pipeline(history: list, slider_val, tmp_val, cutoff, ignore_extras, npredict, chosen_model):
         last = history[-1]
         now = datetime.now() # current date and time
         date_time = now.strftime("%Y%m%dT%H%M%S")
@@ -239,7 +274,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
             DBG(x)
         # ctxkeep zero means no extra knowledge at all.
         DBG(f"IGNORE EXTRAS:{ignore_extras}")
-        DBG("MODEL: "+str(gen_model))
+        DBG("MODEL: "+str(chosen_model))
 
         messages=[]
         #messages += history[:-1] # because the prompt has the context.
@@ -276,7 +311,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
             return partial
 
         generator = OllamaGenerator(
-            model=gen_model,
+            model=chosen_model, #gen_model,
             url="http://localhost:11434",
             generation_kwargs={
                 "num_predict": npredict,
@@ -287,11 +322,20 @@ with gr.Blocks(theme=theme) as demo_blocks:
             streaming_callback=_cb
         )
         partial_message = ""
-        for x in generator.run(prompt):
-            partial_message = partial
+        try:
+            for x in generator.run(prompt):
+                partial_message = partial
+                his = gr.ChatMessage(role="assistant", content=partial_message)
+                history[-1] = his
+                yield history #partial_message
+        except Exception as e:
+            DBG(e)
+            partial_message = "There is something wrong with the model."
+            partial_message += "\n" + str(e)
             his = gr.ChatMessage(role="assistant", content=partial_message)
             history[-1] = his
             yield history #partial_message
+
         DBG(partial_message)
         
         
@@ -299,7 +343,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
     #     newbot, chatbot, chatbot
     # )
     msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
-        newbot_pipeline, [chatbot, val, tmp, cutoff, ignore_extras, npredict], chatbot
+        newbot_pipeline, [chatbot, val, tmp, cutoff, ignore_extras, npredict, model_selector], chatbot
     )
     # clear.click(lambda: None, None, chatbot, queue=False)
     clear.click(lambda: ([], ""), None, [chatbot, msg], queue=False)
