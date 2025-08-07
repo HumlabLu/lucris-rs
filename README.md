@@ -32,6 +32,7 @@ Options:
   -h, --help                         Print help (see more with '--help')
   -V, --version                      Print version
 ```
+
 ## Example
 
 ```text
@@ -41,6 +42,7 @@ NAMES:...
 TITLE:...
 ABSTRACT:...
 ```
+
 ## Installation
 
 ### cargo
@@ -50,7 +52,7 @@ If you have the rust toolchain, you can install from git.
 cargo install --git https://github.com/HumlabLu/lucris-rs.git
 ```
 
-## Workflow
+# Workflow
 
 Run the Go-code first to scrape the LUCRIS website.
 
@@ -113,7 +115,6 @@ python app_lucris.py
 The web-app shows a drop-down menu with all the models installed on your system, with the one
 defined by `OAIMODEL` selected as default. If the `OAIMODEL` variable is not defined, the first
 available Ollama model is chosen.
-
 
 ## Command-line Querying Example
 
