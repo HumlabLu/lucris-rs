@@ -11,14 +11,11 @@ Contents:
 
 Terminal tool to process files for the AI Lund project.
 
-Takes the LUCRIS `jsonl` files and extract information in plain text.
-Allows extraction of the Swedish and English texts, and optionally filters out "opt-out" UUIDs.
+Takes the LUCRIS `jsonl` files and extract information in plain text. Allows extraction of the Swedish and English texts, and optionally filters out "opt-out" UUIDs.
 
-Tries to connect people UUIDs from `persons.jsonl` to research from `research.jsonl`. 
-Also reads the other files (fingerprints, concepts and orgunits), but these are not processed yet.
+Tries to connect people UUIDs from `persons.jsonl` to research from `research.jsonl`.  Also reads the other files (fingerprints, concepts and orgunits), but these are not processed yet.
 
-Just dumps plain text to standard-out at the moment. Output can be
-used in `haystack_research.py` for LLM querying.
+Just dumps plain text to standard-out at the moment. Output can be used in `haystack_research.py` for LLM querying.
 
 ## Parameters
 
@@ -85,9 +82,7 @@ Enter 'bye' to quit.
 
 # Web-app
 
-The `app_lucris.py` script provides a web interface to a 'chatbot' answering questions about
-the research-data. 'Chatbot' between quotation marks because it only answers single questions
-without looking at the previous questions and answers. 
+The `app_lucris.py` script provides a web interface to a 'chatbot' answering questions about the research-data. 'Chatbot' between quotation marks because it only answers single questions without looking at the previous questions and answers. 
 
 It is built using the `Gradio` chat bot framework (making it relatively easy to host it on locally or on HuggingFace).
 
@@ -98,9 +93,7 @@ Screenshot of the web interface.
 
 ## Preparing the web-app
 
-The web-app reads the same lucris data produced by the `lucris-rs` scripts. The
-`lucris2dataset.py` and `hybrid.py` scripts read and prepare the data for the web app.
-They prepare a HayStack document store for hybrid (embeddings and BM25) retrieval.
+The web-app reads the same lucris data produced by the `lucris-rs` scripts. The `lucris2dataset.py` and `hybrid.py` scripts read and prepare the data for the web app. They prepare a HayStack document store for hybrid (embeddings and BM25) retrieval.
 
 So the worktflow is as follows:
  - run the scraper
@@ -109,18 +102,14 @@ So the worktflow is as follows:
  - run `hybrid.py -c research_docs.store -d research_docs.dataset` to convert the data set to a data store
  - run `app_lucris.py -r research_docs.store`
 
-Some parameters (such as the embedding and reranker models) are set/hardcoded in `hybrid.py`.
-The web-app reads the `OAIMODEL` environment variable to choose the model. This can be set
-as follows.
+Some parameters (such as the embedding and reranker models) are set/hardcoded in `hybrid.py`. The web-app reads the `OAIMODEL` environment variable to choose the model. This can be set as follows.
 
 ```bash
 export OAIMODEL=llama3.2:latest
 python app_lucris.py
 ```
 
-The web-app shows a drop-down menu with all the models installed on your system, with the one
-defined by `OAIMODEL` selected as default. If the `OAIMODEL` variable is not defined, the first
-available Ollama model is chosen.
+The web-app shows a drop-down menu with all the models installed on your system, with the one defined by `OAIMODEL` selected as default. If the `OAIMODEL` variable is not defined, the first available Ollama model is chosen.
 
 ## Command-line Querying Example
 
