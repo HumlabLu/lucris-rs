@@ -1,6 +1,8 @@
 # Lucris
 
-## Intro
+Code to process the LUCRIS data and run a simple web-based chatbot to query the data in a simple RAG system.
+
+## lucris-rs
 
 Terminal tool to process files for the AI Lund project.
 
@@ -13,7 +15,7 @@ Also reads the other files (fingerprints, concepts and orgunits), but these are 
 Just dumps plain text to standard-out at the moment. Output can be
 used in `haystack_research.py` for LLM querying.
 
-## Parameters
+### Parameters
 
 ```shell
 Process files for the AI Lund project.
@@ -33,7 +35,7 @@ Options:
   -V, --version                      Print version
 ```
 
-## Example
+### Example
 
 ```text
 lucris-rs -p cleaned/persons.clean.jsonl -r cleaned/research-outputs.clean.jsonl
@@ -76,7 +78,7 @@ python haystack_research.py -s docs_research.store
 
 Enter 'bye' to quit.
 
-## Web-app
+# Web-app
 
 The `app_lucris.py` script provides a web interface to a 'chatbot' answering questions about
 the research-data. 'Chatbot' between quotation marks because it only answers single questions
@@ -90,7 +92,7 @@ It uses the Ollama framework to run an LLM locally.
 Screenshot of the web interface.
 ![Chatbot screen shot](chatbot00.png?raw=true "Chatbot example")
 
-### Preparing the web-app
+## Preparing the web-app
 
 The web-app reads the same lucris data produced by the `lucris-rs` scripts. The
 `lucris2dataset.py` and `hybrid.py` scripts read and prepare the data for the web app.
