@@ -1,8 +1,13 @@
-# Lucris
+# Intro
 
 Code to process the LUCRIS data and run a simple web-based chatbot to query the data in a simple RAG system.
 
-## lucris-rs
+Contents:
+ - [lucris-rs](#lucris-rs)
+ - [Workflow](#workflow)
+ - [Web-app](#web-app)
+
+# lucris-rs
 
 Terminal tool to process files for the AI Lund project.
 
@@ -15,7 +20,7 @@ Also reads the other files (fingerprints, concepts and orgunits), but these are 
 Just dumps plain text to standard-out at the moment. Output can be
 used in `haystack_research.py` for LLM querying.
 
-### Parameters
+## Parameters
 
 ```shell
 Process files for the AI Lund project.
@@ -35,7 +40,7 @@ Options:
   -V, --version                      Print version
 ```
 
-### Example
+## Example
 
 ```text
 lucris-rs -p cleaned/persons.clean.jsonl -r cleaned/research-outputs.clean.jsonl
