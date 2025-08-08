@@ -111,6 +111,19 @@ python app_lucris.py
 
 The web-app shows a drop-down menu with all the models installed on your system, with the one defined by `OAIMODEL` selected as default. If the `OAIMODEL` variable is not defined, the first available Ollama model is chosen.
 
+If you export your OpenAI key before running the web app, it uses the OpenAI API instead of a local model.
+
+```bash
+export OPENAI_API_KEY='sk_foobarbazquuz'
+python app_lucris.py
+```
+
+Debug output is written to `lucrisbot.log`. If you want output in the terminal, use the following.
+
+```bash
+export DEBUG=1
+```
+
 ## Command-line Querying Example
 
 Running : `python haystack_research.py -s docs_research.store`

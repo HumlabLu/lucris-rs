@@ -26,7 +26,7 @@ For ollama:
 unset OPENAI_API_KEY
 export OAIMODEL=llama3.2:latest
 
-Debug output goes to pufendorf.log. For printed output:
+Debug output goes to lucrisbot.log. For printed output:
 export DEBUG=1
 '''
 
