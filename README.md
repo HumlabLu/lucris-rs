@@ -95,7 +95,7 @@ Screenshot of the web interface.
 
 The web-app reads the same lucris data produced by the `lucris-rs` scripts. The `lucris2dataset.py` and `hybrid.py` scripts read and prepare the data for the web app. They prepare a HayStack document store for hybrid (embeddings and BM25) retrieval.
 
-So the worktflow is as follows:
+So the workflow is as follows:
  - run the scraper
  - run `lucris-rs` on its output
  - run `lucris2dataset.py` to create a "huggingface" data set (default name `research_docs.dataset`)
