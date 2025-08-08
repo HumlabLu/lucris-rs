@@ -226,12 +226,12 @@ with gr.Blocks(theme=theme) as demo_blocks:
         )
         val = gr.Slider(0, 28,
             value = 8,
-            label="Context size",
+            label="Context size (number of retrieved docs)",
             step=1.0
         )
         cutoff = gr.Slider(0, 1,
             value = 0.0,
-            label="Context match cut-off",
+            label="Context match cut-off (higher is better match)",
             step=0.01
         )
     ignore_extras = gr.Checkbox(label="Ignore extras", value=False, visible=False)
