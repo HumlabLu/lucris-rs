@@ -64,7 +64,7 @@ def DBG(a_str):
     else:
         logger.debug(a_str) # local
     
-DBG("Starting the Pufendorf bot")
+DBG("Starting the chatbot")
 
 '''
 model='llama3.1:latest'

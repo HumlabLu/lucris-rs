@@ -114,7 +114,7 @@ The web-app shows a drop-down menu with all the models installed on your system,
 If you export your OpenAI key before running the web app, it uses the OpenAI API instead of a local model.
 
 ```bash
-export OPENAI_API_KEY='sk_foobarbazquuz'
+export OPENAI_API_KEY='sk_foobarbazquux'
 python app_lucris.py
 ```
 
