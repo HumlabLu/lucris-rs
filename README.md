@@ -98,9 +98,9 @@ The web-app reads the same lucris data produced by the `lucris-rs` scripts. The 
 So the worktflow is as follows:
  - run the scraper
  - run `lucris-rs` on its output
- - run `lucris2dataset.py` to create a data set
- - run `hybrid.py -c research_docs.store -d research_docs.dataset` to convert the data set to a data store
- - run `app_lucris.py -r research_docs.store`
+ - run `lucris2dataset.py` to create a "huggingface" data set (default name `research_docs.dataset`)
+ - run `hybrid.py -c research_docs.store -d research_docs.dataset` to convert the data set to a data store (slowest step, takes about ten minutes on my M1 MacBookPro)
+ - run `python app_lucris.py -d research_docs.store`
 
 Some parameters (such as the embedding and reranker models) are set/hardcoded in `hybrid.py`. The web-app reads the `OAIMODEL` environment variable to choose the model. This can be set as follows.
 
