@@ -68,7 +68,13 @@ cargo run --release -- -p persons.clean.jsonl -r research-outputs.clean.jsonl > 
 
 Create a virtual environment using the `requirements.txt` (which probably contains more than necessary).
 
-Create the HayStack document store.
+With `uv`.
+```shell
+uv venv --python 3.12
+uv pip install -r requirements.txt
+```
+
+Create the HayStack document store. If you are using `uv`, use `uv run` instead of `python` in the following examples.
 ```shell
 python haystack_store.py -r research_docs.txt -s docs_research.store
 ```
