@@ -198,61 +198,6 @@ def _read_dataset(filename) -> [Document]:
         )
     return docs
 
-# Reads the lucris-rs output and creates haystack documents.
-def _read_research_nta(a_file) -> [Document]:
-    current_content = None
-    current_meta = {}
-    documents = []
-    with open(a_file, "r") as f:
-        for line in f:
-            line = line.strip()
-            if line.startswith("NAME"):  # Matches NAME: and NAMES:
-                bits = line.split(":", 1)
-                if len(bits) > 0:
-                    name = bits[1]
-                    #print("NAME", name)
-                    # If we have current contents, we save it first.
-                    if current_content and current_meta:
-                        doc = Document(content=current_content, meta=current_meta)
-                        documents.append(doc)
-                        #print("ADDED", current_meta)
-                    current_meta = {}
-                    current_meta["researcher_name"] = name.strip()
-                    current_content = None
-            elif line.startswith("TITLE:"):
-                bits = line.split(":", 1)
-                if len(bits) > 0:
-                    title = bits[1]
-                    #print("TITLE", title)
-                    current_meta["title"] = title.strip()
-            elif line.startswith("ABSTRACT:"):
-                bits = line.split(":", 1)
-                if len(bits) > 0:
-                    # abstract can be empty... mirror title?
-                    abstract = bits[1].strip()
-                    #print(current_meta)
-                    if len(abstract) < 2: #some arbitrary small value
-                        try:
-                            abstract = current_meta["title"] # We assume we have read it... FIXME
-                        except KeyError:
-                            abstract = "no abstract"
-                    current_content = abstract
-                    current_meta["abstract"] = abstract
-    # Left overs.
-    if current_content and current_meta:
-        doc = Document(content=current_content, meta=current_meta)
-        documents.append(doc)
-        #print("ADDED", current_meta)
-    return documents
-
-# Not used at the moment.
-def _retrieve(query):
-    hybrid_r = prepare_retriever()
-    result = hybrid_r.run(
-        {"text_embedder": {"text": query}, "bm25_retriever": {"query": query}, "ranker": {"query": query}}
-    )
-    return result
-
 def pretty_print_results(prediction):
     for doc in prediction["documents"]:
         # print(doc.meta["title"][:60], "...\t", doc.score)
