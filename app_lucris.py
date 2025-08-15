@@ -377,7 +377,7 @@ if __name__ == "__main__":
     '''
 
     DBG("Creating UI.")
-    if args.shared:
+    if args.share:
         demo_blocks.launch(share=True)
     else:
         demo_blocks.launch()
