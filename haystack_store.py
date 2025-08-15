@@ -185,7 +185,7 @@ def run_test(storename):
     res = retriever.run(
         query_embedding=q_embedding,
         top_k=retrieve_top_k,
-        #scale_score=True
+        scale_score=True
     )
     logger.info("EMBEDDINGS: Retrieved documents")
     for i, r in enumerate(res["documents"]): # add ["document_joiner"] if experimental
@@ -203,7 +203,7 @@ def run_test(storename):
     res = retriever.run(
         query=query,
         top_k=retrieve_top_k,
-        #scale_score=True
+        scale_score=True
     )
     logger.info("BM25: Retrieved documents")
     for i, r in enumerate(res["documents"]): # add ["document_joiner"] if experimental

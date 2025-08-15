@@ -15,7 +15,7 @@ Takes the LUCRIS `jsonl` files and extract information in plain text. Allows ext
 
 Tries to connect people UUIDs from `persons.jsonl` to research from `research.jsonl`.  Also reads the other files (fingerprints, concepts and orgunits), but these are not processed yet.
 
-Just dumps plain text to standard-out at the moment. Output can be used in `haystack_research.py` for LLM querying.
+Just dumps plain text to standard-out at the moment. Output can be used in the provided web-app or with `haystack_research.py` for LLM querying. The python code is highly experimental.
 
 ## Parameters
 
