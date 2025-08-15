@@ -117,6 +117,8 @@ python app_lucris.py
 
 The web-app shows a drop-down menu with all the models installed on your system, with the one defined by `OAIMODEL` selected as default. If the `OAIMODEL` variable is not defined, the first available Ollama model is chosen.
 
+Make sure ollama is running, if not it will fail and exit. Check the `lucrisbot.log` logfile for info if that happens.
+
 If you export your OpenAI key before running the web app, it uses the OpenAI API instead of a local model.
 
 ```bash
