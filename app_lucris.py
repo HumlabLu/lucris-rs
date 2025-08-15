@@ -46,6 +46,7 @@ logger.addHandler(console_handler)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--datastore", help="Datastore filename.", default="research_docs_ns.store")
+parser.add_argument("-s", "--share", action='store_true', help="Creates a public link.", default=False)
 args = parser.parse_args()
 
 # We can't save a logfile in a HF space, printing it allows us to
@@ -376,4 +377,7 @@ if __name__ == "__main__":
     '''
 
     DBG("Creating UI.")
-    demo_blocks.launch()
+    if args.shared:
+        demo_blocks.launch(share=True)
+    else:
+        demo_blocks.launch()
