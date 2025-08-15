@@ -10,9 +10,13 @@ parser.add_argument("-f", "--filename", help="Filename.", default="research_docs
 parser.add_argument("-o", "--outputfilename", help="Output filename.", default="research_docs.dataset")
 args = parser.parse_args()
 
-
-
+# ---------------------------------------------------------------------------
 # Reads lucris-rs output, create a HF dataset.
+# HF dataset is a compressed database which is faster to read when large.
+#
+# The HF dataset can be converted to a document store which is used
+# by the web app.
+# ---------------------------------------------------------------------------
 
 current_content = None
 current_name = None

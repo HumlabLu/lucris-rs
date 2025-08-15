@@ -1,25 +1,20 @@
-import os, sys
+import os
+import sys
 from haystack.document_stores.in_memory import InMemoryDocumentStore
-from datasets import load_dataset, load_from_disk
+from datasets import load_from_disk
 from haystack import Document
 from haystack.components.writers import DocumentWriter
 from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack.components.preprocessors.document_splitter import DocumentSplitter
 from haystack import Pipeline
-from haystack.utils import ComponentDevice
 from haystack.components.retrievers.in_memory import InMemoryBM25Retriever, InMemoryEmbeddingRetriever
 from haystack.components.embedders import SentenceTransformersTextEmbedder
 from haystack.components.joiners import DocumentJoiner
 #from haystack.components.rankers import TransformersSimilarityRanker
 from haystack.components.rankers import SentenceTransformersSimilarityRanker
-from haystack import Pipeline
 from haystack.document_stores.types import DuplicatePolicy
-from haystack import Pipeline
-from haystack.document_stores.in_memory import InMemoryDocumentStore
 from haystack.components.converters import PyPDFToDocument
 from haystack.components.preprocessors import DocumentCleaner
-from haystack.components.preprocessors import DocumentSplitter
-from haystack.components.writers import DocumentWriter
 from haystack.components.builders import PromptBuilder 
 from haystack_integrations.components.generators.ollama import OllamaGenerator 
 import re
@@ -28,6 +23,8 @@ import argparse
 
 '''
 This reads a HF dataset and creates a document store.
+This data store is used by the web app.
+
 The other stuff is for reading and testing.
 '''
 
@@ -45,68 +42,6 @@ parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=8)
 parser.add_argument("-q", "--query", help="Query DBs.", default=None)
 args = parser.parse_args()
 
-
-# Read the PDF(s) in file_names, turn them into Documents.
-def read_pdf() -> [Document]:
-    file_names = ["paper_I.pdf", "paper_II.pdf", "paper_III.pdf", "paper_IV.pdf"]
-    pipeline = Pipeline()
-    pipeline.add_component("converter", PyPDFToDocument())
-    pipeline.add_component("cleaner", DocumentCleaner())
-    # pipeline.add_component("splitter", DocumentSplitter(
-    #                                                     split_by="sentence",
-    #                                                     split_length=3,
-    #                                                     split_overlap=1))
-    pipeline.connect("converter", "cleaner")
-    # pipeline.connect("cleaner", "splitter")
-    result = pipeline.run({"converter": {"sources": file_names}})
-    return result['cleaner']['documents']
-
-# Take the Documents, saves them into a database, returns a hybrid retriever
-# on the database (in memory thingy).
-def prepare_retriever(docs, doc_store, split_length=5, split_overlap=1):
-    document_splitter = DocumentSplitter(
-                split_by="sentence",
-                split_length=split_length,
-                split_overlap=split_overlap
-            )
-    document_embedder = SentenceTransformersDocumentEmbedder(
-        model=embedding_model, #"BAAI/bge-small-en-v1.5" #), device=ComponentDevice.from_str("cuda:0")
-    )
-    document_writer = DocumentWriter(doc_store,
-                                     policy=DuplicatePolicy.SKIP)
-
-    indexing_pipeline = Pipeline()
-    indexing_pipeline.add_component("document_splitter", document_splitter)
-    indexing_pipeline.add_component("document_embedder", document_embedder)
-    indexing_pipeline.add_component("document_writer", document_writer)
-
-    indexing_pipeline.connect("document_splitter", "document_embedder")
-    indexing_pipeline.connect("document_embedder", "document_writer")
-
-    indexing_pipeline.run({"document_splitter": {"documents": docs}})
-
-    text_embedder = SentenceTransformersTextEmbedder(
-        model=embedding_model, #"BAAI/bge-small-en-v1.5" #, device=ComponentDevice.from_str("cuda:0")
-    )
-    embedding_retriever = InMemoryEmbeddingRetriever(doc_store)
-    bm25_retriever = InMemoryBM25Retriever(doc_store)
-
-    document_joiner = DocumentJoiner()
-    ranker = TransformersSimilarityRanker(model=reranker_model) #"BAAI/bge-reranker-base")
-
-    hybrid_retrieval = Pipeline()
-    hybrid_retrieval.add_component("text_embedder", text_embedder)
-    hybrid_retrieval.add_component("embedding_retriever", embedding_retriever)
-    hybrid_retrieval.add_component("bm25_retriever", bm25_retriever)
-    hybrid_retrieval.add_component("document_joiner", document_joiner)
-    hybrid_retrieval.add_component("ranker", ranker)
-
-    hybrid_retrieval.connect("text_embedder", "embedding_retriever")
-    hybrid_retrieval.connect("bm25_retriever", "document_joiner")
-    hybrid_retrieval.connect("embedding_retriever", "document_joiner")
-    hybrid_retrieval.connect("document_joiner", "ranker")
-
-    return hybrid_retrieval
 
 # Index the documents.
 # This does not split the content, the text is embedded complete.
@@ -184,20 +119,6 @@ def create_hybrid_retriever(doc_store):
 
     return hybrid_retrieval
     
-def _read_dataset(filename) -> [Document]:
-    dataset = load_from_disk(filename)
-    print(dataset)
-
-    docs = []
-    for doc in dataset:
-        docs.append(
-            Document(
-                    content=doc["contents"],
-                    meta={"title": doc["title"], "abstract": doc["contents"]}
-                )
-        )
-    return docs
-
 def pretty_print_results(prediction):
     for doc in prediction["documents"]:
         # print(doc.meta["title"][:60], "...\t", doc.score)
@@ -374,8 +295,6 @@ if __name__ == '__main__':
         print(dataset[0])
         print(docs[0])
         rs_doc_store = InMemoryDocumentStore()
-        #rs_hybrid_r = prepare_retriever(docs, rs_doc_store, split_length=5, split_overlap=0)
-        #rs_hybrid_r = prepare_retriever_nosplit(docs, rs_doc_store)
         print("Starting create_index_nosplit()")
         create_index_nosplit(docs, rs_doc_store)
         #create_index_split(docs, rs_doc_store)
