@@ -7,26 +7,30 @@ from haystack.components.writers import DocumentWriter
 from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack.components.preprocessors.document_splitter import DocumentSplitter
 from haystack import Pipeline
-from haystack.components.retrievers.in_memory import InMemoryBM25Retriever, InMemoryEmbeddingRetriever
+from haystack.components.retrievers.in_memory import (
+    InMemoryBM25Retriever,
+    InMemoryEmbeddingRetriever,
+)
 from haystack.components.embedders import SentenceTransformersTextEmbedder
 from haystack.components.joiners import DocumentJoiner
-#from haystack.components.rankers import TransformersSimilarityRanker
+
+# from haystack.components.rankers import TransformersSimilarityRanker
 from haystack.components.rankers import SentenceTransformersSimilarityRanker
 from haystack.document_stores.types import DuplicatePolicy
 from haystack.components.converters import PyPDFToDocument
 from haystack.components.preprocessors import DocumentCleaner
-from haystack.components.builders import PromptBuilder 
-from haystack_integrations.components.generators.ollama import OllamaGenerator 
+from haystack.components.builders import PromptBuilder
+from haystack_integrations.components.generators.ollama import OllamaGenerator
 import re
 import argparse
 
 
-'''
+"""
 This reads a HF dataset and creates a document store.
 This data store is used by the web app.
 
 The other stuff is for reading and testing.
-'''
+"""
 
 # embedding_model = "sentence-transformers/all-MiniLM-L6-v2"
 embedding_model = "sentence-transformers/all-MiniLM-L12-v2"
@@ -34,13 +38,13 @@ embedding_model = "sentence-transformers/all-MiniLM-L12-v2"
 # see https://huggingface.co/BAAI/bge-m3
 reranker_model = "BAAI/bge-reranker-base"
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-c", "--create_store", help="Create a new data store.", default=None)
-parser.add_argument("-d", "--dataset", help="Dataset filename.", default=None)
-parser.add_argument("-r", "--read_store", help="Read a data store.", default=None)
-parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=8)
-parser.add_argument("-q", "--query", help="Query DBs.", default=None)
-args = parser.parse_args()
+# parser = argparse.ArgumentParser()
+# parser.add_argument("-c", "--create_store", help="Create a new data store.", default=None)
+# parser.add_argument("-d", "--dataset", help="Dataset filename.", default=None)
+# parser.add_argument("-r", "--read_store", help="Read a data store.", default=None)
+# parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=8)
+# parser.add_argument("-q", "--query", help="Query DBs.", default=None)
+# args = parser.parse_args()
 
 
 # Index the documents.
@@ -48,11 +52,10 @@ args = parser.parse_args()
 # Calls and returns create_hybrid_retriever().
 def create_index_nosplit(docs, doc_store):
     document_embedder = SentenceTransformersDocumentEmbedder(
-        model=embedding_model, #"BAAI/bge-small-en-v1.5", #), device=ComponentDevice.from_str("cuda:0")
-        meta_fields_to_embed=["title", "researcher_name"]
+        model=embedding_model,  # "BAAI/bge-small-en-v1.5", #), device=ComponentDevice.from_str("cuda:0")
+        meta_fields_to_embed=["title", "researcher_name"],
     )
-    document_writer = DocumentWriter(doc_store,
-                                     policy=DuplicatePolicy.SKIP)
+    document_writer = DocumentWriter(doc_store, policy=DuplicatePolicy.SKIP)
 
     indexing_pipeline = Pipeline()
     indexing_pipeline.add_component("document_embedder", document_embedder)
@@ -64,18 +67,16 @@ def create_index_nosplit(docs, doc_store):
     hybrid_retrieval = create_hybrid_retriever(doc_store)
     return hybrid_retrieval
 
+
 # As above, but splits the contents into sentences.
 def create_index_split(docs, doc_store, split_length=5, split_overlap=1):
     document_splitter = DocumentSplitter(
-                split_by="sentence",
-                split_length=split_length,
-                split_overlap=split_overlap
-            )
+        split_by="sentence", split_length=split_length, split_overlap=split_overlap
+    )
     document_embedder = SentenceTransformersDocumentEmbedder(
         model=embedding_model,
     )
-    document_writer = DocumentWriter(doc_store,
-                                     policy=DuplicatePolicy.SKIP)
+    document_writer = DocumentWriter(doc_store, policy=DuplicatePolicy.SKIP)
 
     indexing_pipeline = Pipeline()
     indexing_pipeline.add_component("document_splitter", document_splitter)
@@ -95,13 +96,13 @@ def create_index_split(docs, doc_store, split_length=5, split_overlap=1):
 # Creates an embedding and BM25 retriever on the doc_store.
 def create_hybrid_retriever(doc_store):
     text_embedder = SentenceTransformersTextEmbedder(
-        model=embedding_model, #"BAAI/bge-small-en-v1.5" #, device=ComponentDevice.from_str("cuda:0")
+        model=embedding_model,  # "BAAI/bge-small-en-v1.5" #, device=ComponentDevice.from_str("cuda:0")
     )
     embedding_retriever = InMemoryEmbeddingRetriever(doc_store)
     bm25_retriever = InMemoryBM25Retriever(doc_store)
 
     document_joiner = DocumentJoiner()
-    #ranker = TransformersSimilarityRanker(model=reranker_model)
+    # ranker = TransformersSimilarityRanker(model=reranker_model)
     # Needs haystack-ai >= 2.14
     ranker = SentenceTransformersSimilarityRanker(model=reranker_model)
 
@@ -118,28 +119,32 @@ def create_hybrid_retriever(doc_store):
     hybrid_retrieval.connect("document_joiner", "ranker")
 
     return hybrid_retrieval
-    
+
+
 def pretty_print_results(prediction):
     for doc in prediction["documents"]:
         # print(doc.meta["title"][:60], "...\t", doc.score)
         print(doc.meta["content"], "\t", doc.score)
-        #print(doc.meta["abstract"])
+        # print(doc.meta["abstract"])
         print("\n")
+
 
 def dump_docs(docs):
     for doc in docs:
         print(doc.id[0:8], doc.content[0:80], "...")
-        
+
+
 def print_res(doc, width=0):
     try:
-        txt = doc.meta["researcher_name"]+":"+" ".join(doc.content.split())
+        txt = doc.meta["researcher_name"] + ":" + " ".join(doc.content.split())
     except KeyError:
         txt = " ".join(doc.content.split())
     if width > 0:
-        txt_width = width - 8 - 3 - 1 # float and ... and LF
-        txt = txt[0:txt_width]+"..."
+        txt_width = width - 8 - 3 - 1  # float and ... and LF
+        txt = txt[0:txt_width] + "..."
     print("{:.5f}".format(doc.score), txt)
-        
+
+
 # Run the pre-defined retrievers, returns the top_k best documents.
 # We can filter the doc store if we find a name in the query.
 # filters = {
@@ -154,18 +159,22 @@ def retrieve(retriever, query, top_k=8):
     result = retriever.run(
         {
             "text_embedder": {"text": query},
-            "bm25_retriever": {"query": query, "top_k": top_k, "scale_score": True,
+            "bm25_retriever": {
+                "query": query,
+                "top_k": top_k,
+                "scale_score": True,
                 # "filters": {"field": "meta.researcher_name",
                 #             "operator": "==",
                 #             "value": "P. Berck"}
             },
             "embedding_retriever": {"top_k": top_k, "scale_score": True},
-            "ranker": {"query": query, "top_k": top_k, "scale_score": True}
+            "ranker": {"query": query, "top_k": top_k, "scale_score": True},
         }
     )
-    #print(result)
-    #pretty_print_results(result["ranker"])
-    return result['ranker']['documents']
+    # print(result)
+    # pretty_print_results(result["ranker"])
+    return result["ranker"]["documents"]
+
 
 def run_rag_pipeline(query, docs, model, temp):
     template = """
@@ -183,8 +192,7 @@ def run_rag_pipeline(query, docs, model, temp):
     Question: {{question}}
     """
 
-    prompt_builder = PromptBuilder(template=template,
-                                   required_variables=["question"])
+    prompt_builder = PromptBuilder(template=template, required_variables=["question"])
     generator = OllamaGenerator(
         model=model,
         url="http://localhost:11434",
@@ -210,22 +218,23 @@ def run_rag_pipeline(query, docs, model, temp):
         },
         include_outputs_from={"prompt_builder"},
     )
-    #logger.debug(f"Context len: {len(response['llm']['meta'][0]['context'])}")
-    #logger.info(f"Prompt length: {len(response['prompt_builder']['prompt'])}")
-    #logger.info("-" * 78)
+    # logger.debug(f"Context len: {len(response['llm']['meta'][0]['context'])}")
+    # logger.info(f"Prompt length: {len(response['prompt_builder']['prompt'])}")
+    # logger.info("-" * 78)
     # logger.info(response["llm"]["replies"][0])
     answer = response["llm"]["replies"][0]
     # Remove deepseek's tags.
     answer = re.sub(r"<think>.*?</think>", "", answer, flags=re.DOTALL)
-    #logger.info(answer)
-    #logger.info("-" * 78)
+    # logger.info(answer)
+    # logger.info("-" * 78)
 
-    if False: # or args.showprompt:
+    if False:  # or args.showprompt:
         print("Prompt builder prompt:")
         print(response["prompt_builder"]["prompt"])
         print("=" * 78)
     return answer
-    
+
+
 def run_rag_pipeline_stream(query, docs, model, temp):
     template = """
     Given the following context, answer the question at the end.
@@ -246,13 +255,14 @@ def run_rag_pipeline_stream(query, docs, model, temp):
     prompt = prompt["prompt"]
 
     # print(prompt)
-    
+
     partial = ""
+
     def _cb(chunk):
         nonlocal partial
         partial += chunk.content
-        #print(f"[{partial}]")
-        return chunk.content #partial
+        # print(f"[{partial}]")
+        return chunk.content  # partial
 
     generator = OllamaGenerator(
         model=model,
@@ -263,17 +273,27 @@ def run_rag_pipeline_stream(query, docs, model, temp):
             "num_ctx": 12028,
             "repeat_last_n": -1,
         },
-        streaming_callback=_cb
+        streaming_callback=_cb,
     )
 
     generator.run(prompt)
-    # for _ in generator.run(prompt):  
+    # for _ in generator.run(prompt):
     #     yield partial
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     terminal_width = os.get_terminal_size().columns
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-c", "--create_store", help="Create a new data store.", default=None
+    )
+    parser.add_argument("-d", "--dataset", help="Dataset filename.", default=None)
+    parser.add_argument("-r", "--read_store", help="Read a data store.", default=None)
+    parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=8)
+    parser.add_argument("-q", "--query", help="Query DBs.", default=None)
+    args = parser.parse_args()
     query = args.query
-    
+
     if args.create_store and args.dataset:
         print("Loading research dataset")
         dataset = load_from_disk(args.dataset)
@@ -284,26 +304,26 @@ if __name__ == '__main__':
         for doc in dataset:
             docs.append(
                 Document(
-                        content=doc["contents"]+"\nAuthors:"+doc["researcher_name"],
-                        meta={
-                            "researcher_name": doc["researcher_name"],
-                            "title": doc["title"],
-                            "abstract": doc["contents"]
-                        }
-                    )
+                    content=doc["contents"] + "\nAuthors:" + doc["researcher_name"],
+                    meta={
+                        "researcher_name": doc["researcher_name"],
+                        "title": doc["title"],
+                        "abstract": doc["contents"],
+                    },
+                )
             )
         print(dataset[0])
         print(docs[0])
         rs_doc_store = InMemoryDocumentStore()
         print("Starting create_index_nosplit()")
         create_index_nosplit(docs, rs_doc_store)
-        #create_index_split(docs, rs_doc_store)
+        # create_index_split(docs, rs_doc_store)
         rs_doc_store.save_to_disk(args.create_store)
         print("Ready create_index_nosplit()")
 
     if not args.query:
         sys.exit(0)
-        
+
     if not args.read_store and not args.create_store:
         args.read_store = "research_docs_ns.store"
     elif not args.read_store and args.create_store:
@@ -314,24 +334,21 @@ if __name__ == '__main__':
 
     # Docs are already indexed/embedded in the store.
     hybrid_retrieval = create_hybrid_retriever(doc_store)
-    
+
     documents = retrieve(hybrid_retrieval, query, top_k=args.top_k)
     print("=" * 80)
     for doc in documents:
-        #print(doc.id, doc.meta["names"], ":", doc.meta["title"])
+        # print(doc.id, doc.meta["names"], ":", doc.meta["title"])
         print_res(doc, terminal_width)
     print("=" * 80)
     model = "llama3.1:latest"
     answer = run_rag_pipeline(query, documents, model, 0.1)
     print(answer)
     print("=" * 80)
-    filters= {"field": "meta.researcher_name",
-                 "operator": "==",
-                 "value": "P. Berck"}
+    filters = {"field": "meta.researcher_name", "operator": "==", "value": "P. Berck"}
     docs = doc_store.filter_documents(filters)
     print(docs)
     print("=" * 80)
     run_rag_pipeline_stream(query, documents, model, 0.1)
     # for answer in run_rag_pipeline_stream(query, documents, model, 0.1):
     #     print(answer)
-    
