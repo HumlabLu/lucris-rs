@@ -1,15 +1,8 @@
 import sys
 import os
 import gradio as gr
-import random
-import time
 import logging
 from openai import OpenAI, OpenAIError
-import chromadb
-from chromadb.utils import embedding_functions
-import json
-from sentence_transformers import CrossEncoder
-import numpy as np
 from datetime import datetime
 from hybrid import embedding_model, reranker_model, create_hybrid_retriever, retrieve, InMemoryDocumentStore, PromptBuilder, OllamaGenerator
 import argparse
