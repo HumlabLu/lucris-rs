@@ -49,11 +49,24 @@ ABSTRACT:...
 
 ## Installation
 
+The system consists of a Rust program and several accompanying Python scripts.
+
 ### cargo
 
 If you have the rust toolchain, you can install from git.
 ```shell
 cargo install --git https://github.com/HumlabLu/lucris-rs.git
+```
+
+### Python
+
+Create a virtual environment using the `requirements.txt` (which probably contains more than necessary).
+
+With `uv`.
+```shell
+uv venv --python 3.12
+. ./venv/bin/activate
+uv pip install -r requirements.txt
 ```
 
 # Workflow
@@ -120,14 +133,6 @@ Run the Go-code first to scrape the LUCRIS website. Then run the Rust extractor.
 cargo run --release -- -p persons.clean.jsonl -r research-outputs.clean.jsonl > research_docs.txt
 ```
 
-Create a virtual environment using the `requirements.txt` (which probably contains more than necessary).
-
-With `uv`.
-```shell
-uv venv --python 3.12
-. ./venv/bin/activate
-uv pip install -r requirements.txt
-```
 
 Create the HayStack document store. If you are using `uv`, use `uv run` instead of `python` in the following examples.
 ```shell
