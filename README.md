@@ -49,7 +49,7 @@ ABSTRACT:...
 
 ## Installation
 
-The system consists of a Rust program and several accompanying Python scripts.
+The system consists of a Rust program and several accompanying Python scripts. The rust program can be installed with `cargo`. For the Python code `uv` is recommended.
 
 ### cargo
 

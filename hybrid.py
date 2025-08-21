@@ -50,6 +50,7 @@ reranker_model = "BAAI/bge-reranker-base"
 # Index the documents.
 # This does not split the content, the text is embedded complete.
 # Calls and returns create_hybrid_retriever().
+# The no_split() store is 2.6GB, the split() store is 16GB.
 def create_index_nosplit(docs, doc_store):
     document_embedder = SentenceTransformersDocumentEmbedder(
         model=embedding_model,  # "BAAI/bge-small-en-v1.5", #), device=ComponentDevice.from_str("cuda:0")
