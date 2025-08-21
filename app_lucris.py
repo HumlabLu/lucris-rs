@@ -1,4 +1,5 @@
 import os
+import sys
 import gradio as gr
 import logging
 from openai import OpenAI, OpenAIError
@@ -304,10 +305,10 @@ with gr.Blocks(theme=theme) as demo_blocks:
 
         template = """
         Given the following context, answer the question at the end.
-        Do not make up facts. Do not use lists. When referring to research
+        Do not make up facts. Try not to use lists. When referring to research
         mention the researchers names from the context. The name of the researcher will be given
         first, followed by an abstract of the relevant research. The question will follow the context.
-        Reference the index numbers in the context when replying.
+        If possible, reference the index numbers in the context when replying.
 
         Context:
         {% for document in documents %}
@@ -333,6 +334,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
         def _cb(chunk):
             nonlocal partial
             partial += chunk.content
+            #print(partial, file=sys.stderr)
             return partial
 
         generator = OllamaGenerator(
@@ -385,7 +387,7 @@ if __name__ == "__main__":
     # doc_store = InMemoryDocumentStore().load_from_disk("research_docs_sp.store")
     DBG(f"Number of documents: {doc_store.count_documents()}.")
 
-    # Docs are already indexed/embedded in the sotre.
+    # Docs are already indexed/embedded in the store.
     hybrid_retrieval = create_hybrid_retriever(doc_store)
     """
     pipeline.add_component(instance=InMemoryBM25Retriever(document_store=document_store), name="retriever")

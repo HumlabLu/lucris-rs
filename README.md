@@ -58,35 +58,15 @@ cargo install --git https://github.com/HumlabLu/lucris-rs.git
 
 # Workflow
 
-Run the Go-code first to scrape the LUCRIS website.
-
-Run the Rust extractor.
+Run the Go-code first to scrape the LUCRIS website. Then run the Rust extractor.
 
 ```shell
 cargo run --release -- -p persons.clean.jsonl -r research-outputs.clean.jsonl > research_docs.txt
 ```
 
-Create a virtual environment using the `requirements.txt` (which probably contains more than necessary).
+The `research_docs.txt`file can be used by the web-app or from the command line. See the following instructions.
 
-With `uv`.
-```shell
-uv venv --python 3.12
-uv pip install -r requirements.txt
-```
-
-Create the HayStack document store. If you are using `uv`, use `uv run` instead of `python` in the following examples.
-```shell
-python haystack_store.py -r research_docs.txt -s docs_research.store
-```
-
-Run queries like this.
-```shell
-python haystack_research.py -s docs_research.store
-```
-
-Enter 'bye' to quit.
-
-# Web-app
+## Web-app
 
 The `app_lucris.py` script provides a web interface to a 'chatbot' answering questions about the research-data. 'Chatbot' between quotation marks because it only answers single questions without looking at the previous questions and answers. 
 
@@ -97,7 +77,7 @@ It uses the Ollama framework to run an LLM locally.
 Screenshot of the web interface.
 ![Chatbot screen shot](chatbot00.png?raw=true "Chatbot example")
 
-## Preparing the web-app
+### Preparing the web-app
 
 The web-app reads the same lucris data produced by the `lucris-rs` scripts. The `lucris2dataset.py` and `hybrid.py` scripts read and prepare the data for the web app. They prepare a HayStack document store for hybrid (embeddings and BM25) retrieval.
 
@@ -105,7 +85,7 @@ So the workflow is as follows:
  - run the scraper
  - run `lucris-rs` on its output
  - run `lucris2dataset.py` to create a "huggingface" data set (default name `research_docs.dataset`)
- - run `hybrid.py -c research_docs.store -d research_docs.dataset` to convert the data set to a data store (slowest step, takes about ten minutes on my M1 MacBookPro)
+ - run `hybrid.py -c research_docs.store -d research_docs.dataset` to convert the data set to a data store (slowest step, takes about eight minutes on an 8GB 1070Ti)
  - run `python app_lucris.py -d research_docs.store`
 
 Some parameters (such as the embedding and reranker models) are set/hardcoded in `hybrid.py`. The web-app reads the `OAIMODEL` environment variable to choose the model. This can be set as follows.
@@ -131,6 +111,36 @@ Debug output is written to `lucrisbot.log`. If you want output in the terminal, 
 ```bash
 export DEBUG=1
 ```
+
+## Command-line
+
+Run the Go-code first to scrape the LUCRIS website. Then run the Rust extractor.
+
+```shell
+cargo run --release -- -p persons.clean.jsonl -r research-outputs.clean.jsonl > research_docs.txt
+```
+
+Create a virtual environment using the `requirements.txt` (which probably contains more than necessary).
+
+With `uv`.
+```shell
+uv venv --python 3.12
+. ./venv/bin/activate
+uv pip install -r requirements.txt
+```
+
+Create the HayStack document store. If you are using `uv`, use `uv run` instead of `python` in the following examples.
+```shell
+python haystack_store.py -r research_docs.txt -s docs_research.store
+```
+This might download some data from HuggingFace. If all goes well, `docs_research.store` will be written to disk.
+
+Run queries like this.
+```shell
+python haystack_research.py -s docs_research.store
+```
+
+Enter 'bye' to quit.
 
 ## Command-line Querying Example
 
