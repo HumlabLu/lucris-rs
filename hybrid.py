@@ -358,9 +358,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--scale",
-        action="store_true",
-        help="Scale retrieved scores.",
-        default=False,
+        action="store_false",
+        help="Do not scale retrieved scores.",
+        default=True,
     )
     parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=8)
     parser.add_argument("-q", "--query", help="Query DBs.", default=None)
