@@ -122,6 +122,25 @@ def create_hybrid_retriever(doc_store):
     return hybrid_retrieval
 
 
+def create_embedding_retriever(doc_store):
+    text_embedder = SentenceTransformersTextEmbedder(
+        model=embedding_model,  # "BAAI/bge-small-en-v1.5" #, device=ComponentDevice.from_str("cuda:0")
+    )
+    embedding_retriever = InMemoryEmbeddingRetriever(doc_store)
+
+    ranker = SentenceTransformersSimilarityRanker(model=reranker_model)
+
+    embedding_retrieval = Pipeline()
+    embedding_retrieval.add_component("text_embedder", text_embedder)
+    embedding_retrieval.add_component("embedding_retriever", embedding_retriever)
+    embedding_retrieval.add_component("ranker", ranker)
+
+    embedding_retrieval.connect("text_embedder", "embedding_retriever")
+    embedding_retrieval.connect("embedding_retriever", "ranker")
+
+    return embedding_retrieval
+
+
 def create_bm25_retriever(doc_store):
     bm25_retriever = InMemoryBM25Retriever(doc_store)
 
@@ -172,14 +191,14 @@ def print_res(doc, width=0):
 #     ],
 # }
 # results = DocumentStore.filter_documents(filters=filters)
-def retrieve(retriever, query, top_k=8):
+def retrieve(retriever, query, top_k=8, scale=True):
     result = retriever.run(
         {
             "text_embedder": {"text": query},
             "bm25_retriever": {
                 "query": query,
                 "top_k": top_k,
-                "scale_score": True,
+                "scale_score": scale,
                 # "filters": {"field": "meta.researcher_name",
                 #             "operator": "==",
                 #             "value": "P. Berck"}
@@ -193,13 +212,24 @@ def retrieve(retriever, query, top_k=8):
     return result["ranker"]["documents"]
 
 
-def retrieve_bm25(retriever, query, top_k=8):
+def retrieve_embedded(retriever, query, top_k=8, scale=True):
+    result = retriever.run(
+        {
+            "text_embedder": {"text": query},
+            "embedding_retriever": {"top_k": top_k, "scale_score": scale},
+            "ranker": {"query": query, "top_k": top_k, "scale_score": scale},
+        }
+    )
+    return result["ranker"]["documents"]
+
+
+def retrieve_bm25(retriever, query, top_k=8, scale=True):
     result = retriever.run(
         {
             "bm25_retriever": {
                 "query": query,
                 "top_k": top_k,
-                "scale_score": True,
+                "scale_score": scale,
                 # "filters": {"field": "meta.researcher_name",
                 #             "operator": "==",
                 #             "value": "P. Berck"}
@@ -325,6 +355,13 @@ if __name__ == "__main__":
     )
     parser.add_argument("-d", "--dataset", help="Dataset filename.", default=None)
     parser.add_argument("-r", "--read_store", help="Read a data store.", default=None)
+    parser.add_argument(
+        "-s",
+        "--scale",
+        action="store_true",
+        help="Scale retrieved scores.",
+        default=False,
+    )
     parser.add_argument("--top_k", type=int, help="Retriever top_k.", default=8)
     parser.add_argument("-q", "--query", help="Query DBs.", default=None)
     args = parser.parse_args()
@@ -371,18 +408,34 @@ if __name__ == "__main__":
     # Docs are already indexed/embedded in the store.
     hybrid_retrieval = create_hybrid_retriever(doc_store)
 
-    documents = retrieve(hybrid_retrieval, query, top_k=args.top_k)
+    documents = retrieve(hybrid_retrieval, query, top_k=args.top_k, scale=args.scale)
+    print("=" * 80)
+    print("== Hybrid")
     print("=" * 80)
     for doc in documents:
         # print(doc.id, doc.meta["names"], ":", doc.meta["title"])
         print_res(doc, terminal_width)
 
-    bm25_retrieval = create_bm25_retriever(doc_store)
-    documents = retrieve_bm25(bm25_retrieval, query, top_k=args.top_k)
+    embedding_retrieval = create_embedding_retriever(doc_store)
+    documents = retrieve_embedded(
+        embedding_retrieval, query, top_k=args.top_k, scale=args.scale
+    )
+    print("=" * 80)
+    print("== Embedding")
     print("=" * 80)
     for doc in documents:
         print_res(doc, terminal_width)
 
+    bm25_retrieval = create_bm25_retriever(doc_store)
+    documents = retrieve_bm25(bm25_retrieval, query, top_k=args.top_k, scale=args.scale)
+    print("=" * 80)
+    print("== bm25")
+    print("=" * 80)
+    for doc in documents:
+        print_res(doc, terminal_width)
+
+    print("=" * 80)
+    print("== Answer")
     print("=" * 80)
     model = "llama3.1:latest"
     answer = run_rag_pipeline(query, documents, model, 0.1)
