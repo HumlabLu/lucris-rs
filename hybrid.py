@@ -122,6 +122,22 @@ def create_hybrid_retriever(doc_store):
     return hybrid_retrieval
 
 
+def create_bm25_retriever(doc_store):
+    bm25_retriever = InMemoryBM25Retriever(doc_store)
+
+    document_joiner = DocumentJoiner()
+    # ranker = TransformersSimilarityRanker(model=reranker_model)
+    # Needs haystack-ai >= 2.14
+    ranker = SentenceTransformersSimilarityRanker(model=reranker_model)
+
+    bm25_retrieval = Pipeline()
+    bm25_retrieval.add_component("bm25_retriever", bm25_retriever)
+    bm25_retrieval.add_component("ranker", ranker)
+    bm25_retrieval.connect("bm25_retriever", "ranker")
+
+    return bm25_retrieval
+
+
 def pretty_print_results(prediction):
     for doc in prediction["documents"]:
         # print(doc.meta["title"][:60], "...\t", doc.score)
@@ -169,6 +185,25 @@ def retrieve(retriever, query, top_k=8):
                 #             "value": "P. Berck"}
             },
             "embedding_retriever": {"top_k": top_k, "scale_score": True},
+            "ranker": {"query": query, "top_k": top_k, "scale_score": True},
+        }
+    )
+    # print(result)
+    # pretty_print_results(result["ranker"])
+    return result["ranker"]["documents"]
+
+
+def retrieve_bm25(retriever, query, top_k=8):
+    result = retriever.run(
+        {
+            "bm25_retriever": {
+                "query": query,
+                "top_k": top_k,
+                "scale_score": True,
+                # "filters": {"field": "meta.researcher_name",
+                #             "operator": "==",
+                #             "value": "P. Berck"}
+            },
             "ranker": {"query": query, "top_k": top_k, "scale_score": True},
         }
     )
@@ -341,6 +376,13 @@ if __name__ == "__main__":
     for doc in documents:
         # print(doc.id, doc.meta["names"], ":", doc.meta["title"])
         print_res(doc, terminal_width)
+
+    bm25_retrieval = create_bm25_retriever(doc_store)
+    documents = retrieve_bm25(bm25_retrieval, query, top_k=args.top_k)
+    print("=" * 80)
+    for doc in documents:
+        print_res(doc, terminal_width)
+
     print("=" * 80)
     model = "llama3.1:latest"
     answer = run_rag_pipeline(query, documents, model, 0.1)
