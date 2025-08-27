@@ -365,6 +365,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .expect("No concepts data")
                         .len()
                 );
+                /*
                 if let Some(cd) = &concepts_data {
                     for c in cd {
                         let ppc = ::serde_json::to_string_pretty(c);
@@ -374,17 +375,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
                 }
+                */
             }
             Err(e) => eprintln!("Error reading ConceptJSON: {:?}", e),
         }
     }
-    /*
     let ppcd = ::serde_json::to_string_pretty(&concepts_data);
     match ppcd {
         Ok(s) => trace!("\n{}", s),
         Err(e) => eprintln!("Cannot parse concept JSON: {:?}", e),
     }
-    */
 
     // ------------------------------------------------------------------------
 
