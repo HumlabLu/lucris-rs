@@ -334,11 +334,10 @@ with gr.Blocks(theme=theme) as demo_blocks:
         def _cb(chunk):
             nonlocal partial
             partial += chunk.content
-            #print(partial, file=sys.stderr)
             return partial
 
         generator = OllamaGenerator(
-            model=chosen_model,  # gen_model,
+            model=chosen_model,
             url="http://localhost:11434",
             generation_kwargs={
                 "num_predict": npredict,
