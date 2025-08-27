@@ -6,8 +6,12 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-f", "--filename", help="Filename.", default="research_docs_nta.txt")
-parser.add_argument("-o", "--outputfilename", help="Output filename.", default="research_docs.dataset")
+parser.add_argument(
+    "-f", "--filename", help="Filename.", default="research_docs_nta.txt"
+)
+parser.add_argument(
+    "-o", "--outputfilename", help="Output filename.", default="research_docs.dataset"
+)
 args = parser.parse_args()
 
 # ---------------------------------------------------------------------------
@@ -25,7 +29,7 @@ current_abstract = None
 current_meta = {}
 documents = []
 ids = []
-names= []
+names = []
 titles = []
 contents = []
 counter = 0
@@ -33,6 +37,12 @@ with open(args.filename, "r") as f:
     linecounter = 0
     for line in f:
         line = line.strip()
+        #
+        # Read data with
+        # NAME: ...
+        # TITLE: ...
+        # ABSTRACT: ...
+        #
         if line.startswith("NAME:") or line.startswith("NAMES:"):
             # If we get a new name, the abstract is finished (could be
             # multi line).
@@ -66,7 +76,7 @@ with open(args.filename, "r") as f:
                     print("Data seems wonky. Exit.", linecounter)
                     sys.exit(1)
         elif line.startswith("ABSTRACT:"):
-            if current_abstract: # this happens, abstract containing "abstract"
+            if current_abstract:  # this happens, abstract containing "abstract"
                 current_abstract += line
                 continue
             if not current_name and not current_title:
@@ -76,7 +86,11 @@ with open(args.filename, "r") as f:
             if len(bits) > 0:
                 # abstract can be empty... mirror title?
                 abstract = bits[1].strip()
-                if len(abstract) < 2 or abstract == "no abstract" or abstract == "[abstract missing]": #some arbitrary small value
+                if (
+                    len(abstract) < 2
+                    or abstract == "no abstract"
+                    or abstract == "[abstract missing]"
+                ):  # some arbitrary small value
                     abstract = current_title
                 if not current_abstract:
                     current_abstract = abstract
@@ -97,17 +111,17 @@ with open(args.filename, "r") as f:
 
 data = {}
 print(len(ids), len(names), len(titles), len(contents))
-data['id'] = ids
-data['researcher_name'] = names
-data['title'] = titles
-data['contents'] = contents
+data["id"] = ids
+data["researcher_name"] = names
+data["title"] = titles
+data["contents"] = contents
 dataset = datasets.Dataset.from_dict(data)
 print(dataset)
 print(json.dumps(dataset[0], indent=4))
-print(json.dumps(dataset[len(ids)-1], indent=4))
+print(json.dumps(dataset[len(ids) - 1], indent=4))
 # for x in dataset:
 #     print(json.dumps(x, indent=4))
-    
+
 
 dataset.save_to_disk(args.outputfilename)
 
@@ -116,4 +130,3 @@ test_dataset = datasets.load_from_disk(args.outputfilename)
 print("\nReloaded dataset")
 print(test_dataset)
 print(json.dumps(test_dataset[0], indent=4))
-
