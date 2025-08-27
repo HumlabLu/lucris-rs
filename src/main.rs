@@ -362,6 +362,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         Ok(s) => trace!("\n{}", s),
                         Err(e) => eprintln!("Cannot pretty print concept JSON: {:?}", e),
                     }
+                    for c in &data {
+                        if let Some((id, text)) = c.id_and_text_for_locale(&cli.locale) {
+                            trace!("{id}: {text}");
+                        }
+                    }
                     Some(data)
                 }
                 Err(e) => {
@@ -370,7 +375,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
         });
-
     // ------------------------------------------------------------------------
 
     // Parse the orgunits JSON. Each struct is pushed into

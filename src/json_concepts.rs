@@ -70,6 +70,26 @@ pub struct Thesauri {
 
 // ----------------------------------------------------------
 
+impl ConceptJson {
+    /// Return (id, en_GB text) where id = conceptId if available, otherwise uuid.
+    pub fn id_and_text_for_locale(&self, locale: &str) -> Option<(String, String)> {
+        let _id = self.conceptId.as_ref().or(self.uuid.as_ref())?.clone();
+        let id = self.uuid.as_ref().or(self.conceptId.as_ref())?.clone();
+        let labels = self.name.as_ref()?.text.as_ref()?;
+        let pick = |loc: &str| {
+            labels
+                .iter()
+                .find(|lt| lt.locale.as_deref() == Some(loc))
+                .and_then(|lt: &LocaleText| lt.value.as_ref().cloned())
+        };
+        let text = pick(locale)
+            .or_else(|| pick("en_GB"))
+            .or_else(|| pick("en"))
+            .or_else(|| labels.iter().find_map(|lt| lt.value.clone()))?;
+        Some((id, text))
+    }
+}
+
 pub fn read_concept_jsonl(file_path: &str) -> Result<Vec<ConceptJson>, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
