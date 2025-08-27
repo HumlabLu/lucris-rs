@@ -339,6 +339,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         Ok(s) => trace!("\n{}", s),
                         Err(e) => eprintln!("Cannot pretty print fingerprint JSON: {:?}", e),
                     }
+                    for fp in &data {
+                        if let Some((id, uuids)) = fp.id_and_concept_uuids() {
+                            trace!("{id}: {:?}", uuids);
+                        }
+                    }
                     Some(data)
                 }
                 Err(e) => {

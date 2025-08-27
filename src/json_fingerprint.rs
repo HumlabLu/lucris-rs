@@ -1,12 +1,12 @@
 #![allow(non_snake_case)]
-use serde::{Deserialize, Serialize};
-use std::fs::File;
-use std::io::BufReader;
-use std::io::BufRead;
+use log::{debug, error, info, trace, warn};
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
+use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
 use std::sync::{Arc, Mutex};
-use log::{debug, error, info, trace, warn};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FingerprintJson {
@@ -38,7 +38,25 @@ pub struct Info {
 
 // ----------------------------------------------------------
 
-pub fn read_fingerprint_jsonl(file_path: &str) -> Result<Vec<FingerprintJson>, Box<dyn std::error::Error>> {
+impl FingerprintJson {
+    /// Return (content id, list of concept uuids) where id = contentUuid or fallback uuid
+    pub fn id_and_concept_uuids(&self) -> Option<(String, Vec<String>)> {
+        let id = self.contentUuid.as_ref().or(self.uuid.as_ref())?.clone();
+
+        let concept_ids = self
+            .concepts
+            .as_ref()?
+            .iter()
+            .filter_map(|c: &Concept| c.uuid.clone())
+            .collect::<Vec<_>>();
+
+        Some((id, concept_ids))
+    }
+}
+
+pub fn read_fingerprint_jsonl(
+    file_path: &str,
+) -> Result<Vec<FingerprintJson>, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
     let data = Arc::new(Mutex::new(vec![]));
@@ -47,7 +65,7 @@ pub fn read_fingerprint_jsonl(file_path: &str) -> Result<Vec<FingerprintJson>, B
     reader
         .lines()
         .filter_map(|line: Result<String, _>| line.ok())
-        .par_bridge()   // parallelise
+        .par_bridge() // parallelise
         .for_each(|line: String| {
             match serde_json::from_str::<FingerprintJson>(&line) {
                 Ok(json) => {
@@ -56,7 +74,7 @@ pub fn read_fingerprint_jsonl(file_path: &str) -> Result<Vec<FingerprintJson>, B
                     // Add it to the data vector.
                     let mut data = data.lock().unwrap();
                     data.push(json);
-                },
+                }
                 Err(e) => {
                     error!("{}", e);
                     //panic!("{}", line);
