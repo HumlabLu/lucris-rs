@@ -361,39 +361,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Parse the concepts JSON. Each struct is pushed into
     // a vector.
-    let mut concepts_data: Option<Vec<ConceptJson>> = None;
-    if let Some(concepts_filename) = cli.concepts {
-        info!("Reading concepts file {:?}.", concepts_filename);
-        match read_concept_jsonl(&concepts_filename) {
-            Ok(data) => {
-                concepts_data = Some(data);
-                info!(
-                    "Concepts data contains {} elements.",
-                    concepts_data
-                        .as_ref() // Converts Option<T> to Option<&T>.
-                        .expect("No concepts data")
-                        .len()
-                );
-                /*
-                if let Some(cd) = &concepts_data {
-                    for c in cd {
-                        let ppc = ::serde_json::to_string_pretty(c);
-                        match ppc {
-                            Ok(s) => trace!("\n{}", s),
-                            Err(e) => eprintln!("Cannot parse concept JSON: {:?}", e),
-                        }
+    let concepts_data: Option<Vec<ConceptJson>> =
+        cli.concepts.as_ref().and_then(|concepts_filename| {
+            info!("Reading concepts file {:?}.", concepts_filename);
+            match read_concept_jsonl(concepts_filename) {
+                Ok(data) => {
+                    info!("Concepts data contains {} elements.", data.len());
+                    match ::serde_json::to_string_pretty(&data) {
+                        Ok(s) => trace!("\n{}", s),
+                        Err(e) => eprintln!("Cannot parse concept JSON: {:?}", e),
                     }
+                    Some(data)
                 }
-                */
+                Err(e) => {
+                    eprintln!("Error reading ConceptJSON: {:?}", e);
+                    None
+                }
             }
-            Err(e) => eprintln!("Error reading ConceptJSON: {:?}", e),
-        }
-    }
-    let ppcd = ::serde_json::to_string_pretty(&concepts_data);
-    match ppcd {
-        Ok(s) => trace!("\n{}", s),
-        Err(e) => eprintln!("Cannot parse concept JSON: {:?}", e),
-    }
+        });
 
     // ------------------------------------------------------------------------
 
@@ -412,14 +397,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         .expect("No orgunits data")
                         .len()
                 );
+                let ppod = ::serde_json::to_string_pretty(&orgunits_data);
+                match ppod {
+                    Ok(s) => trace!("\n{}", s),
+                    Err(e) => eprintln!("Cannot pretty print orgunits JSON: {:?}", e),
+                }
             }
             Err(e) => eprintln!("Error reading OrgunitsJSON: {:?}", e),
         }
-    }
-    let ppod = ::serde_json::to_string_pretty(&orgunits_data);
-    match ppod {
-        Ok(s) => trace!("\n{}", s),
-        Err(e) => eprintln!("Cannot pretty print orgunits JSON: {:?}", e),
     }
 
     // ------------------------------------------------------------------------
