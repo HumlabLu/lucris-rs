@@ -384,28 +384,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Parse the orgunits JSON. Each struct is pushed into
     // a vector.
-    let mut orgunits_data: Option<Vec<OrgUnitJson>> = None;
-    if let Some(orgunits_filename) = cli.orgunits {
-        info!("Reading organisational-units file {:?}.", orgunits_filename);
-        match read_orgunits_jsonl(&orgunits_filename) {
-            Ok(data) => {
-                orgunits_data = Some(data);
-                info!(
-                    "Orgunits data contains {} elements.",
-                    orgunits_data
-                        .as_ref() // Converts Option<T> to Option<&T>.
-                        .expect("No orgunits data")
-                        .len()
-                );
-                let ppod = ::serde_json::to_string_pretty(&orgunits_data);
-                match ppod {
-                    Ok(s) => trace!("\n{}", s),
-                    Err(e) => eprintln!("Cannot pretty print orgunits JSON: {:?}", e),
+    let orgunits_data: Option<Vec<OrgUnitJson>> =
+        cli.orgunits.as_ref().and_then(|orgunits_filename| {
+            info!("Reading organisational-units file {:?}.", orgunits_filename);
+            match read_orgunits_jsonl(orgunits_filename) {
+                Ok(data) => {
+                    info!("Orgunits data contains {} elements.", data.len());
+                    match ::serde_json::to_string_pretty(&data) {
+                        Ok(s) => trace!("\n{}", s),
+                        Err(e) => eprintln!("Cannot parse orgunits JSON: {:?}", e),
+                    }
+                    Some(data)
+                }
+                Err(e) => {
+                    eprintln!("Error reading OrgunitsJSON: {:?}", e);
+                    None
                 }
             }
-            Err(e) => eprintln!("Error reading OrgunitsJSON: {:?}", e),
-        }
-    }
+        });
 
     // ------------------------------------------------------------------------
 
