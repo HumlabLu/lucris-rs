@@ -257,6 +257,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     }
+    let pppd = ::serde_json::to_string_pretty(&persons_data);
+    match pppd {
+        Ok(s) => trace!("\n{}", s),
+        Err(e) => eprintln!("Cannot pretty print persons JSON: {:?}", e),
+    }
 
     // Save a mapping from uuid to data, so we can combine later. PersonClean
     // is a simpler/cleaner version of PersonJson with only the fields we are
@@ -346,7 +351,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Err(e) => eprintln!("Error reading FingerprintJSON: {:?}", e),
         }
     }
-    trace!("{:?}", fingerprints_data);
+    let ppfd = ::serde_json::to_string_pretty(&fingerprints_data);
+    match ppfd {
+        Ok(s) => trace!("\n{}", s),
+        Err(e) => eprintln!("Cannot pretty print fingerprint JSON: {:?}", e),
+    }
 
     // ------------------------------------------------------------------------
 
@@ -407,7 +416,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Err(e) => eprintln!("Error reading OrgunitsJSON: {:?}", e),
         }
     }
-    trace!("{:?}", orgunits_data);
+    let ppod = ::serde_json::to_string_pretty(&orgunits_data);
+    match ppod {
+        Ok(s) => trace!("\n{}", s),
+        Err(e) => eprintln!("Cannot pretty print orgunits JSON: {:?}", e),
+    }
 
     // ------------------------------------------------------------------------
 
