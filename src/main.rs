@@ -205,8 +205,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // relevant fields.
                 match ResearchClean::try_from_with_locale_umap(entry, &cli.locale, &mut umap) {
                     Ok(research_des) => {
-                        let json_output = serde_json::to_string(&research_des).unwrap();
-                        trace!("{}", json_output);
+                        let json_output = serde_json::to_string_pretty(&research_des).unwrap();
+                        trace!("\n{}", json_output);
                         let safe_uuid = umap.get_uuid_as_str(uuid);
                         research_map.insert(safe_uuid, research_des);
                     }
