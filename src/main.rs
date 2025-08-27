@@ -329,33 +329,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Parse the fingerprints JSON. Each struct is pushed into
     // a vector.
-    let mut fingerprints_data: Option<Vec<FingerprintJson>> = None;
-    if let Some(fingerprints_filename) = cli.fingerprints {
-        info!("Reading fingerprint file {:?}.", fingerprints_filename);
-        match read_fingerprint_jsonl(&fingerprints_filename) {
-            Ok(data) => {
-                fingerprints_data = Some(data);
-                info!(
-                    "Fingerprint data contains {} elements.",
-                    fingerprints_data
-                        .as_ref() // Converts Option<T> to Option<&T>.
-                        .expect("No fingerprints data")
-                        .len()
-                );
-                if let Some(fd) = &fingerprints_data {
-                    for fp in fd {
-                        //println!("\n{:?}", fp);
+    let fingerprints_data: Option<Vec<FingerprintJson>> =
+        cli.fingerprints.as_ref().and_then(|fingerprints_filename| {
+            info!("Reading fingerprint file {:?}.", fingerprints_filename);
+            match read_fingerprint_jsonl(fingerprints_filename) {
+                Ok(data) => {
+                    info!("Fingerprint data contains {} elements.", data.len());
+                    match ::serde_json::to_string_pretty(&data) {
+                        Ok(s) => trace!("\n{}", s),
+                        Err(e) => eprintln!("Cannot pretty print fingerprint JSON: {:?}", e),
                     }
+                    Some(data)
+                }
+                Err(e) => {
+                    eprintln!("Error reading FingerprintJSON: {:?}", e);
+                    None
                 }
             }
-            Err(e) => eprintln!("Error reading FingerprintJSON: {:?}", e),
-        }
-    }
-    let ppfd = ::serde_json::to_string_pretty(&fingerprints_data);
-    match ppfd {
-        Ok(s) => trace!("\n{}", s),
-        Err(e) => eprintln!("Cannot pretty print fingerprint JSON: {:?}", e),
-    }
+        });
 
     // ------------------------------------------------------------------------
 
