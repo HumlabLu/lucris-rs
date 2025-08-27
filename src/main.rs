@@ -33,7 +33,7 @@ use uuid_map::UuidMap;
 #[derive(Parser)]
 #[command(version, about, long_about = "Reading data.")]
 struct Cli {
-    /// Research info jasonl file
+    /// Research info jsonl file
     #[arg(
         short,
         long,
@@ -41,19 +41,19 @@ struct Cli {
     )]
     research: Option<String>,
 
-    /// Persons info jasonl file
+    /// Persons info jsonl file
     #[arg(short, long, help = "The file containing the cleaned persons.")]
     persons: Option<String>,
 
-    /// Fingerprint info jasonl file
+    /// Fingerprint info jsonl file
     #[arg(short, long, help = "The file containing the cleaned fingerprints.")]
     fingerprints: Option<String>,
 
-    /// Concept info jasonl file
+    /// Concept info jsonl file
     #[arg(short, long, help = "The file containing the cleaned concepts.")]
     concepts: Option<String>,
 
-    /// OrgUnit info jasonl file
+    /// OrgUnit info jsonl file
     #[arg(
         short,
         long,
@@ -368,6 +368,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if let Some(cd) = &concepts_data {
                     for c in cd {
                         //println!("\n{:?}", c);
+                        let ppc = ::serde_json::to_string_pretty(c);
+                        match ppc {
+                            Ok(s) => println!("\n{}", s),
+                            Err(e) => eprintln!("Cannot parse concept JSON: {:?}", e),
+                        }
                     }
                 }
             }
