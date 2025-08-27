@@ -360,7 +360,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     info!("Concepts data contains {} elements.", data.len());
                     match ::serde_json::to_string_pretty(&data) {
                         Ok(s) => trace!("\n{}", s),
-                        Err(e) => eprintln!("Cannot parse concept JSON: {:?}", e),
+                        Err(e) => eprintln!("Cannot pretty print concept JSON: {:?}", e),
                     }
                     Some(data)
                 }
@@ -383,7 +383,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     info!("Orgunits data contains {} elements.", data.len());
                     match ::serde_json::to_string_pretty(&data) {
                         Ok(s) => trace!("\n{}", s),
-                        Err(e) => eprintln!("Cannot parse orgunits JSON: {:?}", e),
+                        Err(e) => eprintln!("Cannot pretty print orgunits JSON: {:?}", e),
                     }
                     Some(data)
                 }
