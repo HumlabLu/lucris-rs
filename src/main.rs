@@ -238,30 +238,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Parse the persons JSON file. Each struct is pushed into
     // a vector.
-    let mut persons_data: Option<Vec<PersonJson>> = None;
-    if let Some(persons_filename) = cli.persons {
+    let persons_data: Option<Vec<PersonJson>> = cli.persons.as_ref().and_then(|persons_filename| {
         info!("Reading persons file {:?}.", persons_filename);
-        match read_persons_jsonl(&persons_filename, &umap) {
+        match read_persons_jsonl(persons_filename, &umap) {
             Ok(data) => {
-                persons_data = Some(data);
-                info!(
-                    "Person data contains {} elements.",
-                    persons_data
-                        .as_ref() // Converts Option<T> to Option<&T>.
-                        .expect("No persons data")
-                        .len()
-                );
+                info!("Person data contains {} elements.", data.len());
+                match serde_json::to_string_pretty(&data) {
+                    Ok(s) => trace!("\n{}", s),
+                    Err(e) => eprintln!("Cannot pretty print persons JSON: {:?}", e),
+                }
+                Some(data)
             }
             Err(e) => {
-                panic!("Failed to read PersonJson: {:?}", e)
+                eprintln!("Failed to read PersonJson: {:?}", e);
+                None
             }
         }
-    }
-    let pppd = ::serde_json::to_string_pretty(&persons_data);
-    match pppd {
-        Ok(s) => trace!("\n{}", s),
-        Err(e) => eprintln!("Cannot pretty print persons JSON: {:?}", e),
-    }
+    });
 
     // Save a mapping from uuid to data, so we can combine later. PersonClean
     // is a simpler/cleaner version of PersonJson with only the fields we are
