@@ -199,7 +199,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("ABSTRACT: {}", abstract_text);
                 */
 
-                // FILTER FORBIDDEN HERE?
+                // FILTER FORBIDDEN HERE? Done in person/research?
 
                 // Convert the ResearchJson to ResearchClean, keeping only the
                 // relevant fields.
