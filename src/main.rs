@@ -259,45 +259,45 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Save a mapping from uuid to data, so we can combine later. PersonClean
     // is a simpler/cleaner version of PersonJson with only the fields we are
     // interested in.
-    let mut person_map: HashMap<String, PersonClean> = HashMap::new();
-
-    if let Some(data) = persons_data {
-        for entry in &data {
-            // Do something with each entry
-            //println!("{:?}\n", entry);
-            if let Some(uuid) = entry.get_uuid() {
-                // Check in uuid_map.
-                //println!("--> {}", umap.get_uuid_as_str(uuid));
-
-                if let Some((first_name, last_name)) = entry.get_first_and_last_name() {
-                    trace!("Name: {} {} {}", first_name, last_name, uuid);
-                } else {
-                    error!("First or last name not found.");
-                }
-                trace!("{:?}", entry.get_all_education_pure_ids());
-                let info_texts = entry.get_profile_information_texts_for_locale(&cli.locale);
-                let info_texts = extract_texts_with_formatting(&info_texts);
-                trace!("{:?}", info_texts);
-                //println!("{:?}",info_texts);
-
-                // Convert to PersonClean structures.
-                match PersonClean::try_from_with_locale_umap(entry, &cli.locale, &mut umap) {
-                    Ok(person_des) => {
-                        let json_output = serde_json::to_string(&person_des).unwrap();
-                        trace!("{}", json_output);
-                        person_map.insert(uuid.to_string(), person_des);
+    let person_map: HashMap<String, PersonClean> = persons_data
+        .as_deref()
+        .map(|data| {
+            data.iter()
+                .filter_map(|entry| {
+                    let uuid = entry.get_uuid()?;
+                    if let Some((first, last)) = entry.get_first_and_last_name() {
+                        trace!("Name: {} {} {}", first, last, uuid);
+                    } else {
+                        error!("First or last name not found for {}", uuid);
                     }
-                    Err(e) => {
-                        panic!("Failed to convert PersonJson: {:?}", e);
+                    trace!("{:?}", entry.get_all_education_pure_ids());
+
+                    //let info_texts = entry.get_profile_information_texts_for_locale(&cli.locale);
+                    let info_texts = extract_texts_with_formatting(
+                        &entry.get_profile_information_texts_for_locale(&cli.locale),
+                    );
+                    trace!("{:?}", info_texts);
+
+                    // Convert to PersonClean structures.
+                    match PersonClean::try_from_with_locale_umap(entry, &cli.locale, &mut umap) {
+                        Ok(person_des) => {
+                            if let Ok(json_output) = serde_json::to_string(&person_des) {
+                                trace!("{}", json_output);
+                            }
+                            Some((uuid.to_string(), person_des))
+                        }
+                        Err(e) => {
+                            error!("Failed to convert PersonJson ({}): {:?}", uuid, e);
+                            None
+                        }
                     }
-                }
-            } else {
-                error!("Research JSON does not contain uuid.");
-            }
-        }
-    } else {
-        debug!("No persons data available.");
-    }
+                })
+                .collect()
+        })
+        .unwrap_or_else(|| {
+            debug!("No persons data available.");
+            HashMap::new()
+        });
 
     info!("Mappings {}.", &umap);
 

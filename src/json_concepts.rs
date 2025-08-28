@@ -129,3 +129,18 @@ pub fn read_concept_jsonl(file_path: &str) -> Result<Vec<ConceptJson>, Box<dyn s
     info!("Extracted {} entries.", extracted_data.len());
     Ok(extracted_data)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn concept_id_text() {
+        let data = r#"{"pureId":103675163,"uuid":"ad91f1ae-3503-4cd5-9c3b-d126ea2ed999","thesauri":{"uuid":"ed51ac10-0e54-4833-97db-6503ceb8854c","link":{"ref":"content","href":"https://lucris.lub.lu.se/ws/api/524/thesauri/ed51ac10-0e54-4833-97db-6503ceb8854c"},"name":{"formatted":false,"text":[{"locale":"en_GB","value":"Chemical Compounds"},{"locale":"sv_SE","value":"Kemiska föreningar"}]}},"conceptId":"422263159","idf":1.0,"info":{"createdDate":"2021-10-12T09:15:01.001+0200","modifiedDate":"2021-10-12T09:15:01.001+0200"},"name":{"formatted":false,"text":[{"locale":"en_GB","value":"Phosphatidylethanolamine 40:9 Zwitterion"}]},"terms":[{"locale":"en","value":"Phosphatidylethanolamine 40:9 Zwitterion"},{"locale":"en","value":"Phosphatidyl-ethanolamine 40:9 Zwitterion"}]}"#;
+        let concept: ConceptJson = serde_json::from_str(data).expect("Err in concept parsing");
+        if let Some((id, txt)) = concept.id_and_text_for_locale("en_GB") {
+            assert_eq!(id, "ad91f1ae-3503-4cd5-9c3b-d126ea2ed999");
+            assert_eq!(txt, "Phosphatidylethanolamine 40:9 Zwitterion");
+        }
+    }
+}

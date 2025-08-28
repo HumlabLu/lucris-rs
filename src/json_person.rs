@@ -638,6 +638,28 @@ impl PersonJson {
           }]},
     */
     pub fn get_profile_information_texts_for_locale(&self, locale: &str) -> Vec<&str> {
+        self.profileInformations
+            .as_deref() // Option<&[ProfileInformation]>
+            .unwrap_or(&[]) // &[]
+            .iter()
+            .flat_map(|pi| {
+                pi.value
+                    .as_ref()
+                    .and_then(|v| v.text.as_deref()) // Option<&[LocaleText]>
+                    .into_iter()
+                    .flatten()
+            })
+            .filter_map(|lt| {
+                let l = lt.locale.as_deref()?;
+                if l == locale {
+                    lt.value.as_deref()
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+    pub fn _get_profile_information_texts_for_locale(&self, locale: &str) -> Vec<&str> {
         let mut texts = Vec::new();
         if let Some(profile_informations) = &self.profileInformations {
             for profile_information in profile_informations {
@@ -676,6 +698,24 @@ impl PersonJson {
     }
 
     pub fn get_titles_for_locale(&self, locale: &str) -> Vec<String> {
+        self.titles
+            .as_deref()
+            .unwrap_or(&[])
+            .iter()
+            .flat_map(|t| {
+                t.value
+                    .as_ref()
+                    .and_then(|ft| ft.text.as_deref())
+                    .into_iter()
+                    .flatten()
+            })
+            .filter_map(|lt| match (lt.locale.as_deref(), lt.value.as_deref()) {
+                (Some(l), Some(v)) if l == locale => Some(v.to_owned()),
+                _ => None,
+            })
+            .collect()
+    }
+    pub fn _get_titles_for_locale(&self, locale: &str) -> Vec<String> {
         let mut titles = Vec::new();
 
         if let Some(titles_vec) = &self.titles {
