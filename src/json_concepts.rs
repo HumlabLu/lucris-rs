@@ -72,11 +72,13 @@ pub struct Thesauri {
 
 impl ConceptJson {
     /// Return (id, en_GB text) where id = conceptId if available, otherwise uuid.
+    /// The "name" field is taken form the concept JSON.
     pub fn id_and_text_for_locale(&self, locale: &str) -> Option<(String, String)> {
         let _id = self.conceptId.as_ref().or(self.uuid.as_ref())?.clone();
         let id = self.uuid.as_ref().or(self.conceptId.as_ref())?.clone();
         let labels = self.name.as_ref()?.text.as_ref()?;
         let pick = |loc: &str| {
+            // closure.
             labels
                 .iter()
                 .find(|lt| lt.locale.as_deref() == Some(loc))
@@ -140,6 +142,16 @@ mod tests {
         let concept: ConceptJson = serde_json::from_str(data).expect("Err in concept parsing");
         if let Some((id, txt)) = concept.id_and_text_for_locale("en_GB") {
             assert_eq!(id, "ad91f1ae-3503-4cd5-9c3b-d126ea2ed999");
+            assert_eq!(txt, "Phosphatidylethanolamine 40:9 Zwitterion");
+        }
+    }
+
+    #[test]
+    fn concept_id_text_nouuid() {
+        let data = r#"{"thesauri":{"uuid":"ed51ac10-0e54-4833-97db-6503ceb8854c","link":{"ref":"content","href":"https://lucris.lub.lu.se/ws/api/524/thesauri/ed51ac10-0e54-4833-97db-6503ceb8854c"},"name":{"formatted":false,"text":[{"locale":"en_GB","value":"Chemical Compounds"},{"locale":"sv_SE","value":"Kemiska föreningar"}]}},"conceptId":"422263159","idf":1.0,"info":{"createdDate":"2021-10-12T09:15:01.001+0200","modifiedDate":"2021-10-12T09:15:01.001+0200"},"name":{"formatted":false,"text":[{"locale":"en_GB","value":"Phosphatidylethanolamine 40:9 Zwitterion"}]},"terms":[{"locale":"en","value":"Phosphatidylethanolamine 40:9 Zwitterion"},{"locale":"en","value":"Phosphatidyl-ethanolamine 40:9 Zwitterion"}]}"#;
+        let concept: ConceptJson = serde_json::from_str(data).expect("Err in concept parsing");
+        if let Some((id, txt)) = concept.id_and_text_for_locale("en_GB") {
+            assert_eq!(id, "422263159");
             assert_eq!(txt, "Phosphatidylethanolamine 40:9 Zwitterion");
         }
     }
