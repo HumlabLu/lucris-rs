@@ -131,14 +131,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // The map. This translates uuids to "safe" uuids.
     // them somewhere.
-    let mut umap = UuidMap::new();
-
-    if let Some(optout_filename) = cli.optout {
-        info!("Reading optout file {:?}.", optout_filename);
-        let optout_count = umap.read_optouts(&optout_filename)?;
-        info!("Read {} optout_count UUIDs.", optout_count);
-        info!("Mappings {}.", umap);
-    }
+    let mut umap = {
+        let mut map = UuidMap::new();
+        if let Some(filename) = cli.optout.as_deref() {
+            info!("Reading optout file {:?}", filename);
+            let count = map.read_optouts(filename)?;
+            info!("Read {} optout UUIDs.", count);
+            info!("Mappings {}.", map);
+        }
+        map
+    };
 
     // Parse the research data, structures are pushed
     // into a vector. Reads the research.jsonl and creates the
@@ -472,6 +474,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     //     }
     // }
 
+    // Print the output to stdout. Simple format,
+    // NAME: ... (multiple names)
+    // TITLE: ...
+    // ABSTRACT: ...
     for r in combined.research.values() {
         debug!("research clean uuid={:?}", r.get_uuid());
         trace!("{:?}", r);
