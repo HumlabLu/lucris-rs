@@ -344,7 +344,7 @@ with gr.Blocks(theme=theme) as demo_blocks:
             generation_kwargs={
                 "num_predict": npredict,
                 "temperature": tmp_val,
-                "num_ctx": 12028,
+                "num_ctx": 42028,
                 "repeat_last_n": -1,
             },
             streaming_callback=_cb,
