@@ -879,6 +879,13 @@ impl ResearchJson {
         //let names = [names[0].0, " ", names[0].1].concat();
         (title_text, abstract_text)
     }
+
+    pub fn is_approved(&self) -> bool {
+        self.workflow
+            .as_ref()
+            .and_then(|workflow| workflow.workflowStep.as_deref())
+            == Some("approved")
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -944,6 +951,11 @@ pub fn read_research_jsonl(
                     debug!("research uuid={:?}", json.uuid);
                     trace!("{:?}", json); // This generates a lot of output...
 
+                    // We check for the "approved" workflowStep marker.
+                    if !json.is_approved() {
+                        debug!("Ignoring unapproved research item {:?}", json.uuid);
+                        return;
+                    }
                     // TODO check for optout uuid here? Ignore if it is?
                     // We might want to do this more dynamically later...
 
