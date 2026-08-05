@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 import subprocess
-
+import sys
 import argparse
 import json
 from pathlib import Path
@@ -131,6 +131,9 @@ def main() -> None:
 
     researchers = read_researchers(args.spreadsheet, lu_only=args.lu_only)
     # print(json.dumps(researchers, ensure_ascii=False, indent=2))
+    for r in researchers:
+        print(f"{r['name']}")
+    sys.exit(0)
 
     """
       --context-separator=SEPARATOR
@@ -145,6 +148,9 @@ def main() -> None:
         print(f"rg {r['name']}")
         filename = "research_20260805.txt"
         with open("out.txt", "a", encoding="utf-8") as output:
+            # Write name/etc also
+            output.write(f"{json.dumps(r)}\n")
+            output.flush()
             try:
                 subprocess.run(
                     ["rg", "-i", "--no-context-separator", "-A5", r["name"], filename],
