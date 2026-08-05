@@ -1,6 +1,7 @@
 """Read researcher names and departments from the AI Lund member workbook."""
 
 from __future__ import annotations
+import subprocess
 
 import argparse
 import json
@@ -129,7 +130,33 @@ def main() -> None:
     args = parser.parse_args()
 
     researchers = read_researchers(args.spreadsheet, lu_only=args.lu_only)
-    print(json.dumps(researchers, ensure_ascii=False, indent=2))
+    # print(json.dumps(researchers, ensure_ascii=False, indent=2))
+
+    """
+      --context-separator=SEPARATOR
+           The string used to separate non-contiguous context lines in the output. This is only used when one of the context flags is used (that is,
+           -A/--after-context, -B/--before-context or -C/--context). Escape sequences like \x7f or \t may be used. The default value is --.
+
+           When the context separator is set to an empty string, then a line break is still inserted. To completely disable context separators, use the
+           --no-context-separator flag.
+    """
+
+    for r in researchers:
+        print(f"rg {r['name']}")
+        filename = "research_20260805.txt"
+        with open("out.txt", "a", encoding="utf-8") as output:
+            try:
+                subprocess.run(
+                    ["rg", "-i", "--no-context-separator", "-A5", r["name"], filename],
+                    stdout=output,
+                    check=True,
+                    text=True,
+                )
+            except subprocess.CalledProcessError as error:
+                if error.returncode == 1:
+                    print(f"No matches for {r['name']}.")
+                else:
+                    print(f"rg failed with exit code {error.returncode}; continuing.")
 
 
 if __name__ == "__main__":
