@@ -104,6 +104,8 @@ pub struct ResearchClean {
     abstract_text: String,
     keywords: Vec<String>,
     pub persons: Vec<PersonRef>, // Or PersonClean?
+    //#[serde(rename = "creationDate")]
+    creation_date: String,
 }
 
 /// Whether a researcher is internal (we have info in persons.jsonl) or external.
@@ -180,6 +182,10 @@ impl ResearchClean {
 
     pub fn get_keywords(&self) -> &[String] {
         &self.keywords
+    }
+
+    pub fn get_creation_date(&self) -> &str {
+        &self.creation_date
     }
 }
 
@@ -259,6 +265,8 @@ impl ResearchClean {
 
         let keywords = value.get_keywords_for_locale(locale);
 
+        let creation_date = value.get_creation_date().to_owned();
+
         // We have come this far, return the new struct.
         Ok(ResearchClean {
             uuid: safe_uuid,
@@ -266,6 +274,7 @@ impl ResearchClean {
             abstract_text: abstract_text.to_string(),
             persons,
             keywords,
+            creation_date,
         })
     }
 }
@@ -933,6 +942,14 @@ impl ResearchJson {
 
         keywords
     }
+
+    // These should be stored as Option<T>s.
+    pub fn get_creation_date(&self) -> &str {
+        self.info
+            .as_ref()
+            .and_then(|info| info.createdDate.as_deref())
+            .unwrap_or("")
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -1149,7 +1166,7 @@ mod tests {
         // Create and save the safe_uuid so we can compare it later.
         let safe_uuid = umap.add_uuid("01234567-0123-0123-0123-0123456789AB");
         let answer = format!(
-            r#"{{"uuid":"{}","title":"A nice title.","abstract":"","keywords":[],"persons":[]}}"#,
+            r#"{{"uuid":"{}","title":"A nice title.","abstract":"","keywords":[],"persons":[],"creation_date":""}}"#,
             safe_uuid
         );
         let research: ResearchJson = serde_json::from_str(data).expect("Err");

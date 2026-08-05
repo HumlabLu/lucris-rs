@@ -478,6 +478,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // NAME: ... (multiple names)
     // TITLE: ...
     // KEYWORDS: ...
+    // CREATED: ...
     // ABSTRACT: ...
     for r in combined.research.values() {
         debug!("research clean uuid={:?}", r.get_uuid());
@@ -495,6 +496,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("NAMES:{}", names.join(","));
             println!("TITLE:{}", r.get_title());
             println!("KEYWORDS:{}", r.get_keywords().join(","));
+            println!("CREATED:{}", r.get_creation_date());
             let s = r.get_abstract();
             /*
             s.split_whitespace()
