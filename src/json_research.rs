@@ -1149,7 +1149,7 @@ mod tests {
         // Create and save the safe_uuid so we can compare it later.
         let safe_uuid = umap.add_uuid("01234567-0123-0123-0123-0123456789AB");
         let answer = format!(
-            r#"{{"uuid":"{}","title":"A nice title.","abstract":"","persons":[]}}"#,
+            r#"{{"uuid":"{}","title":"A nice title.","abstract":"","keywords":[],"persons":[]}}"#,
             safe_uuid
         );
         let research: ResearchJson = serde_json::from_str(data).expect("Err");
