@@ -20,6 +20,16 @@ def _normalise_header(value: object) -> str:
     return str(value or "").strip().casefold()
 
 
+def _repair_name_encoding(value: object) -> str:
+    """Repair UTF-8 text that was mistakenly decoded as MacRoman."""
+
+    text = str(value or "").strip()
+    try:
+        return text.encode("mac_roman").decode("utf-8")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return text
+
+
 def _guess_department_from_email(email: object) -> str:
     """Derive a department-like value from an email domain."""
 
@@ -82,7 +92,7 @@ def read_researchers(
 
         researchers: list[Researcher] = []
         for row in rows:
-            name = str(row[name_index] or "").strip()
+            name = _repair_name_encoding(row[name_index])
             if not name:
                 continue
 
