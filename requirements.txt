@@ -91,6 +91,7 @@ ollama-haystack==2.4.1
 onnxruntime==1.21.0
 openai==1.72.0
 openfile==0.0.7
+openpyxl==3.1.5
 opentelemetry-api==1.31.1
 opentelemetry-exporter-otlp-proto-common==1.31.1
 opentelemetry-exporter-otlp-proto-grpc==1.31.1

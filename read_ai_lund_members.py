@@ -13,6 +13,7 @@ from openpyxl import load_workbook
 class Researcher(TypedDict):
     name: str
     department: str
+    inferred: str
 
 
 def _normalise_header(value: object) -> str:
@@ -42,10 +43,10 @@ def read_researchers(
 ) -> list[Researcher]:
     """Return researcher/department records from the first worksheet.
 
-    The workbook's ``Organisation`` column is used as the department. When it is
-    blank, a department is guessed from the email domain. Rows with no researcher
-    name are ignored. Set ``lu_only`` to include only rows marked with an ``x``
-    in the ``LU`` column.
+    The workbook's ``Organisation`` column is returned unchanged as the
+    department. A separate ``inferred`` value is derived from the email domain.
+    Rows with no researcher name are ignored. Set ``lu_only`` to include only
+    rows marked with an ``x`` in the ``LU`` column.
     """
 
     path = Path(spreadsheet).expanduser()
@@ -91,9 +92,14 @@ def read_researchers(
                     continue
 
             department = str(row[department_index] or "").strip()
-            if not department:
-                department = _guess_department_from_email(row[email_index])
-            researchers.append({"name": name, "department": department})
+            inferred = _guess_department_from_email(row[email_index])
+            researchers.append(
+                {
+                    "name": name,
+                    "department": department,
+                    "inferred": inferred,
+                }
+            )
 
         return researchers
     finally:
