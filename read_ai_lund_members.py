@@ -29,8 +29,8 @@ def _guess_department_from_email(email: object) -> str:
         return ""
 
     domain = domain.strip().rstrip(".")
-    if domain.endswith(".lu.se"):
-        return domain.removesuffix(".lu.se")
+    if domain == "gmail.com":
+        return ""
     if domain.endswith(".se"):
         return domain.removesuffix(".se")
     return domain
