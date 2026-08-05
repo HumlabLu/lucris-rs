@@ -106,6 +106,9 @@ pub struct ResearchClean {
     pub persons: Vec<PersonRef>, // Or PersonClean?
     //#[serde(rename = "creationDate")]
     creation_date: String,
+    //#[serde(rename = "publicationDate")]
+    // Publication date is a bit more complex. Often only year.
+    publication_date: String,
 }
 
 /// Whether a researcher is internal (we have info in persons.jsonl) or external.
@@ -187,6 +190,10 @@ impl ResearchClean {
     pub fn get_creation_date(&self) -> &str {
         &self.creation_date
     }
+
+    pub fn get_publication_date(&self) -> &str {
+        &self.publication_date
+    }
 }
 
 // This one takes a locale string and extracts the information for the specified locale.
@@ -267,6 +274,8 @@ impl ResearchClean {
 
         let creation_date = value.get_creation_date().to_owned();
 
+        let publication_date = value.get_current_publication_date();
+
         // We have come this far, return the new struct.
         Ok(ResearchClean {
             uuid: safe_uuid,
@@ -275,6 +284,7 @@ impl ResearchClean {
             persons,
             keywords,
             creation_date,
+            publication_date,
         })
     }
 }
@@ -950,6 +960,40 @@ impl ResearchJson {
             .and_then(|info| info.createdDate.as_deref())
             .unwrap_or("")
     }
+
+    // Returns a string based on whatever is present in the data.
+    // Returns "" if empty.
+    pub fn get_current_publication_date(&self) -> String {
+        let publication_date = self
+            .publicationStatuses
+            .as_deref()
+            .unwrap_or(&[])
+            .iter()
+            .find(|status| status.current == Some(true))
+            .and_then(|status| status.publicationDate.as_ref());
+
+        match publication_date {
+            Some(PublicationDate {
+                year: Some(year),
+                month: Some(month),
+                day: Some(day),
+            }) => format!("{year:04}-{month:02}-{day:02}"),
+
+            Some(PublicationDate {
+                year: Some(year),
+                month: Some(month),
+                day: None,
+            }) => format!("{year:04}-{month:02}"),
+
+            Some(PublicationDate {
+                year: Some(year),
+                month: None,
+                day: None,
+            }) => format!("{year:04}"),
+
+            _ => String::new(),
+        }
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -1166,7 +1210,7 @@ mod tests {
         // Create and save the safe_uuid so we can compare it later.
         let safe_uuid = umap.add_uuid("01234567-0123-0123-0123-0123456789AB");
         let answer = format!(
-            r#"{{"uuid":"{}","title":"A nice title.","abstract":"","keywords":[],"persons":[],"creation_date":""}}"#,
+            r#"{{"uuid":"{}","title":"A nice title.","abstract":"","keywords":[],"persons":[],"creation_date":"","publication_date":""}}"#,
             safe_uuid
         );
         let research: ResearchJson = serde_json::from_str(data).expect("Err");
