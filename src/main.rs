@@ -477,6 +477,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Print the output to stdout. Simple format,
     // NAME: ... (multiple names)
     // TITLE: ...
+    // KEYWORDS: ...
     // ABSTRACT: ...
     for r in combined.research.values() {
         debug!("research clean uuid={:?}", r.get_uuid());
@@ -493,6 +494,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // TODO Check the type of research (journal, etc).
             println!("NAMES:{}", names.join(","));
             println!("TITLE:{}", r.get_title());
+            println!("KEYWORDS:{}", r.get_keywords().join(","));
             let s = r.get_abstract();
             /*
             s.split_whitespace()

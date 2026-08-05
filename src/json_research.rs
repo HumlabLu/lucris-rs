@@ -102,6 +102,7 @@ pub struct ResearchClean {
     title: String,
     #[serde(rename = "abstract")]
     abstract_text: String,
+    keywords: Vec<String>,
     pub persons: Vec<PersonRef>, // Or PersonClean?
 }
 
@@ -175,6 +176,10 @@ impl ResearchClean {
 
     pub fn get_uuid(&self) -> &str {
         &self.uuid
+    }
+
+    pub fn get_keywords(&self) -> &[String] {
+        &self.keywords
     }
 }
 
@@ -252,12 +257,15 @@ impl ResearchClean {
         // safe_uuid for the research structure itself.
         let safe_uuid = umap.get_uuid_as_str(uuid);
 
+        let keywords = value.get_keywords_for_locale(locale);
+
         // We have come this far, return the new struct.
         Ok(ResearchClean {
             uuid: safe_uuid,
             title: abstract_title.to_string(),
             abstract_text: abstract_text.to_string(),
             persons,
+            keywords,
         })
     }
 }
@@ -886,6 +894,45 @@ impl ResearchJson {
             .and_then(|workflow| workflow.workflowStep.as_deref())
             == Some("approved")
     }
+
+    // Added 20260805, for the annotation output.
+    pub fn get_keywords_for_locale(&self, locale: &str) -> Vec<String> {
+        let mut keywords = Vec::new();
+
+        for group in self.keywordGroups.as_deref().unwrap_or(&[]) {
+            for container in group.keywordContainers.as_deref().unwrap_or(&[]) {
+                // User-entered/free keywords
+                for localized_keywords in container.freeKeywords.as_deref().unwrap_or(&[]) {
+                    if localized_keywords.locale.as_deref() == Some(locale) {
+                        keywords.extend(
+                            localized_keywords
+                                .freeKeywords
+                                .as_deref()
+                                .unwrap_or(&[])
+                                .iter()
+                                .cloned(),
+                        );
+                    }
+                }
+
+                // Controlled/structured keywords
+                if let Some(term) = container
+                    .structuredKeyword
+                    .as_ref()
+                    .and_then(|keyword| keyword.term.as_ref())
+                {
+                    keywords.extend(
+                        term.text
+                            .iter()
+                            .filter(|text| text.locale.as_deref() == Some(locale))
+                            .filter_map(|text| text.value.clone()),
+                    );
+                }
+            }
+        }
+
+        keywords
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -956,6 +1003,7 @@ pub fn read_research_jsonl(
                         debug!("Ignoring unapproved research item {:?}", json.uuid);
                         return;
                     }
+
                     // TODO check for optout uuid here? Ignore if it is?
                     // We might want to do this more dynamically later...
 
