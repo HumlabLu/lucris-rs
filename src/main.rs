@@ -77,6 +77,10 @@ struct Cli {
     /// error, warn, info, debug, or trace
     #[arg(long = "ll", default_value = "warn")]
     log_level: String,
+
+    /// Output one JSON object per line instead of text.
+    #[arg(short = 'j', long)]
+    jsonl: bool,
 }
 
 fn log_format(
@@ -481,32 +485,45 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // CREATED: ...
     // PUBLISHED: ...
     // ABSTRACT: ...
-    for r in combined.research.values() {
-        debug!("research clean uuid={:?}", r.get_uuid());
-        trace!("{:?}", r);
-        let names: Vec<_> = r
-            .persons
-            .iter()
-            //.filter(|p| p.is_internal()) // Filter by the `inex` variable
-            .map(|p| p.get_name())
-            .collect();
-        if names.is_empty() {
-            eprintln!("No names! {}", r.get_title());
-        } else {
-            // TODO Check the type of research (journal, etc).
-            println!("NAMES:{}", names.join(","));
-            println!("TITLE:{}", r.get_title());
-            println!("KEYWORDS:{}", r.get_keywords().join(","));
-            println!("CREATED:{}", r.get_creation_date());
-            println!("PUBLISHED:{}", r.get_publication_date());
-            let s = r.get_abstract();
-            /*
-            s.split_whitespace()
-                .collect::<Vec<&str>>()
-                .join(" ");
-            */
-            //println!("ABSTRACT:{}", r.get_abstract());
-            println!("ABSTRACT:{}", s);
+    if !cli.jsonl {
+        for r in combined.research.values() {
+            debug!("research clean uuid={:?}", r.get_uuid());
+            trace!("{:?}", r);
+            let names: Vec<_> = r
+                .persons
+                .iter()
+                //.filter(|p| p.is_internal()) // Filter by the `inex` variable
+                .map(|p| p.get_name())
+                .collect();
+            if names.is_empty() {
+                eprintln!("No names! {}", r.get_title());
+            } else {
+                // TODO Check the type of research (journal, etc).
+                println!("NAMES:{}", names.join(","));
+                println!("TITLE:{}", r.get_title());
+                println!("KEYWORDS:{}", r.get_keywords().join(","));
+                println!("CREATED:{}", r.get_creation_date());
+                println!("PUBLISHED:{}", r.get_publication_date());
+                let s = r.get_abstract();
+                /*
+                s.split_whitespace()
+                    .collect::<Vec<&str>>()
+                    .join(" ");
+                */
+                //println!("ABSTRACT:{}", r.get_abstract());
+                println!("ABSTRACT:{}", s);
+            }
+        }
+    } else {
+        let stdout = std::io::stdout();
+        let mut output = stdout.lock();
+
+        let mut research: Vec<&ResearchClean> = combined.research.values().collect();
+        research.sort_by_key(|item| item.get_publication_date());
+
+        for item in research {
+            serde_json::to_writer(&mut output, item)?;
+            writeln!(output)?;
         }
     }
 
