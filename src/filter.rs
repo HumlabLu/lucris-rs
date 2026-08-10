@@ -15,6 +15,14 @@ impl ResearchClean {
     }
 }
 
+impl ResearchClean {
+    pub fn has_keyword(&self, keywords: &HashSet<String>) -> bool {
+        self.keywords
+            .iter()
+            .any(|keyword| keywords.contains(&keyword.trim().to_lowercase()))
+    }
+}
+
 pub fn filter_research_by_person(
     research: &mut HashMap<String, ResearchClean>,
     names: Vec<String>,
@@ -35,4 +43,18 @@ pub fn filter_research_by_person(
             PersonFilterMode::DeleteMatching => !matches,
         }
     });
+}
+
+pub fn filter_research_by_keyword(
+    research: &mut HashMap<String, ResearchClean>,
+    keywords: Vec<String>,
+    keep_matching: bool,
+) {
+    let keywords: HashSet<String> = keywords
+        .into_iter()
+        .map(|keyword| keyword.trim().to_lowercase())
+        .filter(|keyword| !keyword.is_empty())
+        .collect();
+
+    research.retain(|_, item| item.has_keyword(&keywords) == keep_matching);
 }

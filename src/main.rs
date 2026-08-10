@@ -32,7 +32,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use uuid_map::UuidMap;
 mod filter;
-use filter::{filter_research_by_person, PersonFilterMode};
+use filter::{filter_research_by_keyword, filter_research_by_person, PersonFilterMode};
 
 #[derive(Parser)]
 #[command(version, about, long_about = "Reading data.")]
@@ -79,6 +79,13 @@ struct Cli {
         help = "The file containing the names to keep."
     )]
     names: Option<String>,
+
+    #[arg(
+        short = 'k',
+        long = "keywords",
+        help = "The file containing the keywords to keep."
+    )]
+    keywords: Option<String>,
 
     /// Sets the locale for the extracted texts.
     #[arg(short, long, default_value = "en_GB")]
@@ -440,7 +447,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // We need the Keep/Delete option as well. TODO
     if let Some(names_filename) = cli.names {
-        info!("Before names files {} items.", research_map.len());
+        info!("Before names file {} items.", research_map.len());
         let names_list = read_names(&names_filename)?;
         filter_research_by_person(
             &mut research_map,
@@ -448,7 +455,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             PersonFilterMode::KeepMatching,
             // PersonFilterMode::DeleteMatching,
         );
-        info!("After names files {} items.", research_map.len());
+        info!("After names file {} items.", research_map.len());
+    }
+
+    // We need the Keep/Delete option as well. TODO
+    // FIXME this looks in keywords, not in abstracts!
+    if let Some(keywords_filename) = cli.keywords {
+        info!("Before keywords files {} items.", research_map.len());
+        let keywords_list = read_names(&keywords_filename)?;
+        filter_research_by_keyword(&mut research_map, keywords_list, true);
+        info!("After keywords file {} items.", research_map.len());
     }
 
     // TODO: How to connect everything?

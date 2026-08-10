@@ -102,7 +102,7 @@ pub struct ResearchClean {
     title: String,
     #[serde(rename = "abstract")]
     abstract_text: String,
-    keywords: Vec<String>,
+    pub keywords: Vec<String>,
     pub persons: Vec<PersonRef>, // Or PersonClean?
     //#[serde(rename = "creationDate")]
     creation_date: String,
