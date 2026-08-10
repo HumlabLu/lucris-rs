@@ -31,6 +31,8 @@ mod uuid_map;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use uuid_map::UuidMap;
+mod filter;
+use filter::{filter_research_by_person, PersonFilterMode};
 
 #[derive(Parser)]
 #[command(version, about, long_about = "Reading data.")]
@@ -70,6 +72,13 @@ struct Cli {
         help = "The file containing the opt-out uuids."
     )]
     optout: Option<String>,
+
+    #[arg(
+        short = 'n',
+        long = "names",
+        help = "The file containing the names to keep."
+    )]
+    names: Option<String>,
 
     /// Sets the locale for the extracted texts.
     #[arg(short, long, default_value = "en_GB")]
@@ -422,6 +431,25 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         });
 
     // ------------------------------------------------------------------------
+
+    // ------------------------------------------------------------------------
+    // Filter before we output.
+    // is this the right spot? Combined might contain a filtered list,
+    // while the other datastrcuts are unfiltered. FIXME
+    // ------------------------------------------------------------------------
+
+    // We need the Keep/Delete option as well. TODO
+    if let Some(names_filename) = cli.names {
+        info!("Before names files {} items.", research_map.len());
+        let names_list = read_names(&names_filename)?;
+        filter_research_by_person(
+            &mut research_map,
+            names_list,
+            PersonFilterMode::KeepMatching,
+            // PersonFilterMode::DeleteMatching,
+        );
+        info!("After names files {} items.", research_map.len());
+    }
 
     // TODO: How to connect everything?
     // Use Combined.
