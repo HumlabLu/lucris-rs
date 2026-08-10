@@ -519,7 +519,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut output = stdout.lock();
 
         let mut research: Vec<&ResearchClean> = combined.research.values().collect();
-        research.sort_by_key(|item| item.get_publication_date());
+        research.sort_by_key(|item| item.get_publication_date()); // Even get_keywords() works here.
 
         for item in research {
             serde_json::to_writer(&mut output, item)?;
