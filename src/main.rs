@@ -28,6 +28,8 @@ use std::path::Path;
 use std::str::FromStr;
 mod errors;
 mod uuid_map;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 use uuid_map::UuidMap;
 
 #[derive(Parser)]
@@ -103,6 +105,22 @@ fn log_format(
         line,
         &record.args()
     )
+}
+
+// Helper function for names list.
+fn read_names(file_path: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    let file = File::open(file_path)?;
+    let reader = BufReader::new(file);
+
+    let names = reader
+        .lines()
+        .map(|line| line.map(|name| name.trim().to_owned()))
+        .collect::<Result<Vec<String>, _>>()?
+        .into_iter()
+        .filter(|name| !name.is_empty())
+        .collect();
+
+    Ok(names)
 }
 
 // TODO: Better error handling.
@@ -489,6 +507,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         for r in combined.research.values() {
             debug!("research clean uuid={:?}", r.get_uuid());
             trace!("{:?}", r);
+            // If empty abstract skip?
             let names: Vec<_> = r
                 .persons
                 .iter()

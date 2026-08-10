@@ -32,7 +32,7 @@ def _repair_name_encoding(value: object) -> str:
 
 
 def _guess_department_from_email(email: object) -> str:
-    """Derive a department-like value from an email domain."""
+    """Guess the department from the email domain."""
 
     address = str(email or "").strip().casefold()
     _, separator, domain = address.rpartition("@")
@@ -40,6 +40,7 @@ def _guess_department_from_email(email: object) -> str:
         return ""
 
     domain = domain.strip().rstrip(".")
+    # Maybe even structer and discard != .lu.se?
     if domain == "gmail.com":
         return ""
     if domain.endswith(".se"):
@@ -48,9 +49,7 @@ def _guess_department_from_email(email: object) -> str:
 
 
 def read_researchers(
-    spreadsheet: str | Path,
-    *,
-    lu_only: bool = False,
+    spreadsheet: str | Path, *, lu_only: bool = False
 ) -> list[Researcher]:
     """Return researcher/department records from the first worksheet.
 
