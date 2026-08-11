@@ -35,6 +35,7 @@ mod filter;
 use filter::{
     filter_research_by_abstract, filter_research_by_keyword, filter_research_by_person, FilterMode,
 };
+use regex::escape;
 
 #[derive(Parser)]
 #[command(version, about, long_about = "Reading data.")]
@@ -560,6 +561,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // PUBLISHED: ...
     // ABSTRACT: ...
     if !cli.jsonl {
+        // We really need a CSV output mode as well...
         for r in combined.research.values() {
             debug!("research clean uuid={:?}", r.get_uuid());
             trace!("{:?}", r);
@@ -574,6 +576,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 eprintln!("No names! {}", r.get_title());
             } else {
                 // TODO Check the type of research (journal, etc).
+                /*
                 println!("NAMES:{}", names.join(","));
                 println!("TITLE:{}", r.get_title());
                 println!("KEYWORDS:{}", r.get_keywords().join(","));
@@ -587,6 +590,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 */
                 //println!("ABSTRACT:{}", r.get_abstract());
                 println!("ABSTRACT:{}", s);
+                */
+                print!("\"{}\"\t", names.join(","));
+                print!("\"{}\"\t", r.get_title());
+                print!("\"{}\"\t", r.get_keywords().join(","));
+                print!("\"{}\"\t", r.get_publication_date());
+                let s = r.get_abstract();
+                println!("\"{}\"", s);
             }
         }
     } else {
