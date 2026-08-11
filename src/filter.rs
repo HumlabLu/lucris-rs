@@ -100,3 +100,72 @@ pub fn filter_research_by_abstract(
 
     Ok(())
 }
+
+// ===========================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::json_research::read_research_jsonl;
+    use crate::uuid_map::UuidMap;
+    use std::path::{Path, PathBuf};
+
+    fn make_test_path(file_name: &str) -> PathBuf {
+        let project_root = env!("CARGO_MANIFEST_DIR");
+        let data_path = Path::new(project_root)
+            .join("tests")
+            .join("data")
+            .join(file_name);
+        data_path
+    }
+
+    #[test]
+    fn test_filter_research_by_abstract() {
+        let data_path = make_test_path("pjb_research.jsonl");
+
+        // Read the original ResearchJson.
+        let read_umap = UuidMap::new();
+        let (research_json, _) =
+            read_research_jsonl(data_path.to_str().expect("Invalid path."), &read_umap)
+                .expect("Failed to read test data.");
+
+        // Convert it to ResearchClean.
+        let mut conversion_umap = UuidMap::new();
+        let research_clean = ResearchClean::try_from_with_locale_umap(
+            &research_json[0],
+            "en_GB",
+            &mut conversion_umap,
+        )
+        .expect("Failed to create ResearchClean");
+
+        // Create hashmap uuid -> ResearchClean.
+        let uuid = research_clean.get_uuid().to_owned();
+        let rs_clean = HashMap::from([(uuid, research_clean)]);
+
+        eprintln!("{:?}", rs_clean);
+
+        let mut rs_keep = rs_clean.clone();
+        filter_research_by_abstract(
+            &mut rs_keep,
+            vec!["language modeling".to_owned()],
+            FilterMode::KeepMatching,
+        )
+        .expect("Failed to compile regexp.");
+
+        eprintln!(">>\n{:?}\n<<", rs_keep);
+
+        // Should still contain one element.
+        assert_eq!(rs_keep.len(), 1);
+
+        // Here we have a match, but we do not keep the item.
+        let mut rs_delete = rs_clean.clone();
+        filter_research_by_abstract(
+            &mut rs_delete,
+            vec!["approximations".to_owned()],
+            FilterMode::DeleteMatching,
+        )
+        .expect("Failed to compile regular expressions");
+
+        assert!(rs_delete.is_empty());
+    }
+}
