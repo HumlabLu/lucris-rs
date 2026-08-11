@@ -596,7 +596,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 print!("\"{}\"\t", r.get_keywords().join(","));
                 print!("\"{}\"\t", r.get_publication_date());
                 let s = r.get_abstract();
-                println!("\"{}\"", s);
+                println!("\"{}\"", escape(&s));
             }
         }
     } else {
