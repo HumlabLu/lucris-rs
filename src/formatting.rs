@@ -1,5 +1,5 @@
-use scraper::{Html, Selector, ElementRef, Node};
 use log::{debug, error, info, trace, warn};
+use scraper::{ElementRef, Html, Node, Selector};
 
 fn extract_text_from_vec(html_snippets: &Vec<&str>) -> Vec<String> {
     html_snippets
@@ -10,7 +10,6 @@ fn extract_text_from_vec(html_snippets: &Vec<&str>) -> Vec<String> {
         })
         .collect()
 }
-
 
 // Takes a vector, returns a vector.
 pub fn extract_texts_with_formatting(html_snippets: &Vec<&str>) -> Vec<String> {
@@ -114,7 +113,8 @@ mod tests {
 
     #[test]
     fn extract_h2luli() {
-        let html_snippet = "<h2>Heading 2</h2><ul><li>PhD in NLP</li><li>Developer of lucris-rs</li></lu>";
+        let html_snippet =
+            "<h2>Heading 2</h2><ul><li>PhD in NLP</li><li>Developer of lucris-rs</li></lu>";
         let cleaned = extract_text_with_formatting(html_snippet);
         println!("{}", cleaned);
         assert_eq!(cleaned, "Heading 2\nPhD in NLP\nDeveloper of lucris-rs");
@@ -127,5 +127,4 @@ mod tests {
         println!("{}", cleaned);
         assert_eq!(cleaned, "<foo>ß and あ 😂");
     }
-
 }

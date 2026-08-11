@@ -20,7 +20,7 @@ use combined::Combined;
 mod formatting;
 use flexi_logger::{DeferredNow, Record};
 use flexi_logger::{Duplicate, FileSpec, LogSpecification, Logger, WriteMode};
-use formatting::extract_texts_with_formatting;
+use formatting::{extract_text_with_formatting, extract_texts_with_formatting};
 use log::{debug, error, info, trace, LevelFilter};
 use std::collections::HashMap;
 use std::io::Write;
@@ -639,6 +639,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .join(" ");
             if abstract_text.len() > 0 {
                 // skip empty abstract
+                let abstract_text = extract_text_with_formatting(&abstract_text);
                 writer.write_record([
                     names.join(","),
                     r.get_title().to_string(),
