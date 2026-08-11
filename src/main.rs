@@ -32,7 +32,9 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use uuid_map::UuidMap;
 mod filter;
-use filter::{filter_research_by_keyword, filter_research_by_person, PersonFilterMode};
+use filter::{
+    filter_research_by_abstract, filter_research_by_keyword, filter_research_by_person, FilterMode,
+};
 
 #[derive(Parser)]
 #[command(version, about, long_about = "Reading data.")]
@@ -452,18 +454,28 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         filter_research_by_person(
             &mut research_map,
             names_list,
-            PersonFilterMode::KeepMatching,
-            // PersonFilterMode::DeleteMatching,
+            FilterMode::KeepMatching,
+            // FilterMode::DeleteMatching,
         );
         info!("After names file {} items.", research_map.len());
     }
 
     // We need the Keep/Delete option as well. TODO
     // FIXME this looks in keywords, not in abstracts!
+    /*
     if let Some(keywords_filename) = cli.keywords {
         info!("Before keywords files {} items.", research_map.len());
         let keywords_list = read_names(&keywords_filename)?;
         filter_research_by_keyword(&mut research_map, keywords_list, true);
+        info!("After keywords file {} items.", research_map.len());
+    }
+    */
+
+    if let Some(keywords_filename) = cli.keywords {
+        info!("Before keywords files {} items.", research_map.len());
+        let keywords_list = read_names(&keywords_filename)?;
+        let _ =
+            filter_research_by_abstract(&mut research_map, keywords_list, FilterMode::KeepMatching);
         info!("After keywords file {} items.", research_map.len());
     }
 
