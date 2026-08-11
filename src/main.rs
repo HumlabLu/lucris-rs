@@ -32,10 +32,12 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use uuid_map::UuidMap;
 mod filter;
+use csv;
 use filter::{
     filter_research_by_abstract, filter_research_by_keyword, filter_research_by_person, FilterMode,
 };
 use regex::escape;
+use std::io;
 
 #[derive(Parser)]
 #[command(version, about, long_about = "Reading data.")]
@@ -472,6 +474,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     */
 
+    /*
     if let Some(keywords_filename) = cli.keywords {
         info!("Before keywords files {} items.", research_map.len());
         let keywords_list = read_names(&keywords_filename)?;
@@ -479,6 +482,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             filter_research_by_abstract(&mut research_map, keywords_list, FilterMode::KeepMatching);
         info!("After keywords file {} items.", research_map.len());
     }
+    */
 
     // TODO: How to connect everything?
     // Use Combined.
@@ -562,6 +566,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // ABSTRACT: ...
     if !cli.jsonl {
         // We really need a CSV output mode as well...
+        /*
         for r in combined.research.values() {
             debug!("research clean uuid={:?}", r.get_uuid());
             trace!("{:?}", r);
@@ -599,6 +604,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("\"{}\"", escape(&s));
             }
         }
+        */
     } else {
         let stdout = std::io::stdout();
         let mut output = stdout.lock();
@@ -610,6 +616,44 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             serde_json::to_writer(&mut output, item)?;
             writeln!(output)?;
         }
+    }
+
+    if true {
+        let stdout = io::stdout();
+        let mut output = stdout.lock();
+        // UTF-8 BOM
+        output.write_all(b"\xEF\xBB\xBF")?;
+        let mut writer = csv::WriterBuilder::new()
+            .delimiter(b'\t')
+            .from_writer(output);
+        writer.write_record(["names", "title", "keywords", "pubdate", "abstract"])?;
+
+        for r in combined.research.values() {
+            let names: Vec<_> = r
+                .persons
+                .iter()
+                //.filter(|p| p.is_internal()) // Filter by the `inex` variable
+                .map(|p| p.get_name())
+                .collect();
+            let keywords = r.get_keywords().join(",");
+            let abstract_text = r
+                .get_abstract()
+                .split_whitespace()
+                .collect::<Vec<_>>()
+                .join(" ");
+            if abstract_text.len() > 0 {
+                // skip empty abstract
+                writer.write_record([
+                    names.join(","),
+                    r.get_title().to_string(),
+                    keywords.to_string(),
+                    r.get_publication_date().to_string(),
+                    abstract_text,
+                ])?;
+            }
+        }
+
+        writer.flush()?;
     }
 
     // ------------------------------------------------------------------------

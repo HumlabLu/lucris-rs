@@ -19,6 +19,7 @@ redundant_field_names = "allow"
 
 [dependencies]
 clap = { version = "4.5.19", features = ["derive"] }
+csv = "1.4.0"
 flexi_logger = "0.29.2"
 log = "0.4.22"
 rayon = "1.10.0"
