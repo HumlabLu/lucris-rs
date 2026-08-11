@@ -167,5 +167,17 @@ mod tests {
         .expect("Failed to compile regular expressions");
 
         assert!(rs_delete.is_empty());
+
+        // Boundary test, sub-match should not match, so
+        // result should be empty.
+        let mut rs_sub = rs_clean.clone();
+        filter_research_by_abstract(
+            &mut rs_sub,
+            vec!["approx".to_owned()],
+            FilterMode::KeepMatching,
+        )
+        .expect("Failed to compile regular expressions");
+
+        assert!(rs_sub.is_empty());
     }
 }
