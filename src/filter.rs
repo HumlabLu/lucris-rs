@@ -49,7 +49,7 @@ pub fn filter_research_by_person(
 pub fn filter_research_by_keyword(
     research: &mut HashMap<String, ResearchClean>,
     keywords: Vec<String>,
-    keep_matching: bool,
+    mode: FilterMode,
 ) {
     let keywords: HashSet<String> = keywords
         .into_iter()
@@ -57,7 +57,13 @@ pub fn filter_research_by_keyword(
         .filter(|keyword| !keyword.is_empty())
         .collect();
 
-    research.retain(|_, item| item.has_keyword(&keywords) == keep_matching);
+    research.retain(|_, item| {
+        let matches = item.has_keyword(&keywords);
+        match mode {
+            FilterMode::KeepMatching => matches,
+            FilterMode::DeleteMatching => !matches,
+        }
+    });
 }
 
 impl ResearchClean {
