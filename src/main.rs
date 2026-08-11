@@ -474,7 +474,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     */
 
-    /*
+    // Abstracts filter.
     if let Some(keywords_filename) = cli.keywords {
         info!("Before keywords files {} items.", research_map.len());
         let keywords_list = read_names(&keywords_filename)?;
@@ -482,7 +482,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             filter_research_by_abstract(&mut research_map, keywords_list, FilterMode::KeepMatching);
         info!("After keywords file {} items.", research_map.len());
     }
-    */
 
     // TODO: How to connect everything?
     // Use Combined.
