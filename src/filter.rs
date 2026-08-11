@@ -46,7 +46,7 @@ pub fn filter_research_by_person(
     });
 }
 
-pub fn filter_research_by_keyword(
+pub fn _filter_research_by_keyword(
     research: &mut HashMap<String, ResearchClean>,
     keywords: Vec<String>,
     mode: FilterMode,

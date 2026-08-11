@@ -20,8 +20,8 @@ use combined::Combined;
 mod formatting;
 use flexi_logger::{DeferredNow, Record};
 use flexi_logger::{Duplicate, FileSpec, LogSpecification, Logger, WriteMode};
-use formatting::{extract_text_with_formatting, extract_texts_with_formatting};
-use log::{debug, error, info, trace, warn, LevelFilter};
+use formatting::extract_texts_with_formatting;
+use log::{debug, error, info, trace, LevelFilter};
 use std::collections::HashMap;
 use std::io::Write;
 use std::path::Path;
@@ -33,10 +33,7 @@ use std::io::{BufRead, BufReader};
 use uuid_map::UuidMap;
 mod filter;
 use csv;
-use filter::{
-    filter_research_by_abstract, filter_research_by_keyword, filter_research_by_person, FilterMode,
-};
-use regex::escape;
+use filter::{filter_research_by_abstract, filter_research_by_person, FilterMode};
 use std::io;
 
 #[derive(Parser)]

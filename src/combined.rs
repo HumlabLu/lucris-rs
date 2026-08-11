@@ -4,7 +4,6 @@ use crate::errors::CombinedError;
 use crate::PersonClean;
 use crate::ResearchClean;
 use std::fmt;
-use uuid::Uuid;
 
 // Container for the different data files.
 //
