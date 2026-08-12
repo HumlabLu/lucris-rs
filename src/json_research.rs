@@ -99,7 +99,7 @@ pub struct ResearchJson {
 #[derive(Debug, Serialize, Clone)]
 pub struct ResearchClean {
     uuid: String,
-    title: String,
+    pub title: String,
     #[serde(rename = "abstract")]
     pub abstract_text: String,
     pub keywords: Vec<String>,

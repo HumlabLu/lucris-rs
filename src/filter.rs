@@ -19,6 +19,7 @@ impl ResearchClean {
     }
 }
 
+// Confusing with two variables named keywords.
 impl ResearchClean {
     pub fn has_keyword(&self, keywords: &HashSet<String>) -> bool {
         self.keywords
@@ -73,6 +74,10 @@ impl ResearchClean {
     pub fn abstract_matches_any(&self, patterns: &RegexSet) -> bool {
         patterns.is_match(&self.abstract_text)
     }
+
+    pub fn title_matches_any(&self, patterns: &RegexSet) -> bool {
+        patterns.is_match(&self.title)
+    }
 }
 
 // Use a similar list to names. We use regexen so we can use \b boundary.
@@ -99,7 +104,7 @@ pub fn filter_research_by_abstract(
     let patterns = RegexSet::new(patterns)?;
 
     research.retain(|_, item| {
-        let matches = item.abstract_matches_any(&patterns);
+        let matches = item.abstract_matches_any(&patterns) || item.title_matches_any(&patterns);
 
         match mode {
             FilterMode::KeepMatching => matches,
