@@ -1295,9 +1295,7 @@ mod tests {
 
     #[test]
     pub fn test_research_uuid() {
-        let data = r#"
-{"pureId":2940508,"uuid":"1d136ffd-6d08-444a-9c50-76c0e5aec513"}
-    "#;
+        let data = r#"{"pureId":2940508,"uuid":"1d136ffd-6d08-444a-9c50-76c0e5aec513"}"#;
         let research: ResearchJson = serde_json::from_str(data).expect("Err");
         assert!(research.uuid.as_deref() == Some("1d136ffd-6d08-444a-9c50-76c0e5aec513"));
     }
