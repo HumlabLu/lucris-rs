@@ -33,7 +33,9 @@ use std::io::{BufRead, BufReader};
 use uuid_map::UuidMap;
 mod filter;
 use csv;
-use filter::{filter_research_by_abstract, filter_research_by_person, FilterMode};
+use filter::{
+    filter_research_by_abstract, filter_research_by_keyword, filter_research_by_person, FilterMode,
+};
 use std::io;
 
 #[derive(Parser)]
@@ -88,6 +90,14 @@ struct Cli {
         help = "The file containing the keywords to keep."
     )]
     keywords: Option<String>,
+
+    #[arg(
+        short = 'a',
+        long = "abstract",
+        help = "The file containing the abstract words to keep."
+    )]
+    // abstract is a reserved word...
+    abstractterms: Option<String>,
 
     #[arg(
         long = "filtermode",
@@ -464,19 +474,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // We need the Keep/Delete option as well. TODO
     // FIXME this looks in keywords, not in abstracts!
-    /*
     if let Some(keywords_filename) = cli.keywords {
         info!("Before keywords files {} items.", research_map.len());
         let keywords_list = read_names(&keywords_filename)?;
-        filter_research_by_keyword(&mut research_map, keywords_list, true);
+        filter_research_by_keyword(&mut research_map, keywords_list, cli.filtermode);
         info!("After keywords file {} items.", research_map.len());
     }
-    */
 
     // Abstracts filter.
-    if let Some(keywords_filename) = cli.keywords {
+    if let Some(abstract_filename) = cli.abstractterms {
         info!("Before keywords files {} items.", research_map.len());
-        let keywords_list = read_names(&keywords_filename)?;
+        let keywords_list = read_names(&abstract_filename)?;
         let _ = filter_research_by_abstract(&mut research_map, keywords_list, cli.filtermode);
         info!("After keywords file {} items.", research_map.len());
     }
