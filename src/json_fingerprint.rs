@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use log::{debug, error, info, trace, warn};
+use log::{debug, error, info, warn};
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
 use serde::{Deserialize, Serialize};

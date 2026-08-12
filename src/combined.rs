@@ -101,9 +101,7 @@ impl Combined {
     // Return all the uuids in the research HashMap. If empty we
     // return an empty vector.
     pub fn get_all_research_uuids(&self) -> Vec<&String> {
-        let mut uuids = Vec::new();
-        uuids = self.research.keys().collect();
-        uuids
+        self.research.keys().collect()
     }
 
     // We need different output, for example:

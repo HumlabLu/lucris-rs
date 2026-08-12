@@ -1,12 +1,12 @@
 #![allow(non_snake_case)]
-use serde::{Deserialize, Serialize};
-use std::fs::File;
-use std::io::BufReader;
-use std::io::BufRead;
+use log::{debug, error, info, warn};
 use rayon::iter::ParallelBridge;
 use rayon::iter::ParallelIterator;
+use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
 use std::sync::{Arc, Mutex};
-use log::{debug, error, info, trace, warn};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OrgUnitJson {
@@ -233,7 +233,9 @@ pub struct WebAddress {
 
 // ----------------------------------------------------------------------------
 
-pub fn read_orgunits_jsonl(file_path: &str) -> Result<Vec<OrgUnitJson>, Box<dyn std::error::Error>> {
+pub fn read_orgunits_jsonl(
+    file_path: &str,
+) -> Result<Vec<OrgUnitJson>, Box<dyn std::error::Error>> {
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
     let data = Arc::new(Mutex::new(vec![]));
@@ -242,7 +244,7 @@ pub fn read_orgunits_jsonl(file_path: &str) -> Result<Vec<OrgUnitJson>, Box<dyn 
     reader
         .lines()
         .filter_map(|line: Result<String, _>| line.ok())
-        .par_bridge()   // parallelise
+        .par_bridge() // parallelise
         .for_each(|line: String| {
             match serde_json::from_str::<OrgUnitJson>(&line) {
                 Ok(json) => {
@@ -251,7 +253,7 @@ pub fn read_orgunits_jsonl(file_path: &str) -> Result<Vec<OrgUnitJson>, Box<dyn 
                     // Add it to the data vector.
                     let mut data = data.lock().unwrap();
                     data.push(json);
-                },
+                }
                 Err(e) => {
                     error!("{}", e);
                     //panic!("{}", line);

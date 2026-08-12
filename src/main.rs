@@ -381,7 +381,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Parse the fingerprints JSON. Each struct is pushed into
     // a vector.
-    let fingerprints_data: Option<Vec<FingerprintJson>> =
+    let _fingerprints_data: Option<Vec<FingerprintJson>> =
         cli.fingerprints.as_ref().and_then(|fingerprints_filename| {
             info!("Reading fingerprint file {:?}.", fingerprints_filename);
             match read_fingerprint_jsonl(fingerprints_filename) {
@@ -410,7 +410,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Parse the concepts JSON. Each struct is pushed into
     // a vector.
-    let concepts_data: Option<Vec<ConceptJson>> =
+    let _concepts_data: Option<Vec<ConceptJson>> =
         cli.concepts.as_ref().and_then(|concepts_filename| {
             info!("Reading concepts file {:?}.", concepts_filename);
             match read_concept_jsonl(concepts_filename) {
@@ -437,7 +437,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Parse the orgunits JSON. Each struct is pushed into
     // a vector.
-    let orgunits_data: Option<Vec<OrgUnitJson>> =
+    let _orgunits_data: Option<Vec<OrgUnitJson>> =
         cli.orgunits.as_ref().and_then(|orgunits_filename| {
             info!("Reading organisational-units file {:?}.", orgunits_filename);
             match read_orgunits_jsonl(orgunits_filename) {

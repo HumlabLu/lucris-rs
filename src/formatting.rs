@@ -1,7 +1,6 @@
-use log::{debug, error, info, trace, warn};
-use scraper::{ElementRef, Html, Node, Selector};
+use scraper::{ElementRef, Html, Node};
 
-fn extract_text_from_vec(html_snippets: &Vec<&str>) -> Vec<String> {
+fn _extract_text_from_vec(html_snippets: &Vec<&str>) -> Vec<String> {
     html_snippets
         .iter()
         .map(|snippet| {
