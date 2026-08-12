@@ -1331,4 +1331,27 @@ mod tests {
         println!("{}", research_des_jstr);
         assert_eq!(research_des_jstr, answer);
     }
+
+    #[test]
+    fn test_research_clean_builder() {
+        let rc = ResearchClean::builder("uuid-uuid-uuid")
+            .title("Test of a builder.")
+            .abstract_text("This shows how to use the builder pattern.")
+            .keywords(vec![
+                "Rust Builder Pattern".to_owned(),
+                "Example".to_owned(),
+            ])
+            .persons(vec![PersonRef::internal(0, "uuid-uuid", "Quinten Berck")])
+            .creation_date("2026-08-12")
+            .publication_date("2026")
+            .build();
+
+        // Maybe not a very good test... but it is something...
+        let repr = format!("{}", rc);
+        assert_eq!(repr, "Test of a builder. [1/0/0]");
+
+        let repr_ok = r#"ResearchClean { uuid: "uuid-uuid-uuid", title: "Test of a builder.", abstract_text: "This shows how to use the builder pattern.", keywords: ["Rust Builder Pattern", "Example"], persons: [PersonRef { idx: 0, uuid: "uuid-uuid", name: "Quinten Berck", inex: Internal }], creation_date: "2026-08-12", publication_date: "2026" }"#;
+        let repr = format!("{:?}", rc);
+        assert_eq!(repr, repr_ok);
+    }
 }
