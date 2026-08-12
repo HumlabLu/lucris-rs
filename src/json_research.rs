@@ -147,6 +147,88 @@ impl PersonRef {
     }
 }
 
+// Builder for the ReseachClean struct.
+pub struct ResearchCleanBuilder {
+    uuid: String,
+    title: String,
+    abstract_text: String,
+    keywords: Vec<String>,
+    persons: Vec<PersonRef>,
+    creation_date: String,
+    publication_date: String,
+}
+
+impl ResearchClean {
+    pub fn builder(uuid: impl Into<String>) -> ResearchCleanBuilder {
+        ResearchCleanBuilder {
+            uuid: uuid.into(),
+            title: String::new(),
+            abstract_text: String::new(),
+            keywords: Vec::new(),
+            persons: Vec::new(),
+            creation_date: String::new(),
+            publication_date: String::new(),
+        }
+    }
+}
+
+impl ResearchCleanBuilder {
+    pub fn title(mut self, title: impl Into<String>) -> Self {
+        self.title = title.into();
+        self
+    }
+
+    pub fn abstract_text(mut self, abstract_text: impl Into<String>) -> Self {
+        self.abstract_text = abstract_text.into();
+        self
+    }
+
+    pub fn keywords(mut self, keywords: Vec<String>) -> Self {
+        self.keywords = keywords;
+        self
+    }
+
+    pub fn persons(mut self, persons: Vec<PersonRef>) -> Self {
+        self.persons = persons;
+        self
+    }
+
+    pub fn creation_date(mut self, creation_date: impl Into<String>) -> Self {
+        self.creation_date = creation_date.into();
+        self
+    }
+
+    pub fn publication_date(mut self, publication_date: impl Into<String>) -> Self {
+        self.publication_date = publication_date.into();
+        self
+    }
+
+    pub fn build(self) -> ResearchClean {
+        ResearchClean {
+            uuid: self.uuid,
+            title: self.title,
+            abstract_text: self.abstract_text,
+            keywords: self.keywords,
+            persons: self.persons,
+            creation_date: self.creation_date,
+            publication_date: self.publication_date,
+        }
+    }
+}
+
+fn _example_rc_builder() {
+    let _research = ResearchClean::builder("uuid-uuid-uuid")
+        .title("Test of a builder.")
+        .abstract_text("This shows how to use the builder pattern.")
+        .keywords(vec![
+            "Rust Builder Pattern".to_owned(),
+            "Example".to_owned(),
+        ])
+        .creation_date("2026-08-12")
+        .publication_date("2026")
+        .build();
+}
+
 impl fmt::Display for ResearchClean {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.title)?;
