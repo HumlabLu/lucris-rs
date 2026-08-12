@@ -89,6 +89,13 @@ struct Cli {
     )]
     keywords: Option<String>,
 
+    #[arg(
+        long = "filtermode",
+        value_enum,
+        default_value_t = FilterMode::KeepMatching
+        )]
+    filtermode: FilterMode,
+
     /// Sets the locale for the extracted texts.
     #[arg(short, long, default_value = "en_GB")]
     locale: String,
@@ -451,12 +458,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(names_filename) = cli.names {
         info!("Before names file {} items.", research_map.len());
         let names_list = read_names(&names_filename)?;
-        filter_research_by_person(
-            &mut research_map,
-            names_list,
-            FilterMode::KeepMatching,
-            // FilterMode::DeleteMatching,
-        );
+        filter_research_by_person(&mut research_map, names_list, cli.filtermode);
         info!("After names file {} items.", research_map.len());
     }
 
@@ -475,8 +477,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Some(keywords_filename) = cli.keywords {
         info!("Before keywords files {} items.", research_map.len());
         let keywords_list = read_names(&keywords_filename)?;
-        let _ =
-            filter_research_by_abstract(&mut research_map, keywords_list, FilterMode::KeepMatching);
+        let _ = filter_research_by_abstract(&mut research_map, keywords_list, cli.filtermode);
         info!("After keywords file {} items.", research_map.len());
     }
 

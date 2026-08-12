@@ -1,10 +1,13 @@
 use crate::json_research::ResearchClean;
+use clap::ValueEnum;
 use regex::{escape, RegexSet};
 use std::collections::{HashMap, HashSet};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, ValueEnum)]
 pub enum FilterMode {
+    #[value(name = "keep")]
     KeepMatching,
+    #[value(name = "delete")]
     DeleteMatching,
 }
 
