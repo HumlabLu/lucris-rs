@@ -615,7 +615,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    if true {
+    if (cli.jsonl == false) && (combined.research.len() > 0) {
         let stdout = io::stdout();
         let mut output = stdout.lock();
         // UTF-8 BOM
