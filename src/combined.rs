@@ -107,7 +107,7 @@ impl Combined {
     // We need different output, for example:
     //   - research ID -> research + people + ...
     //   - person ID -> all research + ...
-    pub fn output_test(&self) {
+    pub fn _output_test(&self) {
         let all_uuids = self.get_all_research_uuids();
         for uuid in all_uuids {
             println!("-------- {}", uuid);
@@ -125,7 +125,7 @@ impl Combined {
 
     // Get all ResearchClean articles where uuid is one of the authors.
     // (Probably only internal.)
-    pub fn get_research_for_person_uuid(
+    pub fn _get_research_for_person_uuid(
         &self,
         uuid: &str,
     ) -> Result<Vec<&ResearchClean>, CombinedError> {
