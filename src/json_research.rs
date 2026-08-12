@@ -122,7 +122,7 @@ enum PersonType {
 /// Pointer to the data in persons.jsonl.
 #[derive(Debug, Serialize, Clone)]
 pub struct PersonRef {
-    idx: u32,
+    idx: u32,         // Is this used?
     pub uuid: String, // Can be used to lookup in the person_map data.
     name: String,
     inex: PersonType, // Needs a better name...
@@ -144,6 +144,34 @@ impl PersonRef {
 
     pub fn is_internal(&self) -> bool {
         self.inex == PersonType::Internal
+    }
+
+    // Creators.
+    pub fn internal(idx: u32, uuid: impl Into<String>, name: impl Into<String>) -> Self {
+        Self {
+            idx,
+            uuid: uuid.into(),
+            name: name.into(),
+            inex: PersonType::Internal,
+        }
+    }
+
+    pub fn external(idx: u32, uuid: impl Into<String>, name: impl Into<String>) -> Self {
+        Self {
+            idx,
+            uuid: uuid.into(),
+            name: name.into(),
+            inex: PersonType::External,
+        }
+    }
+
+    pub fn unknown(idx: u32, uuid: impl Into<String>, name: impl Into<String>) -> Self {
+        Self {
+            idx,
+            uuid: uuid.into(),
+            name: name.into(),
+            inex: PersonType::Unknown,
+        }
     }
 }
 
@@ -224,6 +252,7 @@ fn _example_rc_builder() {
             "Rust Builder Pattern".to_owned(),
             "Example".to_owned(),
         ])
+        .persons(vec![PersonRef::internal(0, "uuid-uuid", "Quinten Berck")])
         .creation_date("2026-08-12")
         .publication_date("2026")
         .build();
