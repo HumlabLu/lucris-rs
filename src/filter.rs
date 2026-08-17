@@ -103,6 +103,7 @@ pub fn filter_research_by_abstract(
     // Compile once.
     let patterns = RegexSet::new(patterns)?;
 
+    // We also check in the title, so abstract + title!
     research.retain(|_, item| {
         let matches = item.abstract_matches_any(&patterns) || item.title_matches_any(&patterns);
 
